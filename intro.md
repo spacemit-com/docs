@@ -3,16 +3,6 @@ slug: /
 sidebar_position: 1
 ---
 
-# Bianbu简介
+# 简介
 
-Bianbu是一个针对RISC-V架构的处理器做了深度优化的操作系统，有Bianbu Linux、Bianbu Desktop和Bianbu NAS等版本，适用于不同的产品领域。
-
-## 为什么做Bianbu
-
-- 为开发者提供一个针对RISC-V架构的处理器做了深度优化的操作系统
-- 为客户提供系统解决方案，加速产品量产落地
-- 驱动RISC-V硬件和软件生态系统发展
-
-## 愿景
-
-让我们的技术和服务遍布各行各业，遍布世界，服务每一个有需要的人。
+Bianbu Linux 是 Spacemit Stone 系列芯片的 BSP，即 SDK。包含监管程序接口（OpenSBI）、引导加载程序（U-Boot/UEFI）、Linux 内核、根文件系统（包含各种中间件和库）以及示例等。其目标是为客户提供处理器 Linux 支持，并且可以开发驱动或应用。
