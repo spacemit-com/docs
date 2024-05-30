@@ -1,0 +1,8 @@
+{
+  "label": "开发指南",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Bianbu Linux进阶开发指南，涵盖驱动、启动和多媒体等模块。"
+  }
+}
