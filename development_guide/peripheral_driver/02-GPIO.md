@@ -6,16 +6,10 @@
 2. 对相应的 pin 进行设置
 3. gpio 的使用
 
-假设某方案使用的 gpio 及对应 pin 情况如下表 1，本章基于此例子进行描述。
-
 说明:
 
 1. pin 编号在 linux-6.1\include\dt-bindings\pinctrl\k1-x-pinctrl.h 中定义。
-2. pin 配置相同:
-
-表示一组 pin 设置成 gpio 功能时配置相同，即 mux mode、上下拉、边沿检测、驱动能力配置相同。
-
-表 1
+2. pin 配置相同表示一组 pin 设置成 gpio 功能时配置相同，即 mux mode、上下拉、边沿检测、驱动能力配置相同。
 
 ## 方案gpio描述
 
@@ -49,7 +43,9 @@
 
 采用pinctrl-single,gpio-range属性设置。如果存在某段pin编号连续且配置相同，则配置为一组。
 
-表 1中的gpio对应pinctrl配置如下。pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
+pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
+
+例如：
 
 ```c
 &pinctrl {

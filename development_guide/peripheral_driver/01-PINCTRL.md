@@ -16,7 +16,7 @@ K1 pin 编号范围1~147，对应宏定义 `GPIO_00 ~ GPIO_127`。
 
 k1 pin 支持复用选择。
 
-k1 pin 复用功能列表见[K1 Pin Multiplex.xls]。
+k1 pin 复用功能列表见[K1 Pin Multiplex](https://developer.spacemit.com/#/documentation?token=CzJlwnDYNigRgDk7qS2cvYHPnkh)。
 
 pin 的复用功能号为 0~7，分别定义为 `MUX_MODE0 ~ MUX_MODE7`。
 
