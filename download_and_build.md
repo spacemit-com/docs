@@ -38,7 +38,7 @@ sudo pip3 install pyyaml
 
 使用repo下载完整SDK。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
 
-参考[这篇文档](https://docs.gitlab.com/ee/user/ssh.html)设置SSH Keys。
+Bianbu Linux代码托管在Gitee上，下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
 
 下载代码，例如下载`bl-v1.0.y`分支：
 
@@ -130,6 +130,8 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bian
 ```
 
 其中`bianbu-linux-k1.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
+
+> Titan Flasher使用指南：[刷机工具使用指南](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
 固件默认用户名：`root`，v1.0alpha2版本的密码：`spacemit`，v1.0beta3.1和之后版本的密码：`bianbu`。
 
