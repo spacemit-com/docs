@@ -45,7 +45,7 @@ Bianbu Linux代码托管在Gitee上，下载前先参考[这篇文档](https://g
 ```shell
 mkdir ~/bianbu-linux
 cd ~/bianbu-linux
-repo init -u git@git.gitee.com:bianbu-linux/manifests.git -b main -m bl-v1.0.y.xml
+repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v1.0.y.xml
 repo sync
 repo start bl-v1.0.y --all
 ```
