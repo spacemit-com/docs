@@ -36,7 +36,7 @@ sudo pip3 install pyyaml
 
 ## 下载
 
-使用repo下载完整SDK。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+使用repo（版本 >= 2.41）下载完整SDK。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
 
 Bianbu Linux代码托管在Gitee上，下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
 
