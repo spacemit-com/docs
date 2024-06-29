@@ -4,6 +4,30 @@ sidebar_position: 1
 
 # 更新说明
 
+## v1.0.5更新说明
+
+发布日期：2024-6-28
+
+### 主要更新
+
+- u-boot支持CPU 1.6GHz@1.05v
+- 支持LPDDR4类型的DDR颗粒
+- 支持ota7290b MIPI屏
+- 支持es7210/es8516 audio codec
+- 【Muse Box】支持DP插拔动态检测
+- 修复音频播放杂音问题
+- 修复HDMI获取EDID缺陷，支持完整256 byte EDID
+- 修复Crypto非16 byte对齐处理错误问题
+- 修复rtl8852be休眠唤醒异常相关问题
+- 修复u-boot SPINOR低概率擦写失败的问题
+- 修复u-boot Sandisk 128GB eMMC HS400模式读写出错问题
+- 修复u-boot NVMe SSD某些条件下读写出问题
+- 【Muse Book】修复启动和唤醒概率性花屏的问题
+- 【Muse Book】修复休眠概率性无法唤醒屏幕的问题
+- 【Muse Book】修复摄像头高分辨率卡顿问题
+- 【Muse Book】优化eDP屏初始化速度
+- 【Muse Book】优化eDP屏背光亮度曲线
+
 ## v1.0.3更新说明
 
 发布日期：2024-6-19
