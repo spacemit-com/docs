@@ -64,13 +64,13 @@ make package/utils/adb/clean V=s
 
 
 # 烧写
-固件*.zip，使用Titan Flasher工具刷写至设备板载存储介质
+固件*.zip，使用Titan Flasher工具刷写至设备板载存储介质<br />
 固件*sdcard.img，使用dd命令写至卡上，设备插卡上电即可实现卡启动
 
 # 支持设备列表
 
 ## SBC方案
-BPI-F3
+BPI-F3<br />
 MUSE-Pi
 
 ## NAS方案
