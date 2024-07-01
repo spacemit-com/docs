@@ -15,6 +15,7 @@ Bianbu Linux 是 Spacemit Stone 系列芯片的 BSP，即 SDK。包含监管程�
 - U-Boot
 - Linux Kernel
 - Buildroot
+- OpenWrt
 - onnxruntime (with Hardware Accelerated)
 - ai-support: AI demo 
 - img-gpu-powervr: GPU DDK
@@ -37,6 +38,9 @@ Bianbu Linux 是 Spacemit Stone 系列芯片的 BSP，即 SDK。包含监管程�
 - [下载和编译](download_and_build.md)
 - [设备管理](device_management.md)
 - [方案管理](solution_management.md)
+
+## OpenWrt
+- [下载和编译](openwrt_quickstart.md)
 
 ## 进阶指南
 
