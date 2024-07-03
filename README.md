@@ -40,7 +40,10 @@ Bianbu Linux 是 Spacemit Stone 系列芯片的 BSP，即 SDK。包含监管程�
 - [方案管理](solution_management.md)
 
 ## OpenWrt
-- [下载和编译](openwrt_quickstart.md)
+
+- [下载和编译](openwrt/openwrt_quickstart.md)
+- [设备管理](openwrt/openwrt_device_management.md)
+- [方案管理](openwrt/openwrt_solution_management.md)
 
 ## 进阶指南
 
