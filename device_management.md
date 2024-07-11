@@ -113,8 +113,6 @@ bringup后，功能验证完，推荐在SDK添加一个新设备。例如，添�
 
 4. 修改`bsp-src/uboot-2022.10/include/configs/k1-x.h`，更新`product_name`，FSBL和u-boot将根据`product_name`加载dtb。如果设备有EEPROM记录`product_name`等信息，可以不修改，FSBL和u-boot通过EEPROM的信息实现自适应。
 
-   v1.0beta3.1和之后的版本：
-
    ```diff
    @@ -25,7 +25,7 @@
     #define CONFIG_GATEWAYIP	10.0.92.1
@@ -125,20 +123,6 @@ bringup后，功能验证完，推荐在SDK添加一个新设备。例如，添�
    
     #define K1X_SPL_BOOT_LOAD_ADDR	(0x20200000)
     #define DDR_TRAINING_DATA_BASE	(0xc0829000)
-   ```
-
-   v1.0alpha2：
-
-   ```diff
-   @@ -99,7 +99,7 @@ enum board_boot_mode {
-    	"qemu "
-    
-    #define BOOTENV_DEVICE_CONFIG \
-   -	"product_name=k1_deb1\0" \
-   +	"product_name=k1_hs450\0" \
-    	"serial#=123456789ABC\0" \
-    	"manufacturer=" CONFIG_SYS_VENDOR "\0" \
-    	"manufacture_date=01/16/2023 11:02:20\0" \
    ```
 
 5. 以kernel的`k1-x_deb1.dts`为模版，添加`bsp-src/linux-6.1/arch/riscv/boot/dts/spacemit/k1-x_hs450.dts`。
@@ -167,21 +151,6 @@ bringup后，功能验证完，推荐在SDK添加一个新设备。例如，添�
     BR2_PACKAGE_LINUX_TOOLS_GPIO=y
     BR2_PACKAGE_LINUX_TOOLS_PERF=y
     BR2_PACKAGE_LINUX_TOOLS_PERF_SCRIPTS=y
-   ```
-
-8. v1.0alpha2需要修改`buildroot-ext/board/spacemit/k1/env_k1-x.txt`，添加新dtb。v1.0beta3.1和之后的版本忽略此步。
-
-   ```diff
-   @@ -68,6 +68,8 @@ dtb_env=if test -n "${product_name}"; then \
-                        setenv dtb_name k1-x_deb1.dtb; \
-                    elif test "${product_name}" = k1_deb2; then \
-                        setenv dtb_name k1-x_deb2.dtb; \
-   +                elif test "${product_name}" = k1_hs450; then \
-   +                    setenv dtb_name k1-x_hs450.dtb; \
-                    else \
-                        echo "Unknow product_name: ${product_name}, loads default dtb: ${dtb_name}"; \
-   
-                    fi; \
    ```
 
    修改完，重新编译u-boot、内核和SDK即可。

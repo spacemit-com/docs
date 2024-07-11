@@ -133,7 +133,7 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bian
 
 > Titan Flasher使用指南：[刷机工具使用指南](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
-固件默认用户名：`root`，v1.0alpha2版本的密码：`spacemit`，v1.0beta3.1和之后版本的密码：`bianbu`。
+固件默认用户名：`root`，密码：`bianbu`。
 
 ### 配置
 
@@ -233,7 +233,7 @@ make k1_defconfig
 make -j$(nproc)
 ```
 
-v1.0beta3.1和之后的版本默认会根据board/spacemit/k1-x/k1-x.env生成env.bin，方案的env_k1-x.txt配置会overlay该文件。
+编译会根据`board/spacemit/k1-x/k1-x.env`生成`u-boot-env-default.bin`，对应分区表`env`分区的镜像。
 
 #### 编译linux
 
@@ -241,14 +241,6 @@ v1.0beta3.1和之后的版本默认会根据board/spacemit/k1-x/k1-x.env生成en
 cd /path/to/linux-6.1
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
-```
-
-v1.0aplha2版本需要手动生成uImage.itb，
-
-```shell
-cd arch/riscv/boot
-cp ../../../../../buildroot-ext/board/spacemit/k1/kernel_fdt.its .
-mkimage -f kernel_fdt.its -r uImage.itb
 ```
 
 ## 本地编译
@@ -272,7 +264,7 @@ make k1_defconfig
 make -j$(nproc)
 ```
 
-将`FSBL.bin`、`env.bin`和`u-boot.itb`用fastboot写入对应分区即可。
+将`FSBL.bin`、`u-boot-env-default.bin`和`u-boot.itb`用fastboot写入对应分区即可。
 
 ### 编译linux
 
@@ -282,14 +274,4 @@ make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```
 
-将`arch/riscv/boot/Image.itb`和`arch/riscv/boot/dts/spacemit/k1-x_deb1.dtb`替换bootfs分区对应文件即可。
-
-v1.0aplha2版本需要手动生成uImage.itb，
-
-```shell
-cd arch/riscv/boot
-cp /path/to/buildroot-ext/board/spacemit/k1/kernel_fdt.its .
-mkimage -f kernel_fdt.its -r uImage.itb
-```
-
-将`arch/riscv/boot/uImage.itb`和`arch/riscv/boot/dts/spacemit/k1-x_deb1.dtb`替换bootfs分区对应文件即可。
+将`arch/riscv/boot/Image.gz.itb`和`arch/riscv/boot/dts/spacemit/*.dtb`替换`bootfs`分区对应文件即可。
