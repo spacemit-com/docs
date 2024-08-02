@@ -4,6 +4,30 @@ sidebar_position: 1
 
 # 更新说明
 
+## v1.0.12更新说明
+
+发布日期：2024-8-2
+
+### 主要更新
+
+- 支持aic8800 WiFi模组
+
+## v1.0.11更新说明
+
+发布日期：2024-8-1
+
+### 主要更新
+
+- 支持EEPROM烧录part number
+- 支持rtl8852be休眠开关电
+- 更新pin脚上、下拉状态
+- 修复u-boot下pwm时钟配置错误
+- 修复GMAC Phy在休眠时无法进入低功耗的问题
+- 修复CPU跑`1.8GHz@1.16v` WiFi、GMAC功能异常的问题
+- 修复Samsung 970pro 1T SSD被识别为1 lane的问题
+- 【MUSE Book】修复充电充满后电量显示仅99%的问题
+- 【MUSE Book】修复休眠后唤醒速度到2s内
+
 ## v1.0.9更新说明
 
 发布日期：2024-7-20
@@ -51,7 +75,7 @@ sidebar_position: 1
 
 ### 主要更新
 
-- u-boot支持CPU 1.6GHz@1.05v
+- u-boot支持CPU `1.6GHz@1.05v`
 - 支持LPDDR4类型的DDR颗粒
 - 支持ota7290b MIPI屏
 - 支持es7210/es8516 audio codec
