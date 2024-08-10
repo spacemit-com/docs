@@ -84,7 +84,11 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ### 首次完整编译
 
-首次编译，建议使用`make envconfig`完整编译。修改了`buildroot-ext/configs/spacemit_k1_defconfig`，要使用`make envconfig`编译。其他情况，使用`make`编译即可。
+首次编译，建议使用`make envconfig`完整编译。
+
+修改了`buildroot-ext/configs/spacemit_<solution>_defconfig`，要使用`make envconfig`编译。
+
+其他情况，使用`make`编译即可。
 
 ```shell
 cd ~/bianbu-linux
@@ -93,12 +97,15 @@ Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
   2. spacemit_k1_minimal_defconfig
   3. spacemit_k1_plt_defconfig
+  4. spacemit_k1_v2_defconfig
 
 
-your choice (1-3): 
+your choice (1-4): 
 ```
 
-输入`1`，然后回车即开始编译。
+编译Bianbu Linux 1.0版本，输入`1`，然后回车即开始编译。
+
+编译Bianbu Linux 2.0版本，输入`4`。
 
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
 
