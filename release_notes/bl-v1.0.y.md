@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# 更新说明
+# Bianbu Linux 1.0更新说明
 
 ## v1.0.12更新说明
 
