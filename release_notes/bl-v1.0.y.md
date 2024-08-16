@@ -4,6 +4,19 @@ sidebar_position: 1
 
 # Bianbu Linux 1.0更新说明
 
+## v1.0.13更新说明
+
+发布日期：2024-8-16
+
+### 主要更新
+
+- 支持`inxi`获取CPU温度
+- 修复u-boot SSD兼容性
+- 修复u-boot env bootarg参数超过16个会出错的问题
+- 修复CAN 8M波特率传输卡死的问题
+- 【MUSE Book】修复频繁开关盖状态异常的问题
+- 【MUSE Book】支持ADB
+
 ## v1.0.12更新说明
 
 发布日期：2024-8-2
