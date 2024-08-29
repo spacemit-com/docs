@@ -4,7 +4,26 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0更新说明
 
-## v2.0rc3更新说明（开发中）
+## v2.0rc4更新说明（开发中）
+
+发布日期：2024-8-29
+
+### 主要更新
+
+- 支持u-boot pwm控制LCD背光
+- 支持u-boot 电量计框架
+- 支持MIPI DSI屏jd9365dah3
+- 支持Type-C芯片husb239
+- 修复u-boot efi free memory问题
+- 修复u-boot LCD低概率花屏的问题
+- 修复关机过程中i2c异常的问题
+- 优化内核加载模块速度
+
+### 已知问题
+
+- WiFi功能不稳定
+
+## v2.0rc3更新说明
 
 发布日期：2024-8-10
 
@@ -93,7 +112,3 @@ sidebar_position: 2
 **加密驱动**
 
 - AES
-
-**已知问题**
-
--
