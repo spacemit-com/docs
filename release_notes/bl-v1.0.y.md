@@ -4,6 +4,22 @@ sidebar_position: 1
 
 # Bianbu Linux 1.0更新说明
 
+## v1.0.14更新说明
+
+发布日期：2024-8-31
+
+### 主要更新
+
+- 支持u-boot pwm控制LCD背光
+- 支持u-boot 电量计框架
+- 支持MIPI DSI屏jd9365dah3
+- 支持Type-C芯片husb239
+- 修复u-boot efi free memory问题
+- 修复u-boot LCD低概率花屏的问题
+- 修复SPINOR分区创建失败的问题
+- 更新rcpu固件
+- 优化内核加载模块速度
+
 ## v1.0.13更新说明
 
 发布日期：2024-8-16
