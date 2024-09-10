@@ -1,10 +1,14 @@
-# K1 camera 快速启动指南
+---
+sidebar_position: 4
+---
+
+# Camera 快速指南
 
 本篇主要介绍 Spacemit K1 平台 Camera 模块的快速上手开发。
 
 K1 仅支持 MIPI 类型接口，使用 Spacemit camera 驱动框架。
 
-## camera 快速点亮导览
+## Camera 快速点亮导览
 
 点亮一款新的摄像头，通常仅需要调整 cam-test 应用层的代码即可快速支持上。
 
@@ -22,7 +26,7 @@ K1 仅支持 MIPI 类型接口，使用 Spacemit camera 驱动框架。
 
 备注：关于测试应用以及各个 test 的介绍，可以参阅[第 5 章节](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#BaRbd8qCdoM9W2xMrUJcGGimnSh)内容。
 
-## camera 子系统硬件框图
+## Camera 子系统硬件框图
 
 ![](./static/FpucbLemHoe37vxj8jIcaTeBn6O.png)
 
@@ -30,15 +34,15 @@ K1 仅支持 MIPI 类型接口，使用 Spacemit camera 驱动框架。
 
 各个模块的功能如下：
 
-1. **SENSOR：**将从镜头传导过来的光线转换为电信号，再通过内部的 AD 转换为数字信号，最终输出 mipi raw 数据。
-2. **CCIC：**cmos camera image controller 的简称，解析接收 sensor 发送的 mipi 数据。
-3. **IDI：**ISP 硬件内部模块，接收 ccic 发送的数据或者从 ddr 读取数据，发送到 ISP Pipeline；同时可以将 ccic 发送的数据 dump 到 DDR。
-4. **ISP-PIPE：**ISP 硬件内部 pipeline，进行一系列图像相关算法的处理。
-5. **ISP-FORMAT：**ISP 硬件内部模块，控制输出的图像格式。
-6. **ISP-DMA：**ISP 硬件内部模块，将图像输出到 DDR 中。
-7. **CPP：**图像降噪处理和边缘增强。
+1. **SENSOR：** 将从镜头传导过来的光线转换为电信号，再通过内部的 AD 转换为数字信号，最终输出 mipi raw 数据。
+2. **CCIC：** cmos camera image controller 的简称，解析接收 sensor 发送的 mipi 数据。
+3. **IDI：** ISP 硬件内部模块，接收 ccic 发送的数据或者从 ddr 读取数据，发送到 ISP Pipeline；同时可以将 ccic 发送的数据 dump 到 DDR。
+4. **ISP-PIPE：** ISP 硬件内部 pipeline，进行一系列图像相关算法的处理。
+5. **ISP-FORMAT：** ISP 硬件内部模块，控制输出的图像格式。
+6. **ISP-DMA：** ISP 硬件内部模块，将图像输出到 DDR 中。
+7. **CPP：** 图像降噪处理和边缘增强。
 
-## camera 驱动框架
+## Camera 驱动框架
 
 本章节内容仅学习了解即可，除了 sensor 驱动部分内容，其余在 bring up senosr 基本不会使用到。
 
@@ -181,7 +185,7 @@ CONFIG_SPACEMIT_K1X_SENSOR_V2=y
 
 ```
 
-### sensor 驱动
+### Sensor 驱动
 
 Sensor 相关的驱动代码位于 linux/drivers/media/platform/spacemit/camera/cam_sensor 目录，驱动加载后生成设备节点/dev/cam_sensorX（’X’为 sensor device ID，即下文提到的 camera ID）。
 
