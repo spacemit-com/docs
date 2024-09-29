@@ -50,6 +50,16 @@ repo sync
 repo start bl-v1.0.y --all
 ```
 
+或者下载`bl-v2.0.y`分支：
+
+```shell
+mkdir ~/bianbu-linux-2.0
+cd ~/bianbu-linux-2.0
+repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v2.0.y.xml
+repo sync
+repo start bl-v2.0.y --all
+```
+
 推荐提前下载buildroot依赖的第三方软件包，并在团队内部分发，避免主服务器网络拥塞。
 
 ```shell
@@ -249,36 +259,3 @@ cd /path/to/linux-6.1
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```
-
-## 本地编译
-
-将opensbi、u-boot或linux代码下载到Bianbu Desktop，即可本地编译。
-
-### 编译opensbi
-
-```shell
-cd /path/to/opensbi
-make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
-```
-
-将`platform/generic/firmware/fw_dynamic.itb`用fastboot写入opensbi分区即可。
-
-### 编译u-boot
-
-```shell
-cd /path/to/uboot-2022.10
-make k1_defconfig
-make -j$(nproc)
-```
-
-将`FSBL.bin`、`u-boot-env-default.bin`和`u-boot.itb`用fastboot写入对应分区即可。
-
-### 编译linux
-
-```shell
-cd /path/to/linux-6.1
-make k1_defconfig
-LOCALVERSION="" make -j$(nproc)
-```
-
-将`arch/riscv/boot/Image.gz.itb`和`arch/riscv/boot/dts/spacemit/*.dtb`替换`bootfs`分区对应文件即可。

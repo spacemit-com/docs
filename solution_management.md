@@ -47,7 +47,7 @@ Dracut的配置文件，Dracut是一个制作initramfs镜像的工具。
 
 **buildroot-ext/board/spacemit/k1/target_overlay**
 
-故名思意，改目录是对target目录的overlay。
+故名思意，该目录是对target目录的overlay。
 
 **buildroot-ext/configs/spacemit_k1_defconfig**
 
