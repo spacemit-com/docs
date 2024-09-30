@@ -449,16 +449,16 @@ K1支持卡量产烧录。通过titanflash工具把sd卡制作成量产卡，将
 ##### 2.2.2.1 刷机工具使用
 
 对于镜像的烧写，可以选择安装titanflash工具，或者使用fastboot工具刷机。
-固件生成方式可参考文档《下载和编译》<https://bianbu-linux.spacemit.com/download_and_build>
+固件生成方式可参考文档[下载和编译](https://bianbu-linux.spacemit.com/download_and_build)。
 
 - titanflash刷机工具针对完整刷机包，适用于一般的开发者。
-刷机工具安装及使用方式，可参考<https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d>
+刷机工具安装及使用方式，可参考[这篇文档](https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
-- fastboot工具针对单个分区的镜像烧写，适用于具备一定能力的开发者，单分区的镜像烧写错误可能会导致系统启动异常，需要谨慎使用，烧写流程请参考刷机流程章节（fastboot环境安装可参考网上连接<https://www.jb51.net/article/271550.htm或者https://blog.csdn.net/qq_34459334/article/details/140128714>
+- fastboot工具针对单个分区的镜像烧写，适用于具备一定能力的开发者，单分区的镜像烧写错误可能会导致系统启动异常，需要谨慎使用，烧写流程请参考刷机流程章节（fastboot环境安装可参考网上[链接](https://www.jb51.net/article/271550.htm)，或者[这篇](https://blog.csdn.net/qq_34459334/article/details/140128714)）。
 
 ##### 2.2.2.2 刷机介质选择
 
-- 硬件提供boot download sel switch拨盘切换，可参考如MUSE Pi用户使用指南文档中的Boot Download Sel&JTAG Sel章节，<https://developer.spacemit.com/documentation?token=ZugWwIVmkiGNAik55hzc4C3Ln6d>
+- 硬件提供boot download sel switch拨盘切换，可参考如MUSE Pi用户使用指南文档中的[Boot Download Sel&JTAG Sel](https://developer.spacemit.com/documentation?token=ZugWwIVmkiGNAik55hzc4C3Ln6d)章节。
 - 其他方案，请参考该方案的硬件用户使用指南
 - 对于不同的启动介质，刷机方式已做成自动适配。
 
