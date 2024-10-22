@@ -4,7 +4,19 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0更新说明
 
-## v2.0rc7更新说明（开发中）
+## v2.0更新说明
+
+发布日期：2024-10-22
+
+### 主要更新
+
+- 修复 u-boot keyboard 兼容性问题
+- 修复 SPINOR 引导 eMMC 无 bootlogo 问题
+- 增加 u-boot 支持 NFS 启动
+- 修复内核若干个 Oops 问题
+- 临时修复内核个别场景 Hung 问题
+
+## v2.0rc7更新说明
 
 发布日期：2024-9-30
 
