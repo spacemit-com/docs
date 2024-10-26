@@ -11,3 +11,4 @@ Bianbu Linux进阶开发指南:
 - [启动](boot.md)
 - [多媒体](media.md)
 - [Camera 快速指南](camera.md)
+- [ISP PQ 工具用户指南](isp_pq_tools_user_guide.md)
