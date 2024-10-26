@@ -4,6 +4,15 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0 Release Notes
 
+## v2.1 release note
+
+Release date: 2024-10-28
+
+### Major Updates
+
+- Fix warning messages after enabling kernel LOCKDEP options
+- [MUSE Book] Fix the issue of abnormal wake-up from suspend
+
 ## v2.0 release note
 
 Release date: 2024-10-22
