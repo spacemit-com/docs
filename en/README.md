@@ -16,7 +16,7 @@ The following are the components of Bianbu Linux:
 - Linux Kernel
 - Buildroot
 - onnxruntime (with Hardware Accelerated)
-- ai-support: AI demo 
+- ai-support: AI demo
 - img-gpu-powervr: GPU DDK
 - mesa3d
 - QT 5.15 (with GPU enabled)
