@@ -43,8 +43,8 @@ pages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
-review-job:
-  stage: review
+test-job:
+  stage: test
   variables:
     GIT_STRATEGY: none
   script:
@@ -59,11 +59,18 @@ review-job:
     - bash prepare.sh
     - npm run build
     - echo "Test complete."
-    - echo "Updating the submodule..."
-    - git add -u
-    - git commit -m "Update submodule $CI_PROJECT_NAME to $CI_COMMIT_SHORT_SHA"
-    - git push
-    - echo "Update complete."
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+review-job:
+  stage: review
+  variables:
+    GIT_STRATEGY: none
+  needs:
+    - job: test-job
+  trigger:
+    project: bianbu/$WEBSITE_NAME
+    branch: main
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -76,5 +83,4 @@ release-job:
     - git merge --no-ff --no-edit origin/main
     - git push gitee HEAD:main
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_TAG
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TAG'
