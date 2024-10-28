@@ -17,6 +17,31 @@ default:
 stages:
   - test
   - review
+  - release
+
+pages:
+  stage: test
+  variables:
+    GIT_STRATEGY: none
+    BASE_URL: /-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/
+  script:
+    - echo "Downloading website code..."
+    - git clone --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
+    - cd $WEBSITE_NAME/submodules/$CI_PROJECT_NAME
+    - git checkout $CI_COMMIT_SHORT_SHA
+    - echo "Download complete."
+    - echo "Compiling the code..."
+    - cd ../..
+    - npm --registry https://nexus.bianbu.xyz/repository/npmproxy/ install --no-strict-ssl
+    - bash prepare.sh
+    - npm run build
+    - echo "Compile complete."
+    - mv build ../public
+  artifacts:
+    paths:
+      - public/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 review-job:
   stage: review
@@ -42,26 +67,14 @@ review-job:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
-pages:
-  stage: test
-  variables:
-    GIT_STRATEGY: none
-    BASE_URL: /-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/
+release-job:
+  stage: release
   script:
-    - echo "Downloading website code..."
-    - git clone --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
-    - cd $WEBSITE_NAME/submodules/$CI_PROJECT_NAME
-    - git checkout $CI_COMMIT_SHORT_SHA
-    - echo "Download complete."
-    - echo "Compiling the code..."
-    - cd ../..
-    - npm --registry https://nexus.bianbu.xyz/repository/npmproxy/ install --no-strict-ssl
-    - bash prepare.sh
-    - npm run build
-    - echo "Compile complete."
-    - mv build ../public
-  artifacts:
-    paths:
-      - public/
+    - git remote add gitee git@gitee.com:bianbu-linux/$CI_PROJECT_NAME.git
+    - git fetch gitee
+    - git checkout gitee/main
+    - git merge --no-ff --no-edit origin/main
+    - git push gitee HEAD:main
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG
