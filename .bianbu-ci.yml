@@ -28,8 +28,13 @@ review-job:
     - cd $WEBSITE_NAME/submodules/$CI_PROJECT_NAME
     - git checkout $CI_COMMIT_SHORT_SHA
     - echo "Download complete."
-    - echo "Updating the submodule..."
+    - echo "Testing the code whether it can be compiled..."
     - cd ../..
+    - npm --registry https://nexus.bianbu.xyz/repository/npmproxy/ install --no-strict-ssl
+    - bash prepare.sh
+    - npm run build
+    - echo "Test complete."
+    - echo "Updating the submodule..."
     - git add -u
     - git commit -m "Update submodule $CI_PROJECT_NAME to $CI_COMMIT_SHORT_SHA"
     - git push
