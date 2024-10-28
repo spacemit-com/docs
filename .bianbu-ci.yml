@@ -26,7 +26,7 @@ pages:
     BASE_URL: /-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/
   script:
     - echo "Downloading website code..."
-    - git clone --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
+    - git clone --depth 1 --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
     - cd $WEBSITE_NAME/submodules/$CI_PROJECT_NAME
     - git checkout $CI_COMMIT_SHORT_SHA
     - echo "Download complete."
@@ -49,7 +49,7 @@ test-job:
     GIT_STRATEGY: none
   script:
     - echo "Downloading website code..."
-    - git clone --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
+    - git clone --depth 1 --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
     - cd $WEBSITE_NAME/submodules/$CI_PROJECT_NAME
     - git checkout $CI_COMMIT_SHORT_SHA
     - echo "Download complete."
@@ -76,6 +76,8 @@ review-job:
 
 release-job:
   stage: release
+  variables:
+    GIT_STRATEGY: clone
   script:
     - git remote add gitee git@gitee.com:bianbu-linux/$CI_PROJECT_NAME.git
     - git fetch gitee
