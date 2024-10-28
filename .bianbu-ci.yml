@@ -11,9 +11,31 @@ default:
     - chmod 700 ~/.ssh
     - ssh-keyscan gitlab.dc.com >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.name "Bianbu-CI"
+    - git config --global user.email "bianbu-ci@spacemit.com"
 
 stages:
   - test
+  - review
+
+review-job:
+  stage: review
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Downloading website code..."
+    - git clone --recurse-submodules git@gitlab.dc.com:bianbu/$WEBSITE_NAME.git
+    - cd $WEBSITE_NAME/submodules/$CI_PROJECT_NAME
+    - git checkout $CI_COMMIT_SHORT_SHA
+    - echo "Download complete."
+    - echo "Updating the submodule..."
+    - cd ../..
+    - git add -u
+    - git commit -m "Update submodule $CI_PROJECT_NAME to $CI_COMMIT_SHORT_SHA"
+    - git push
+    - echo "Update complete."
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
 
 pages:
   stage: test
