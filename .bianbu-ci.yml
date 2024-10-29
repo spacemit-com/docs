@@ -77,7 +77,7 @@ release-job:
   variables:
     GIT_STRATEGY: clone
   script:
-    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install ncat -y )'
+    - 'command -v nc >/dev/null || ( apt-get update -y && apt-get install ncat -y )'
     - export GIT_SSH_COMMAND='ssh -o ProxyCommand="nc -X connect -x proxy1.dc.com:1080 %h %p" -o StrictHostKeyChecking=no'
     - git config --global user.name "Bianbu-CI"
     - git config --global user.email "bianbu-ci@spacemit.com"
