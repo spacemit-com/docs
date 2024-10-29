@@ -87,6 +87,4 @@ release-job:
     - git merge --no-ff --no-edit origin/main
     - git push gitee HEAD:main
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TAG'
-      when: manual
-      allow_failure: true
+    - if: $CI_COMMIT_TAG
