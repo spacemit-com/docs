@@ -11,8 +11,6 @@ default:
     - chmod 700 ~/.ssh
     - ssh-keyscan gitlab.dc.com >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
-    - git config --global user.name "Bianbu-CI"
-    - git config --global user.email "bianbu-ci@spacemit.com"
 
 stages:
   - test
@@ -79,6 +77,10 @@ release-job:
   variables:
     GIT_STRATEGY: clone
   script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install ncat -y )'
+    - export GIT_SSH_COMMAND='ssh -o ProxyCommand="nc -X connect -x proxy1.dc.com:1080 %h %p" -o StrictHostKeyChecking=no'
+    - git config --global user.name "Bianbu-CI"
+    - git config --global user.email "bianbu-ci@spacemit.com"
     - git remote add gitee git@gitee.com:bianbu-linux/$CI_PROJECT_NAME.git
     - git fetch gitee
     - git checkout gitee/main
