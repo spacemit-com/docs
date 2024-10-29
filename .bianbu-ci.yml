@@ -2,7 +2,7 @@ variables:
   WEBSITE_NAME: "bianbu-linux-website"
 
 default:
-  image: "harbor.bianbu.xyz/gitlab/node:v1"
+  image: "harbor.bianbu.xyz/gitlab/node:v2"
   before_script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
