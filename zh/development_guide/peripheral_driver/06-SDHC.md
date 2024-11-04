@@ -105,7 +105,7 @@ sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检�
 &sdhci0 {
         cd-gpios = <&gpio 80 0>;
         cd-inverted;
-}；
+};
 ```
 
 比如方案使用 gpio80 来做卡的检测，还需要配置 gpio80 的 pintcl 功能。
@@ -134,7 +134,7 @@ emmc 设计上会保证供电，不需要配置电源。
 &sdhci0 {
         vmmc-supply = <&dcdc_4>;
         vqmmc-supply = <&ldo_1>;
-}；
+};
 ```
 
 ### tuning 配置
