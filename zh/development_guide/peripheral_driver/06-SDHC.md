@@ -3,6 +3,7 @@
 SDHC是多媒体卡（MMC）/安全数字（SD）/安全数字输入输出（SDIO）模块的控制器。
 ## 功能介绍
 ![](static/MMC.png)
+
 MMC框架图可以分为以下几个层次：
 MMC Host：这是MMC控制器驱动层，负责初始化MMC控制器以及底层的数据收发操作，直接控制底层寄存器。
 MMC Core：这是核心层，负责抽象出虚拟的card设备，并提供接口供上层使用。
@@ -12,9 +13,9 @@ MMC Block：这是块设备层，负责实现块设备驱动程序，对接内�
 控制器驱动代码在drivers/mmc/host目录下：
 ```
 drivers/mmc/host
-|-- sdhci.c					#sdhci标准代码
-|-- sdhci-pltfm.c           #sdhci平台层
-|-- sdhci-of-k1x.c			#k1 sdhci驱动
+|-- sdhci.c		        #sdhci标准代码
+|-- sdhci-pltfm.c               #sdhci平台层
+|-- sdhci-of-k1x.c		#k1 sdhci驱动
 ```
 # 关键特性
 ## 特性
