@@ -219,8 +219,23 @@ k1 mmc控制器驱动实现了init，exit，request，resume，suspend和set_ios
 
 ```
 sd_card_pmux
+该节点用于切换sd卡的pin为jtag功能，0表示sd卡功能，1表示jtag功能。
 tx_delaycode
+tx_delaycode的值默认是在方案dts中指定，可以通过sysfs下的该节点进行动态修改，方便调试阶段的验证。
 ```
 ### debugfs
-
+```
+常用于查询mmc的工作状态，包括频率，位宽，模式等信息。
+cat /sys/kernel/debug/mmc0/ios
+clock:          204800000 Hz
+actual clock:   204800000 Hz
+vdd:            21 (3.3 ~ 3.4 V)
+bus mode:       2 (push-pull)
+chip select:    0 (don't care)
+power mode:     2 (on)
+bus width:      2 (4 bits)
+timing spec:    6 (sd uhs SDR104)
+signal voltage: 1 (1.80 V)
+driver type:    0 (driver type B)
+```
 # FAQ
