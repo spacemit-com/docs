@@ -8,7 +8,7 @@
 
 ## 使用范围
 
-适用于SpacemiT K1 CPU。
+适用于SpacemiT K1 SOC。
 
 ## 相关人员
 
