@@ -1,5 +1,49 @@
 介绍PIN的功能和使用方法。
+# 模块介绍
+PINCTRL是PIN模块的控制器。
+## 功能介绍
+![](static/linux_pinctrl.drawio.png)
 
+Linux pinctrl模块包括两部分: pinctrl core和pin 控制器驱动。  
+pinctrl core主要有两个功能:  
+-  提供pinctrl功能接口给其它驱动使用  
+-  提供pin控制器设备注册与注销接口  
+
+pinctrl控制器驱动主要功能:  
+-  驱动pin控制器硬件  
+-  实现pin的管理和配置 
+## 源码结构介绍
+控制器驱动代码在drivers/pinctrl目录下：
+```
+drivers/pinctrl
+|-- pinctrl-single.c
+```
+# 关键特性
+## 特性
+| 特性 | 特性说明 |
+| :-----| :----|
+| 支持pin复用选择 | 支持将pin设置成复用功能中一种 |
+| 支持设置pin的属性 | 支持设置pin的边沿检测、上下拉和驱动能力 |
+## 性能参数
+
+测试方法  
+查看pin对应的寄存器值  
+devmem reg_addr
+
+# 配置介绍
+主要包括驱动使能配置和dts配置
+## CONFIG配置
+CONFIG_PINCTRL 为pin控制器提供支持，默认情况，此选项为Y
+```
+Device Drivers
+        Pin controllers (PINCTRL [=y])
+```
+CONFIG_PINCTRL_SINGLE 为k1 pinctrl控制器提供支持，默认情况，此选项为Y
+```
+Device Drivers  
+        Pin controllers (PINCTRL [=y])
+                One-register-per-pin type device tree based pinctrl driver (PINCTRL_SINGLE [=y])
+```
 ## pin 配置参数
 
 对 pin id、复用功能和属性进行定义。
@@ -207,3 +251,14 @@ eth0 {
     pinctrl-0 = <&pinctrl_gmac0_1>;
 };
 ```
+# 接口描述
+## 测试介绍
+
+## API介绍
+
+## Debug介绍
+### sysfs
+
+### debugfs
+
+# FAQ
