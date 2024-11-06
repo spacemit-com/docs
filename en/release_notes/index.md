@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 1.5
 slug: /release_notes
 ---
 
