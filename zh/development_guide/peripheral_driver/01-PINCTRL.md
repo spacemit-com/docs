@@ -2,7 +2,7 @@
 # 模块介绍
 PINCTRL是PIN模块的控制器。
 ## 功能介绍
-![](static/linux_pinctrl.drawio.png)
+![](static/linux_pinctrl.png)  
 
 Linux pinctrl模块包括两部分: pinctrl core和pin 控制器驱动。  
 pinctrl core主要有两个功能:  
@@ -255,10 +255,68 @@ eth0 {
 ## 测试介绍
 
 ## API介绍
-
+获取和释放设备pinctrl句柄
+```
+struct pinctrl *devm_pinctrl_get(struct device *dev);  
+```
+释放设备pinctrl句柄
+```
+void devm_pinctrl_put(struct pinctrl *p);
+```
+查找pinctrl state
+根据state_name 在pin control state holder中查找对应的pin control state.
+```
+struct pinctrl_state *pinctrl_lookup_state(struct pinctrl *p,
+						 const char *name)
+```
+设定pinctrl state  
+对设备pins设置pinctrl state.
+```
+int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
+```
 ## Debug介绍
 ### sysfs
+查看系统当前pinctrl控制信息和pin配置信息
+```
+/sys/kernel/debug/pinctrl
+|-- d401e000.pinctrl-pinctrl-single
+|   |-- gpio-ranges
+|   |-- pingroups
+|   |-- pinmux-functions
+|   |-- pinmux-pins
+|   |-- pinmux-select
+|   `-- pins
+|-- pinctrl-devices
+|-- pinctrl-handles
+|-- pinctrl-maps
+`-- spacemit-pinctrl@spm8821
+    |-- gpio-ranges
+    |-- pinconf-groups
+    |-- pinconf-pins
+    |-- pingroups
+    |-- pinmux-functions
+    |-- pinmux-pins
+    |-- pinmux-select
+    `-- pins
+```
+d401e000.pinctrl-pinctrl-single  
+- d401e000 pinctrl管理的pin详细信息。详见debugfs说明  
+
+pinctrl-devices
+- 系统中所有pinctrl控制器信息  
+
+pinctrl-handles/pinctrl-maps  
+- 显示系统已请求的pin功能组信息
 
 ### debugfs
-
+用于查看当前方案pin配置信息。包括系统中所有pins的使用情况，哪些用于gpio，哪些用于功能pin。
+```
+/sys/kernel/debug/pinctrl/d401e000.pinctrl-pinctrl-single
+|-- gpio-ranges         //配置成gpio
+|-- pingroups           //功能pin组
+|-- pinmux-functions
+|-- pinmux-pins
+|-- pinmux-select      
+`-- pins               //所有pins使用情况
+```
 # FAQ
