@@ -449,7 +449,7 @@ K1支持卡量产烧录。通过titanflash工具把sd卡制作成量产卡，将
 ##### 2.2.2.1 刷机工具使用
 
 对于镜像的烧写，可以选择安装titanflash工具，或者使用fastboot工具刷机。
-固件生成方式可参考文档[下载和编译](https://bianbu-linux.spacemit.com/download_and_build)。
+固件生成方式可参考文档[下载和编译](https://bianbu-linux.spacemit.com/source)。
 
 - titanflash刷机工具针对完整刷机包，适用于一般的开发者。
 刷机工具安装及使用方式，可参考[这篇文档](https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)

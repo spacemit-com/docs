@@ -1,8 +1,10 @@
 ---
-sidebar_position: 2
+sidebar_position: 1.5
 ---
 
-# 下载和编译
+# 源码
+
+本文档介绍SDK源码的开发环境、下载和编译方式。
 
 ## 开发环境
 
@@ -66,11 +68,12 @@ repo start bl-v2.0.y --all
 wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 ```
 
-目录结构：
+## 目录结构
 
 ```shell
 ├── bsp-src               # 存放linux kernel、uboot、opensbi源码
 │   ├── linux-6.1
+│   ├── linux-6.6
 │   ├── opensbi
 │   └── uboot-2022.10
 ├── buildroot             # buildroot主目录
@@ -196,6 +199,10 @@ make uboot-menuconfig
 make uboot-update-defconfig
 ```
 
+### 再次完整编译
+
+如果已经使用`make envconfig`完整编译，可以直接使用`make`再次完整编译。
+
 ### 编译指定包
 
 buildroot支持编译指定package，可以`make help`查看指南。
@@ -223,26 +230,34 @@ make uboot-rebuild
 make
 ```
 
-### 单独编译
+## 单独编译
 
 交叉编译器下载地址：`http://archive.spacemit.com/toolchain/`，解压即可使用。
+
+例如`spacemit-toolchain-linux-glibc-x86_64-v1.0.0.tar.xz`：
+
+```shell
+sudo tar -Jxf /path/to/spacemit-toolchain-linux-glibc-x86_64-v1.0.0.tar.xz -C /opt
+```
 
 设置环境变量：
 
 ```shell
-export PATH=/path/to/spacemit-toolchain-linux-glibc-x86_64-v0.3.3/bin:$PATH
+export PATH=/opt/spacemit-toolchain-linux-glibc-x86_64-v0.3.3/bin:$PATH
 export CROSS_COMPILE=riscv64-unknown-linux-gnu-
 export ARCH=riscv
 ```
 
-#### 编译opensbi
+### 编译 opensbi
 
 ```shell
 cd /path/to/opensbi
 make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ```
 
-#### 编译u-boot
+编译最终生成 `platform/generic/firmware/fw_dynamic.itb`。
+
+### 编译 u-boot
 
 ```shell
 cd /path/to/uboot-2022.10
@@ -250,9 +265,9 @@ make k1_defconfig
 make -j$(nproc)
 ```
 
-编译会根据`board/spacemit/k1-x/k1-x.env`生成`u-boot-env-default.bin`，对应分区表`env`分区的镜像。
+编译会根据 `board/spacemit/k1-x/k1-x.env` 生成 `u-boot-env-default.bin`，对应分区表 `env` 分区的镜像，以及生成 `FSBL.bin` 和 `u-boot.itb`。
 
-#### 编译linux
+### 编译linux
 
 ```shell
 cd /path/to/linux-6.1

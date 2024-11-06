@@ -34,7 +34,8 @@ More is comming.
 
 ## Quick start guide
 
-- [Download and Build](download_and_build.md)
+- [Image](image.md)
+- [Source](source.md)
 - [Device Management](device_management.md)
 - [Solution Management](solution_management.md)
 

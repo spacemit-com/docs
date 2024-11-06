@@ -1,8 +1,10 @@
 ---
-sidebar_position: 2
+sidebar_position: 1.5
 ---
 
-# Download and Build
+# Source
+
+This document introduces the development environment, download, and compilation methods for the SDK source code.
 
 ## Development Environment
 
@@ -66,11 +68,12 @@ It is recommended to download the third-party software packages required by buil
 wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 ```
 
-Directory structure:
+## Directory structure
 
 ```shell
 ├── bsp-src               # Stores linux kernel、uboot、opensbi source
 │   ├── linux-6.1
+│   ├── linux-6.6
 │   ├── opensbi
 │   └── uboot-2022.10
 ├── buildroot             # buildroot main directory
@@ -196,6 +199,10 @@ Save the configuration, which is saved by default to `bsp-src/uboot-2022.10/conf
 make uboot-update-defconfig
 ```
 
+### Recompile Completely
+
+If you have already compiled completely using `make envconfig`, you can directly use `make` to recompile completely.
+
 ### Compile Specific Packages
 
 buildroot supports compiling specific packages. You can view the guide with `make help`.
@@ -223,26 +230,34 @@ After compiling the specified package, you can download it to the device for ver
 make
 ```
 
-### Standalone Compilation
+## Standalone Compilation
 
 The cross-compiler download URL is `http://archive.spacemit.com/toolchain/`, and it can be used after decompression.
+
+Such as `spacemit-toolchain-linux-glibc-x86_64-v1.0.0.tar.xz`:
+
+```shell
+sudo tar -Jxf /path/to/spacemit-toolchain-linux-glibc-x86_64-v1.0.0.tar.xz -C /opt
+```
 
 Set environment variables:
 
 ```shell
-export PATH=/path/to/spacemit-toolchain-linux-glibc-x86_64-v0.3.3/bin:$PATH
+export PATH=/opt/spacemit-toolchain-linux-glibc-x86_64-v0.3.3/bin:$PATH
 export CROSS_COMPILE=riscv64-unknown-linux-gnu-
 export ARCH=riscv
 ```
 
-#### Compile opensbi
+### Compile opensbi
 
 ```shell
 cd /path/to/opensbi
 make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ```
 
-#### Compile u-boot
+The compilation will finally generate `platform/generic/firmware/fw_dynamic.itb`.
+
+### Compile u-boot
 
 ```shell
 cd /path/to/uboot-2022.10
@@ -250,9 +265,9 @@ make k1_defconfig
 make -j$(nproc)
 ```
 
-The compilation will generate `u-boot-env-default.bin` based on `board/spacemit/k1-x/k1-x.env`, corresponding to the image of the env partition in the partition table.
+The compilation will generate `u-boot-env-default.bin` based on `board/spacemit/k1-x/k1-x.env`, which corresponds to the image of the `env` partition in the partition table, and will also generate `FSBL.bin` and `u-boot.itb`.
 
-#### Compile linux
+### Compile linux
 
 ```shell
 cd /path/to/linux-6.1
