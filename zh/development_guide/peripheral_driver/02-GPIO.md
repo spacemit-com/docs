@@ -122,11 +122,38 @@ pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
 ```
 # 接口描述
 ## 测试介绍
+通过查看gpio对应的寄存器值判断gpio设置是否正确
+devmem reg_addr
 
 ## API介绍
-
-
-
+申请指定的gpio
+```
+int gpio_request(unsigned gpio, const char *label);
+```
+释放已申请的指定gpio
+```
+void gpio_free(unsigned gpio);
+```
+设置指定的GPIO为输入模式
+```
+int gpio_direction_input(unsigned gpio)
+```
+设置指定的GPIO为输出模式和初始值
+```
+int gpio_direction_output(unsigned gpio, int value)
+```
+设置指定GPIO的输出值
+```
+void gpio_set_value(unsigned gpio, int value)
+```
+获取指定GPIO的信号值
+```
+int gpio_get_value(unsigned gpio)
+```
+获取指定gpio对应的中断编号
+```
+int gpio_to_irq(unsigned gpio)
+```
 ## debug介绍
 ### sysfs
 读取和操作GPIO端口
