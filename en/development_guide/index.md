@@ -7,7 +7,7 @@ slug: /development_guide
 
 Bianbu Linux Advanced Development Guide:
 
-- [Peripheral Drivers](peripheral_driver/00-intro.md)
+- [Peripheral Drivers](peripheral_driver/index.md)
 - [Boot](boot.md)
 - [Multimedia](media.md)
 - [Camera Quick Start Guide](camera.md)

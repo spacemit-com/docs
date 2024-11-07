@@ -41,7 +41,7 @@ More is comming.
 
 ## Advanced guide
 
-- [Peripheral Driver](development_guide/peripheral_driver/00-intro.md)
+- [Peripheral Driver](development_guide/peripheral_driver/index.md)
 - [Boot](development_guide/boot.md)
 - [Media](development_guide/media.md)
 

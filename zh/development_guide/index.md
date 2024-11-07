@@ -7,7 +7,7 @@ slug: /development_guide
 
 Bianbu Linux进阶开发指南:
 
-- [外设驱动](peripheral_driver/00-intro.md)
+- [外设驱动](peripheral_driver/index.md)
 - [启动](boot.md)
 - [多媒体](media.md)
 - [Camera 快速指南](camera.md)
