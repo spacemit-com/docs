@@ -1,11 +1,11 @@
 介绍Standby的功能和使用方法。
 # 模块介绍
-
+Linux standby模式是一种省电模式，在这种模式下，计算机进入睡眠状态以节省功耗；当系统处于standby模式时，系统自动将大部分硬件设备关闭或者进入低功耗状态，并且DDR进入自刷新状态。
 ## 功能介绍
 
 
 ## 源码结构介绍
-控制器驱动代码在vi drivers/soc/spacemit/pm/目录下：
+控制器驱动代码在 drivers/soc/spacemit/pm/目录下：
 ```
 drivers/soc/spacemit/pm/
 ├── Makefile
@@ -51,6 +51,22 @@ drivers/soc/spacemit/pm/
 ```
 # 接口描述
 ## 测试介绍
+我们可以通过rtc唤醒方式测试我们的我们standby的功能，例子如下:
+```
+#!/bin/sh
+echo 9 > /proc/sys/kernel/printk
+echo N > /sys/module/printk/parameters/console_suspend
+counter=1
+
+while [ $counter -le 5000 ]
+do
+        echo +120 > /sys/class/rtc/rtc0/wakealarm
+        echo mem > /sys/power/state
+        counter=$(($counter+1))
+        echo "----->counter:$counter"
+        sleep 20
+done
+```
 
 ## API介绍
 - 
@@ -60,8 +76,11 @@ drivers/soc/spacemit/pm/
 ### sysfs
 
 ```
+无
 ```
 ### debugfs
 ```
+cat /sys/power/state
+freeze mem
 ```
 # FAQ
