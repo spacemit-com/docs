@@ -2,77 +2,11 @@
 # 模块介绍
 GMAC（Gigabit Media Access Controller）模块是一种用于支持千兆以太网通信的控制器，负责数据帧的发送、接收和网络流量管理。
 ## 功能介绍
-
-gmac驱动中实现的功能主要有如下五大类：
-1. emac_netdev_ops中提供基本的操作gmac方法，如打开\关闭以太网，操作gmac发送网络数据帧
-```c
-static const struct net_device_ops emac_netdev_ops = {
-	.ndo_open               = emac_open,
-	.ndo_stop               = emac_close,
-	.ndo_start_xmit         = emac_start_xmit,
-	.ndo_set_mac_address    = emac_set_mac_address,
-	.ndo_do_ioctl           = emac_ioctl,
-	.ndo_eth_ioctl          = emac_ioctl,
-	.ndo_change_mtu         = emac_change_mtu,
-	.ndo_tx_timeout         = emac_tx_timeout,
-	.ndo_set_rx_mode        = emac_rx_mode_set,
-};
-```
-2. 支持ethtool部分功能。
-```c
-static const struct ethtool_ops emac_ethtool_ops = {
-	.get_link_ksettings     = emac_get_link_ksettings,
-	.set_link_ksettings     = emac_set_link_ksettings,
-	.get_drvinfo            = emac_get_drvinfo,
-	.nway_reset             = phy_ethtool_nway_reset,
-	.get_link               = ethtool_op_get_link,
-	.get_strings            = emac_get_strings,
-	.get_sset_count         = emac_get_sset_count,
-	.get_ethtool_stats      = emac_get_ethtool_stats,
-	.get_regs		= emac_ethtool_get_regs,
-	.get_regs_len		= emac_ethtool_get_regs_len,
-	.get_ts_info 		= emac_get_ts_info,
-};
-```
-1. emac_driver中提供网络设备探测与移除以及电源管理方法。
-```c
-static const struct dev_pm_ops k1x_emac_pm_qos = {
-        .suspend = emac_suspend,                          
-        .resume = emac_resume,                             
-};
-
-static struct platform_driver emac_driver = {
-	.probe = emac_probe,                                    
-	.remove = emac_remove,                               
-	.shutdown = emac_shutdown,                       
-	.driver = {
-		.name = DRIVER_NAME,                               
-		.of_match_table = of_match_ptr(emac_of_match),     
-		.pm     = &k1x_emac_pm_qos,                      
-	},
-};
-```
-4. emac-ptp.c文件中为支持PTP协议提供了获取网络时间戳、调节时钟频率等功能。这些接口由emac_hw_ptp和ptp_clock_info数据结构定义。
-```c
-struct emac_hw_ptp emac_hwptp = {
-	.config_hw_tstamping = emac_hw_timestamp_config, 
-	.config_systime_increment = emac_hw_config_systime_increment, 
-	.init_systime = emac_hw_init_systime,       
-	.get_phc_time = emac_hw_get_phc_time,            
-	.get_tx_timestamp = emac_hw_get_tx_timestamp,    
-	.get_rx_timestamp = emac_hw_get_rx_timestamp,    
-};
-
-static struct ptp_clock_info emac_ptp_clock_ops = {
-	.owner = THIS_MODULE,
-        ...
-	.adjfreq = emac_adjust_freq,
-	.adjtime = emac_adjust_time,
-	.gettime64 = emac_phc_get_time,
-	.settime64 = emac_phc_set_time,
-};
-```
-5. NAPI机制负责接收网络数据包传递给上层TCP/IP协议栈，该功能主要由emac_interrupt、emac_rx_poll、emac_tx_clean_desc函数实现。
+![](static/zengyu2.png)  
+协议栈层：负责实现操作系统内核使用的各种网络协议。  
+网络设备抽象层：屏蔽驱动实现细节，为上层的TCP/IP协议栈提供统一、标准化的接口。  
+网络设备驱动层：网络设备驱动层直接操作具体的GMAC硬件，实现数据的实际传输控制和设备管理。  
+物理层：GMAC、PHY等物理设备。
 
 ## 源码结构介绍
 gmac驱动代码在drivers\net\ethernet\spacemit目录下：
@@ -98,42 +32,46 @@ drivers\net\ethernet\spacemit
 
 
 ## 性能参数
-|  | 单网卡单工 | 单网卡双工 | 双网卡单工 | 双网卡双工 | SDIO_WIFI单工 | SDIO_WIFI双工 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| TX速率 (MB/s) | 942 | 658 | 468 | 298 | 314 | 260 |
-| RX速率 (MB/s) | 941 | 661 | 464 | 326 | 475 | 92 |
+|  | 单网卡单工 | 单网卡双工 | 双网卡单工 | 双网卡双工 | 
+| :---: | :---: | :---: | :---: | :---: | 
+| TX速率 (MB/s) | 942 | 658 | 468 | 298 | 
+| RX速率 (MB/s) | 941 | 661 | 464 | 326 | 
 
 
 
 
 ### 单网卡测试
-两台k1-deb1板子eth0口用网线直连，假设ip地址分别设置为192.168.0.1、192.168.0.2
+两块k1-deb1板子，记作机器A和机器B，其eth0口用网线直连，并将IP地址设置在同一网段，例如：
+```
+#机器A
+ifconfig eth0 192.168.0.1 netmask 255.255.255.0
+#机器B
+ifconfig eth1 192.168.0.2 netmask 255.255.255.0
+```
+确保互相能够ping通后方可进行下面的测试
 #### 单工/TX
 ```
-#服务器
+#机器A
 iperf3 -s -A 1 -D -B 192.168.0.1 
-#客户端
+#机器B
 iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 
 ```
 #### 单工/RX
 ```
-#服务器
+#机器A
 iperf3 -s -A 1 -D -B 192.168.0.1 
-#客户端
+#机器B
 iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 -R
 ```
 #### 双工
 ```
-#服务器
+#机器A
 iperf3 -s -A 1 -D -B 192.168.0.1 
-#客户端
+#机器B
 iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 --bidir
 ```
 ### 双网卡测试
-两台k1-deb1板子eth0、eth1口用网线直连，重复上述测试
-
-### SDIO_WIFI测试
-两台k1-deb1板子 + 路由器，一台无线连接、一台网线直连，重复上述测试
+两块k1-deb1板子eth0、eth1口均用网线直连，重复上述测试
 
 
 # 配置介绍
@@ -291,17 +229,17 @@ Tx-phase 默认值为 90，rx-phase 为 73。
 ```
 # 接口描述
 ## 测试介绍
-查看网卡信息
+查看网络接口信息
 ```c
 ifconfig -a
 ```
 打开网络设备
 ```c
-ifconfig eth0 up
+ifconfig <INTERFACE> up
 ```
 关闭网络设备
 ```c
-ifconfig eth0 down 
+ifconfig <INTERFACE> down
 ```
 测试和另一台主机的连通性，假设其IP地址为192.168.0.1
 ```c
@@ -313,11 +251,11 @@ udhcpc
 ```
 ## API介绍
 ### emac_ioctl
-`emac_ioctl`用于访问`PHY`（物理层）设备寄存器和配置硬件时间戳功能，各命令含义如下：
-`SIOCGMIIPHY`：获取 `PHY` 设备地址。
-`SIOCGMIIREG`：读取指定的 `PHY` 寄存器。
-`SIOCSMIIREG`：写入指定的 `PHY` 寄存器。
-`SIOCSHWTSTAMP`：配置设备的硬件时间戳。
+`emac_ioctl`用于访问`PHY`（物理层）设备寄存器和配置硬件时间戳功能，各命令含义如下：  
+`SIOCGMIIPHY`：获取 `PHY` 设备地址。  
+`SIOCGMIIREG`：读取指定的 `PHY` 寄存器。  
+`SIOCSMIIREG`：写入指定的 `PHY` 寄存器。  
+`SIOCSHWTSTAMP`：配置设备的硬件时间戳。  
 ```c
 static int emac_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 {
@@ -552,7 +490,7 @@ static int emac_get_ts_info(struct net_device *dev,
         struct emac_priv *priv = netdev_priv(dev); 
         if (priv->ptp_support) {
 
-                // 设置支持的时间戳选项，包括硬件和软件的时间戳
+                /* 设置支持的时间戳选项，包括硬件和软件的时间戳 */
                 info->so_timestamping = SOF_TIMESTAMPING_TX_SOFTWARE |
                                         SOF_TIMESTAMPING_TX_HARDWARE |
                                         SOF_TIMESTAMPING_RX_SOFTWARE |
@@ -563,10 +501,10 @@ static int emac_get_ts_info(struct net_device *dev,
                 if (priv->ptp_clock)
                         info->phc_index = ptp_clock_index(priv->ptp_clock);
 
-                // 设置支持的传输时间戳类型
+                /* 设置支持的传输时间戳类型 */
                 info->tx_types = (1 << HWTSTAMP_TX_OFF) | (1 << HWTSTAMP_TX_ON);
 
-                // 设置支持的时间戳过滤器
+                /* 设置支持的时间戳过滤器 */
                 info->rx_filters = ((1 << HWTSTAMP_FILTER_NONE) |
                                     (1 << HWTSTAMP_FILTER_PTP_V1_L4_EVENT) |
                                     (1 << HWTSTAMP_FILTER_PTP_V1_L4_SYNC) |
@@ -580,7 +518,7 @@ static int emac_get_ts_info(struct net_device *dev,
                                     (1 << HWTSTAMP_FILTER_ALL));
                 return 0;
         } else
-                // 如果不支持PTP，则调用ethtool的默认处理函数
+                /* 如果不支持PTP，则调用ethtool的默认处理函数 */
                 return ethtool_op_get_ts_info(dev, info);
 }
 
