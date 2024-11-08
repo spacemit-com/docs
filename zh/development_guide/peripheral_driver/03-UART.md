@@ -11,8 +11,8 @@ k1平台支持9路uart设备可根据需要配置开启uart后连接外设使用
 uart控制器驱动代码在drivers/tty/serial目录下：  
 ```  
 drivers/tty/serial  
-|--serial_core.c        #内核pwm框架接口代码
-|--pxa_k1x.c       	#内核pwm框架注册到sysfs代码 
+|--serial_core.c        #内核uart框架接口代码
+|--pxa_k1x.c       	#k1 uart驱动 
 ```  
 # 关键特性  
 ## 特性
