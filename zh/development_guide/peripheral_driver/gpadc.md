@@ -97,7 +97,8 @@ void iio_device_unregister(struct iio_dev *indio_dev) -- 注销iio设备
 
 ## Debug介绍
 ### sysfs
-cd /sys/bus/iio/devices/iio:device0  --- iio框架目录
-in_voltage2_raw  -- 读取的adc硬件寄存器的值
-in_voltage2_scale  --- 读取的adc的精度
+cd /sys/bus/iio/devices/iio:device0  --- iio框架目录  
+in_voltage2_raw  -- 读取的adc硬件寄存器的值  
+in_voltage2_scale  --- 读取的adc的精度  
 ### debugfs
+无
