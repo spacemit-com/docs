@@ -5,25 +5,26 @@ Clock是时钟模块的控制器。
 ## 功能介绍
 ![](static/CLOCK.png)
 
-Linux为了做好时钟管理，提供了一个时钟管理框架Common Clock Framework（以下简称CCF），为设备驱动提供统一的操作接口，使设备驱动不必关心时钟硬件实现的具体细节。
-其结构包括以下几个部分：
-**clock provider**：对应上图的右侧部分，即clock controller，负责提供系统所需的各种时钟。
-**clock consumer**：对应上图的左侧部分，即使用时钟的一些设备驱动。
-**clock framework**：CCF的核心部分，向clock consumers提供操作clock的通用API；实现时钟管理的核心逻辑，将与硬件相关的clock控制逻辑封装成操作函数集，交由clock provider实现。
-**device tree**：CCF允许在设备树中声明可用的时钟与设备的关联。
+Linux为了做好时钟管理，提供了一个时钟管理框架Common Clock Framework（以下简称CCF），为设备驱动提供统一的操作接口，使设备驱动不必关心时钟硬件实现的具体细节。  
+其结构包括以下几个部分：  
+**clock provider**：对应上图的右侧部分，即clock controller，负责提供系统所需的各种时钟。  
+**clock consumer**：对应上图的左侧部分，即使用时钟的一些设备驱动。  
+**clock framework**：CCF的核心部分，向clock consumers提供操作clock的通用API；实现时钟管理的核心逻辑，将与硬件相关的clock控制逻辑封装成操作函数集，交由clock provider实现。  
+**device tree**：CCF允许在设备树中声明可用的时钟与设备的关联。  
 
 Clock系统相关的器件包括：
   - 用于产生clock的Oscillator（有源振荡器，也称作谐振荡器）或者Crystal（无源振荡器，也称晶振）
   - 用于倍频的PLL（锁相环，Phase Locked Loop）
   - 用于分频的Divider
   - 用于时钟源选择的Mux
-  - 用于时钟开关控制的Gate
-  系统中可能存在很多个这样的硬件模块，呈树形结构，linux将他们管理成一个时钟树（clock-tree），根节点一般是晶振，接着是pll，然后是mux或者div，最终叶子节点一般是gate。CCF实现了多种基础时钟类型，例如固定速率时钟fixed_rate clock、门控时钟gate clock、分频器时钟divider clock和复用器时钟mux clock等。一般为了方便使用，会根据时钟树设计，实现一些时钟类型。
+  - 用于时钟开关控制的Gate  
+
+系统中可能存在很多个这样的硬件模块，呈树形结构，linux将他们管理成一个时钟树（clock-tree），根节点一般是晶振，接着是pll，然后是mux或者div，最终叶子节点一般是gate。CCF实现了多种基础时钟类型，例如固定速率时钟fixed_rate clock、门控时钟gate clock、分频器时钟divider clock和复用器时钟mux clock等。一般为了方便使用，会根据时钟树设计，实现一些时钟类型。
 
 ## 源码结构介绍
 
 Clock控制器驱动代码在drivers/clk/spacemit目录下：
-```c
+```
 drivers/clk/spacemit
 |-- ccu_ddn.c                   #ddn时钟类型源码
 |-- ccu_ddn.h
@@ -42,10 +43,10 @@ drivers/clk/spacemit
 ```
 clock控制器驱动实现了5种时钟类型:
 - pll类型，锁相环类型
-- dpll类型，ddr的锁相环类型
+- dpll类型，ddr相关的锁相环类型
 - ddn类型，分数divider，有一级除频，对应分母，一级倍频，对应分子
 - mix类型，混合类型，支持gate/mux/divider的任一种或者随意组合
-- ddr类型，ddr相关的特殊时钟类型
+- ddr类型，ddr相关的特殊时钟类型  
 
 # 配置介绍
 主要包括驱动使能配置和dts配置
@@ -63,7 +64,7 @@ CONFIG_SPACEMIT_K1X_CCU 为K1 Clock控制器驱动提供支持，默认情况下
 ```
 ## DTS配置
 clock controller的dts配置如下：
-```c
+```
 / {
         clocks {
                 #address-cells = <0x2>;
@@ -144,8 +145,7 @@ clock controller的dts配置如下：
 
 
 ```
-模块如要使用clock功能，需要在dts配置clocks和clock-names属性，然后在驱动中通过CCF API进行Clock相关的操作
-以can为例：
+模块如要使用clock功能，需要在dts配置clocks和clock-names属性，然后在驱动中通过CCF API进行Clock相关的操作。以can为例：
 ```
                 flexcan0: fdcan@d4028000 {
                         compatible = "spacemit,k1x-flexcan";
@@ -153,7 +153,7 @@ clock controller的dts配置如下：
                         interrupts = <16>;
                         interrupt-parent = <&intc>;
                         clocks = <&ccu CLK_CAN0>,<&ccu CLK_CAN0_BUS>; #配置模块需要使用的时钟index
-                        clock-names = "per","ipg";                    #配置clocks对应的名称，驱动里可以通过这个字符串get对应时钟句柄
+                        clock-names = "per","ipg";                    #配置clocks对应的名称，驱动里可以通过这个字符串获取对应时钟
                         resets = <&reset RESET_CAN0>;
                         fsl,clk-source = <0>;
                         status = "disabled";
@@ -324,14 +324,14 @@ long clk_round_rate(struct clk *clk, unsigned long rate);
 
 ## Debug介绍
 可以通过debugfs进行调试
-- 打印时钟树
+- 打印时钟树  
 /sys/kernel/debug/clk/clk_summary常用于打印时钟树结构，查看各个时钟节点的状态，频率，父时钟等信息。
-```c
+```
 root# cat /sys/kernel/debug/clk/clk_summary
 ```
-- 查看具体时钟节点
+- 查看具体时钟节点  
 还可以单独查看具体时钟节点的状态，频率，父时钟等信息。以can0_clk为例：
-```c
+```
 root:/sys/kernel/debug/clk/can0_clk # ls -l
 -r--r--r--    1 root     root             0 Jan  1 08:03 clk_accuracy
 -r--r--r--    1 root     root             0 Jan  1 08:03 clk_duty_cycle
@@ -355,9 +355,9 @@ root:/sys/kernel/debug/clk/can0_clk# cat clk_parent                 #查看当�
 pll3_20
 root:/sys/kernel/debug/clk/can0_clk#
 ```
-- 改变时钟配置
+- 改变时钟配置  
 在driver/clk/clk.c中加上CLOCK_ALLOW_WRITE_DEBUGFS宏定义，就可以对debugfs下的一些clk节点进行写操作，否则只有读操作权限
-```c
+```
 /sys/kernel/debug/clk/can0_clk # ls -l
 -r--r--r--    1 root     root             0 Jan  1 08:03 clk_accuracy
 -r--r--r--    1 root     root             0 Jan  1 08:03 clk_duty_cycle

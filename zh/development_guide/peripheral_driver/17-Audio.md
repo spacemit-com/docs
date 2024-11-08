@@ -7,21 +7,21 @@ Audio模块包含2个I2S，1个HDMIAUDIO。
 ![](static/AUDIO.png)
 
 ALSA音频框架可以分为以下几个层次：  
-- ALSA Library
+- ALSA Library  
 对应用程序提供统一的API接口，各个APP应用程序只要调用 alsa-lib 提供的 API接口来实现放音、录音、控制。现在提供了两套基本的库，tinyalsa是一个简化的alsa-lib库，Android系统主要使用
-- ALSA CORE
+- ALSA CORE  
 ALSA核心层，向上提供逻辑设备（PCM/CTL/MIDI/TIMER/…）系统调用，向下驱动硬件设备（Machine/I2S/DMA/CODEC）
-- ASoC Core
+- ASoC Core  
 ALSA 的标准框架，是 ALSA-driver 的核心部分，提供了各种音频设备驱动的通用方法和数据结构
-- Hardware driver
-音频硬件设备驱动，由三大部分组成，分别是 Machine、Platform、Codec，提供的 ALSA Driver API 和相应音频设备的初始化及工作流程，实现具体的功能组件，这是驱动开发人员需要具体实现的部分。
-Machine：一般是指某款单板，包含特定的外设，为CPU、Codec提供了一个载体，Machine驱动几乎是不可重用的。Machine驱动将Platform驱动和Codec驱动关联在一起，通过snd_soc_dai_link指定使用哪个Platform驱动，使用哪个Soc端的dai（digital audio interface）接口，使用哪个Codec驱动，使用Codec上的哪个dai接口，同时也做一些特定于单板的操作。
-Platform：一般是指某一个SoC平台，可以理解为某款Soc，具有I2S，AC97音频接口等，内部有时钟，DMA单元用于传输音频数据。Platform驱动只与特定的Soc有关，实现Soc的音频DMA驱动和Soc端的dai接口驱动，它只与SoC相关，与Machine无关，这样我们就可以把Platform抽象出来，使得同一款SoC不用做任何的改动，就可以用在不同的Machine中。
-Codec：音频编解码器，Codec里面包含了I2S接口、D/A、A/D、Mixer、PA(功放)，通常包含多种输入（Mic、Line-in、I2S、PCM）和多个输出（耳机、喇叭、听筒，Line-out），一般Soc可通过I2C来控制codec芯片。Codec驱动只与Codec编解码器驱动有关，与Soc和Machine无关。Codec和Platform一样，要实现为可重用的部件，同一个Codec可以被不同的Machine使用。
+- Hardware driver  
+音频硬件设备驱动，由三大部分组成，分别是 Machine、Platform、Codec，提供的 ALSA Driver API 和相应音频设备的初始化及工作流程，实现具体的功能组件，这是驱动开发人员需要具体实现的部分。  
+**Machine**：一般是指某款单板，包含特定的外设，为CPU、Codec提供了一个载体，Machine驱动几乎是不可重用的。Machine驱动将Platform驱动和Codec驱动关联在一起，通过snd_soc_dai_link指定使用哪个Platform驱动，使用哪个Soc端的dai（digital audio interface）接口，使用哪个Codec驱动，使用Codec上的哪个dai接口，同时也做一些特定于单板的操作。  
+**Platform**：一般是指某一个SoC平台，可以理解为某款Soc，具有I2S，AC97音频接口等，内部有时钟，DMA单元用于传输音频数据。Platform驱动只与特定的Soc有关，实现Soc的音频DMA驱动和Soc端的dai接口驱动，它只与SoC相关，与Machine无关，这样我们就可以把Platform抽象出来，使得同一款SoC不用做任何的改动，就可以用在不同的Machine中。  
+**Codec**：音频编解码器，Codec里面包含了I2S接口、D/A、A/D、Mixer、PA(功放)，通常包含多种输入（Mic、Line-in、I2S、PCM）和多个输出（耳机、喇叭、听筒，Line-out），一般Soc可通过I2C来控制codec芯片。Codec驱动只与Codec编解码器驱动有关，与Soc和Machine无关。Codec和Platform一样，要实现为可重用的部件，同一个Codec可以被不同的Machine使用。
 
 ### k1 Audio功能介绍
 
-K1目前支持两种音频声卡方案
+K1目前支持两种音频声卡方案  
 方案一：HDMIAUDIO，支持播放
 方案二：I2S0搭配一个I2C外挂的Codec ES8326B，支持播放和录制
 
@@ -48,9 +48,9 @@ sound/soc/codec
 # I2S
 
 ## 关键特性
-  支持48000采样率，16bit采样深度，2声道
-  支持播放和录制功能
-  支持全双工
+  支持48000采样率，16bit采样深度，2声道  
+  支持播放和录制功能  
+  支持全双工  
 
 ## 配置介绍
 主要包括驱动使能配置和dts配置
@@ -88,9 +88,9 @@ Device Drivers
 ```
 ### DTS配置
 #### pinctrl
-- i2s0 pinctrl配置
+- i2s0 pinctrl配置  
 有两组pinctrol配置，根据实际情况硬件设计进行配置
-```c
+```
         pinctrl_sspa0_0: sspa0_0_grp {
                 pinctrl-single,pins =<
                         K1X_PADCONF(GPIO_118, MUX_MODE3, (EDGE_NONE | PULL_UP | PAD_1V8_DS0))   /* sspa0_clk */
@@ -119,8 +119,8 @@ Device Drivers
 
 ```
 
-- i2s1 pinctrl配置
-```c
+- i2s1 pinctrl配置  
+```
         pinctrl_sspa1: sspa1_grp {
                 pinctrl-single,pins =<
                         K1X_PADCONF(GPIO_24, MUX_MODE3, (EDGE_NONE | PULL_UP | PAD_1V8_DS0))    /* sspa1_sysclk */
@@ -154,10 +154,9 @@ Device Drivers│
 ```
 
 ##### dts配置
-- gpio
-
+- gpio  
 需要按实际硬件设计来配置，例如K1某些开发板上，ES8326B通过gpio129完成耳机插拔检测，通过gpio127控制板级扬声器。
-```c
+```
         es8326: es8326@19{
                 interrupt-parent = <&gpio>;
                 interrupts = <126 1>;                 #耳机插拔检测
@@ -170,7 +169,7 @@ Device Drivers│
 
 Codec ES8236B的完整方案配置如下：
 
-```c
+```
         es8326: es8326@19{
                 compatible = "everest,es8326";
                 reg = <0x19>;
@@ -185,7 +184,7 @@ Codec ES8236B的完整方案配置如下：
 ```
 ##### mclk配置
 Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
-```c
+```
 
 &sound_codec {
         status = "okay";
@@ -202,7 +201,7 @@ Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
 #### 声卡配置
 ##### dts配置
 
-```c
+```
         sound_codec: snd-card@1 {
                 compatible = "spacemit,simple-audio-card";
                 simple-audio-card,format = "i2s";
@@ -232,8 +231,7 @@ Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
 # HDMIAUDIO
 
 ## 关键特性
-HDMIAUDIO
-  支持48000采样率，16bit采样深度，2声道
+  支持48000采样率，16bit采样深度，2声道  
   只支持播放
 
 ## 配置介绍
@@ -272,7 +270,7 @@ Device Drivers
                                         Audio CodecDai Dummy Codec (SPACEMIT_DUMMYCODEC [=y]) 
 ```
 ### DTS配置
-```c
+```
 &hdmiaudio {
         status = "okay";
 };
@@ -281,7 +279,7 @@ Device Drivers
 ### HDMIAUDIO声卡配置
 #### dts配置
 
-```c
+```
 
         sound_hdmi: snd-card@0 {
                 compatible = "spacemit,simple-audio-card";
@@ -311,7 +309,7 @@ Device Drivers
 音频功能可以通过alsa-utils/tinyalsa工具完成功能测试，目前bianbu-linux上已集成alsa-utils工具。
 ### 播放测试
 - 查看playback设备
-```c
+```
 //aplay-l查看播放设备，可以看到有两个播放设备
 root:/# aplay -l
 **** PLAYBACK 硬體裝置清單 ****
@@ -325,9 +323,9 @@ root:/#
 //hdmiaudio播放设备，cardid为0，deviceid为0
 //I2S-Codec播放设备，cardid为1，deviceid为0
 ```
-- 播放测试
-```c
+- 播放测试  
 选择设备进行播放，通过cardid和deviceid进行指定
+```
 //选择hdmiaudio声卡进行播放
 aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.way
 //选择I2S-Codec声卡进行播放
@@ -336,7 +334,7 @@ aplay -Dhw:1,0 -r 48000 -f S16_LE --periopd-size=1024 --buffer-size=4096 xxx.way
 ```
 ### 录音测试
 - 查看capture设备
-```c
+```
 //arecord-l查看播放设备，可以看到有一个录制设备
 root@spacemit-k1-x-deb1-board:~# arecord -1
 ****
@@ -348,8 +346,9 @@ card 1: sndes8326 [snd-es8326], device 0: i2s-daai0-ES8326 HiFi ES8326 HiFi-@
 root@spacemit-k1-x-deb1-board:~#
 //I2S-Codec录制设备，cardid为1，deviceid为0
 ```
-- 录音测试
-```c
+- 录音测试  
+选择设备进行录制，通过cardid和deviceid进行指定
+```
 //选择I2S-Codec声卡进行录制
 arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
 ```
@@ -361,14 +360,14 @@ arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 x
 
 可以通过/proc/asound/下的节点进行debug
 - 查看声卡设备
-```c
+```
 root:/# cat /proc/asound/pcm
 00-00: SSPA2-dummy_codec dummy_codec-0 :  : playback 1
 01-00: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 :  : playback 1 : capture 1
 root:/#
 ```
 - 查看声卡状态等信息
-```c
+```
 root:/# cat /proc/asound/card1/pcm0p/sub0/status
 state: RUNNING
 owner_pid   : 3767
