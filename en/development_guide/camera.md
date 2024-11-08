@@ -26,6 +26,13 @@ K1 仅支持 MIPI 类型接口，使用 Spacemit camera 驱动框架。
 
 备注：关于测试应用以及各个 test 的介绍，可以参阅[第 5 章节](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#BaRbd8qCdoM9W2xMrUJcGGimnSh)内容。
 
+另外：
+关于camera模块的规格特性，请参考进迭时空开发者社区的 芯片规格说明书：https://developer.spacemit.com/documentation?token=BWbGwbx7liGW21kq9lucSA6Vnpb#part779
+
+关于camera模块的ISP效果调试，请参考进迭时空开发者社区的 ISP PQ工具用户指南：https://bianbu-linux.spacemit.com/development_guide/isp_pq_tools_user_guide
+
+关于camera模块的ISP API开发，请参考进迭时空开发者社区的 ISP API开发指导手册：https://bianbu-linux.spacemit.com/development_guide/isp_api_development_guide
+
 ## Camera 子系统硬件框图
 
 ![](./static/FpucbLemHoe37vxj8jIcaTeBn6O.png)
