@@ -20,8 +20,9 @@ drivers/pinctrl
 ```
 # 关键特性
 ## 特性
+| 特性 | 特性说明 |
 | :-----| :----|
-| 支持pin复用选择 | 支持将pin设置成复用功能中一种 |
+| 支持pin复用选择 | 支持将pin设置成复用功能中一种 |  
 | 支持设置pin的属性 | 支持设置pin的边沿检测、上下拉和驱动能力 |
 
 # 配置介绍
@@ -42,7 +43,7 @@ Device Drivers
 
 对 pin id、复用功能和属性进行定义。
 
-详细定义`linux-6.1/include/dt-bindings/pinctrl/k1-x-pinctrl.h`。
+详细定义内核目录`include/dt-bindings/pinctrl/k1-x-pinctrl.h`。
 
 ### pin id
 
@@ -127,7 +128,7 @@ K1X_PADCONF(GPIO_00,    MUX_MODE1, (EDGE_NONE | PULL_DIS | PAD_1V8_DS2))   /* gm
 
 对控制器(如 gmac、pcie、usb 和 emmc 等)使用的功能 pin 组进行配置。
 
-默认的功能 pin 组定义，`linux-6.1/arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`。
+默认的功能 pin 组定义，内核目录下`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`。
 
 1. 功能 pin 组是否在 k1-x_pinctrl.dtsi 有定义，如果已定义且满足配置，直接使用；如果未定义或配置不满足，则按照第 2 步进行设置；
 2. 设置控制器使用的 pin 组
@@ -159,7 +160,7 @@ pinctrl_gmac0: gmac0_grp {
 };
 ```
 
-Tx pin 的上下拉功能不满足，默认定义为关闭上下拉，当前需要使能上拉。
+tx pin 的上下拉功能不满足，默认定义为关闭上下拉，当前需要使能上拉。
 
 有两种方法：
 
@@ -246,7 +247,7 @@ eth0 {
 };
 ```
 # 接口描述
-## 测试介绍
+
 ## 测试方法  
 查看pin对应的寄存器值  
 devmem reg_addr

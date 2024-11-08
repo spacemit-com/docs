@@ -206,9 +206,7 @@ CONFIG_REGULATOR_SPACEMIT:
 ```
 
 # 接口描述
-## 测试介绍
-```
-```
+
 ## API介绍
 ```
 请参考内核文档：
@@ -241,13 +239,8 @@ Documentation/power/regulator/regulator.rst
 ```
 
 ## Debug介绍
-### sysfs
-```
-```
-### debugfs
-```
 
-```
+# FAQ
 # 附录
 ## SPL/UBOOT 使用方法
 

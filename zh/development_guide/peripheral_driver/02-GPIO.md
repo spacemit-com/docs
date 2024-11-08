@@ -11,7 +11,9 @@ Linux gpio子系统驱动框架主要有三部分组成:
 - GPIO 字符设备驱动: 将GPIO以字符设备的上报给用户空间，用户空间可以通过标准的文件接口访问GPIO
 ## 源码结构介绍
 控制器驱动代码在drivers/gpio目录下：  
+```
 |-- gpio-k1x.c  
+```
 # 关键特性
 ## 特性
 | 特性 | 特性说明 |
@@ -20,7 +22,7 @@ Linux gpio子系统驱动框架主要有三部分组成:
 | 支持输出设置高低电平 | 支持在GPIO输出模式下，设置GPIO的电平高低 |
 | 支持gpio中断功能 | 支持上升沿和下降沿触发gpio中断 |
 # 配置介绍
-主要包括驱动使能配置
+主要包括驱动CONFIG使能配置和dts配置
 ## CONFIG配置
 CONFIG_GPIOLIB 为gpio控制器提供支持，默认情况，此选项为Y
 ```
@@ -44,7 +46,7 @@ Device Drivers
 
 说明:
 
-1. pin 编号在 linux-6.1\include\dt-bindings\pinctrl\k1-x-pinctrl.h 中定义。
+1. pin 编号在内核目录下：include\dt-bindings\pinctrl\k1-x-pinctrl.h 中定义。
 2. pin 配置相同表示一组 pin 设置成 gpio 功能时配置相同，即 mux mode、上下拉、边沿检测、驱动能力配置相同。
 
 ## 方案gpio描述
@@ -123,7 +125,9 @@ pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
 # 接口描述
 ## 测试介绍
 通过查看gpio对应的寄存器值判断gpio设置是否正确
+```
 devmem reg_addr
+```
 
 ## API介绍
 申请指定的gpio

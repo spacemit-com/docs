@@ -15,9 +15,10 @@ drivers/media/rc
 |--ir-spacemit.c          #k1 ir驱动  
 ```  
 # 关键特性  
-## 特性
-- 可配置噪声阈值
-- 32Bytes大小RX FIFO
+| 特性 |
+| :-----|
+| 可配置噪声阈值 |
+| 32Bytes大小RX FIFO |
 
 # 配置介绍
 主要包括驱动使能配置和dts配置

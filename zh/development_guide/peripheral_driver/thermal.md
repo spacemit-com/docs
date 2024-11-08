@@ -39,9 +39,7 @@ drivers/thermal/
 | :-----| :----|
 | 支持cpu温度控制 |
 | 支持115°C过温关机 |
-## 性能参数
-| 支持频率档位 | 频率档位对应电压 |  
-| :-----| :----|   
+ 
 
 测试方法
 ```
@@ -217,4 +215,4 @@ vi Documentation/driver-api/thermal/
 Documentation/driver-api/thermal/sysfs-api.rst
 ```
 ### debugfs
-```
+# FAQ

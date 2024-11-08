@@ -15,12 +15,10 @@ drivers/pwm
 |--pwm-pxa.c         #k1 pwm驱动  
 ```  
 # 关键特性  
-## 特性
-可生成200HZ到6.4MHZ的pwm信号
-## 性能参数
-k1平台支持20路可配置的pwm
-
-测试方法
+| 特性 |
+| :-----|
+| 可生成200HZ到6.4MHZ的pwm信号 |
+| k1平台支持20路可配置的pwm |
 
 # 配置介绍
 主要包括驱动使能配置和dts配置
@@ -74,7 +72,7 @@ dts完整配置，如下所示
 
 # 接口描述
 ## 测试介绍
-pwm输出的信号电平高低可以通过控制占空比来调节。
+pwm输出的信号电平高低可以通过控制占空比来调节。  
 实际测试可使用sysfs下的pwm节点和可调速的pwm风扇进行测试。
 ## API介绍
 linux内核实现了其他设备或框架如背光，led灯，背光等对pwm的引用和调节。
@@ -85,7 +83,6 @@ struct pwm_device *devm_pwm_get(struct device *dev, const char *con_id)
 int pwm_apply_state(struct pwm_device *pwm, const struct pwm_state *state)
 该接口实现了对pwm状态的设置
 ```
-### Demo示例
 
 ## Debug介绍
 pwm通过sysfs提供给用户层一个非编程的使用方法，可以依据上述pwm对应pin外接可调速风扇进行测试，过程如下

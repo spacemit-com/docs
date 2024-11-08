@@ -4,7 +4,7 @@
 crypto-engine实现了硬件加密算法，对明文进行加密。  
 ## 功能介绍  
 ![](static/openssl.jpg)
-k1 crypto-engine(下称ce)通过硬件实现了(ecb/cbc/xts-)aes加密算法。
+k1 crypto-engine(又称ce)通过硬件实现了(ecb/cbc/xts-)aes加密算法。
 ## 源码结构介绍
 ce驱动代码在drivers/crypto/spacemit目录下：  
 ```  

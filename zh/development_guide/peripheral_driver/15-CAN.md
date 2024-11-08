@@ -23,7 +23,7 @@ drivers/net/can
 | 支持最大64B数据 | CANFD协议支持8，16，32，64B数据传输 |
 
 ## 性能参数
-支持至高8M数据域波特率
+支持最高8M数据域波特率
 
 # 配置介绍
 主要包括驱动使能配置和dts配置
@@ -84,29 +84,32 @@ dts完整配置，如下所示
 
 # 接口描述
 ## 测试介绍
-基于k1平台可以外接can收发器进行测试，通讯的另一端一般选择USBCAN分析仪连接电脑模拟can设备，由于通信的另一端设备和用法不确定，这里主要介绍k1段的测试用法
-1.查看can设备是否加载成功
-ifconfig -a
-2.k1配置can的仲裁域和数据域波特率
-ip link set can0 type can bitrate 125000 dbitrate 250000 berr-reporting on fd on
-3.打开can设备(同时另一端准备接收)
-ip link set can0 up
-4.k1端发送报文
-cansend格式：cansend can-dev id#data
-eg：cansend can0 123##3.11223344556677881122334455667788aabbccdd
-5.k1端接收报文(另一端发送)
+基于k1平台可以外接can收发器进行测试，通讯的另一端一般选择USBCAN分析仪连接电脑模拟can设备，由于通信的另一端设备和用法不确定，这里主要介绍k1段的测试用法  
+1.查看can设备是否加载成功  
+ifconfig -a  
+2.k1配置can的仲裁域和数据域波特率  
+ip link set can0 type can bitrate 125000 dbitrate 250000 berr-reporting on fd on  
+3.打开can设备(同时另一端准备接收)  
+ip link set can0 up  
+4.k1端发送报文  
+cansend格式：cansend can-dev id#data  
+eg：cansend can0 123##3.11223344556677881122334455667788aabbccdd  
+5.k1端接收报文(另一端发送)  
 candump can0
 ## API介绍
 can驱动主要实现了发送接收报文的接口
 常用：
 ```
-static int flexcan_open(struct net_device *dev)
-开启can设备时调用
-static netdev_tx_t flexcan_start_xmit(struct sk_buff *skb, struct net_device *dev)
-can设备开始传输时调用
-
-配置can传输时波特率的参数为初始化驱动时保存在驱动私有数据结构体中
+static int flexcan_open(struct net_device *dev)  
 ```
+开启can设备时调用
+
+```
+static netdev_tx_t flexcan_start_xmit(struct sk_buff *skb, struct net_device *dev) 
+``` 
+can设备开始传输时调用
+配置can传输时波特率的参数为初始化驱动时保存在驱动私有数据结构体中
+
 ### Demo示例
 
 ## Debug介绍

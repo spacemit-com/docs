@@ -106,3 +106,4 @@ int __devm_rtc_register_device(struct module *owner, struct rtc_device *rtc)  --
 ### sysfs
 
 ### debugfs
+# FAQ

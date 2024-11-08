@@ -20,7 +20,7 @@ drivers\net\ethernet\spacemit
 # 关键特性
 ## 特性
 | 特性 | 特性说明 |
-| :-----:| :----:|
+| :-----| :----|
 | 支持10/100/1000M以太网 | 兼容多速率以太网连接 |
 | 支持DMA | 高效数据传输降低CPU负载 |
 | 支持NAPI | 提升中断处理效率减少CPU开销 |
@@ -533,4 +533,4 @@ Emac MII Interface : RGMII
 Current rx phase : 73
 Current tx phase : 60
 ```
-
+# FAQ
