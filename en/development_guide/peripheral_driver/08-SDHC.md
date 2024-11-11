@@ -1,6 +1,69 @@
 介绍SDHC的功能和使用方法。
+# 模块介绍
+SDHC是多媒体卡（MMC）/安全数字（SD）/安全数字输入输出（SDIO）模块的控制器。
+## 功能介绍
+![](static/MMC.png)
 
-## pinctrl
+MMC框架图可以分为以下几个层次：  
+MMC Host：这是MMC控制器驱动层，负责初始化MMC控制器以及底层的数据收发操作，直接控制底层寄存器。  
+MMC Core：这是核心层，负责抽象出虚拟的card设备，并提供接口供上层使用。  
+MMC Block：这是块设备层，负责实现块设备驱动程序，对接内核其他框架（如块设备、TTY、wifi等）。  
+这些层次结构共同构成了Linux系统中MMC子系统的完整框架，确保了MMC设备在系统中的正常运行和数据传输。
+## 源码结构介绍
+控制器驱动代码在drivers/mmc/host目录下：
+```
+drivers/mmc/host
+|-- sdhci.c		        #sdhci标准代码
+|-- sdhci-pltfm.c               #sdhci平台层
+|-- sdhci-of-k1x.c		#k1 sdhci驱动
+```
+# 关键特性
+## 特性
+| 特性 | 特性说明 |
+| :-----| :----|
+| 支持eMMC5.1 | 支持eMMC5.1协议，包括HS400,HS200 |
+| 支持sd3.0 | 支持sd3.0协议的卡，兼容sd2.0协议 |
+| 支持DMA | 支持DMA数据传输 |
+## 性能参数
+| eMMC型号 | 顺序读(MB/s) | 顺序写(MB/s) | 随机读(MB/s) | 随机写(MB/s) |
+| :-----| :----| :----: | :----: |:----: |
+| KLMAG1JETD-B041 | 295 | 53.3 | 65.4 | 45.2 |
+| FEMDME008G-A8A39 | 304 | 107 | 32.3 | 44 |
+
+测试方法
+```
+fio -name=randread -direct=1 -iodepth=64 -rw=randread -ioengine=libaio -bs=4k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
+fio -name=randwrite -direct=1 -iodepth=64 -rw=randwrite -ioengine=libaio -bs=4k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
+fio -name=read -direct=1 -iodepth=64 -rw=read -ioengine=libaio -bs=512k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
+fio -name=write -direct=1 -iodepth=64 -rw=write -ioengine=libaio -bs=512k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
+```
+***默认配置HS400 200M***
+# 配置介绍
+主要包括驱动使能配置和dts配置
+## CONFIG配置
+CONFIG_MMC 为MMC总线协议提供支持，默认情况，此选项为Y
+```
+Device Drivers
+        MMC/SD/SDIO card support (MMC [=y])     
+```
+CONFIG_MMC_BLOCK为安装文件系统的MMC块设备驱动提供支持，默认情况，此选项为Y
+```
+Device Drivers
+	MMC/SD/SDIO card support (MMC [=y])
+    	HW reset support for eMMC (PWRSEQ_EMMC [=y])
+        Simple HW reset support for MMC (PWRSEQ_SIMPLE [=y])
+    	MMC block device driver (MMC_BLOCK [=y])
+```
+CONFIG_MMC_SDHCI 为MMC控制器驱动提供支持，默认情况下，此选型为Y
+```
+Device Drivers
+	MMC/SD/SDIO card support (MMC [=y])
+    	Secure Digital Host Controller Interface support (MMC_SDHCI [=y])
+        	SDHCI platform and OF driver helper (MMC_SDHCI_PLTFM [=y])
+    			SDHCI OF support for the Spacemit K1X SDHCI controllers (MMC_SDHCI_OF_K1X [=y])
+```
+## dts配置
+### pinctrl
 
 sdhc 一共有三个 slot，slot1 支持 sd/sdio(1/4 bit)，slot2 支持 sdio/emmc(1/4 bit)，slot3 只支持 emmc(1/4/8 bit)。
 
@@ -34,7 +97,7 @@ mmc1 的 pinctl 还有一个 fast 模式，在时钟高于 100M 时需要切换�
     };
 ```
 
-## gpio
+### gpio
 
 sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检测的 gpio。
 
@@ -42,7 +105,7 @@ sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检�
 &sdhci0 {
         cd-gpios = <&gpio 80 0>;
         cd-inverted;
-}；
+};
 ```
 
 比如方案使用 gpio80 来做卡的检测，还需要配置 gpio80 的 pintcl 功能。
@@ -61,24 +124,24 @@ sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检�
 };
 ```
 
-## 电源配置
+### 电源配置
 
 sd 和 sdio 需要配置两个电源，分别是 vmmc-supply 和 vqmmc-supply，分别对应卡的功能和 io 供电，vqmmc-supply 会根据卡的运行模式动态切换电源，硬件设计上需要确保能支持 3.3v 和 1.8v。
 
 emmc 设计上会保证供电，不需要配置电源。
 
 ```c
-&sdhci0 { 
+&sdhci0 {
         vmmc-supply = <&dcdc_4>;
         vqmmc-supply = <&ldo_1>;
-}；
+};
 ```
 
-## tuning 配置
+### tuning 配置
 
 sd 跑高速模式下需要进行 tuning，不同的硬件版型都需要调整 tx 和 rx 的相关参数。
 
-## dts 配置
+### dts 配置示例
 
 sd 的完整方案配置如下：
 
@@ -142,3 +205,37 @@ emmc 的完整方案配置如下：
         status = "okay";
 };
 ```
+# 接口描述
+## 测试介绍
+MMC/SD等存储可以通过第三方工具完成性能和功能测试，eg：fio，bonnie++，目前bianbu-linux上已集成fio工具。可以通过fio工具进行读写性能，老化测试。
+## API介绍
+Linux操作系统包括一个实施MMC总线协议的MMC总线驱动、MMC块驱动处理文件系统读/写调用，并使用MMC主控制器接口驱动向uSDHC发送命令。
+k1 mmc控制器驱动实现了init，exit，request，resume，suspend和set_ios的接口，主要有：
+- init函数sdhci_pltfm_init()初始化平台硬件并注册sdhci_k1x_pdata结构
+- exit函数spacemit_sdhci_remove()取消平台硬件初始化，并释放分配的存储器
+
+## Debug介绍
+### sysfs
+
+```
+sd_card_pmux
+该节点用于切换sd卡的pin为jtag功能，0表示sd卡功能，1表示jtag功能。
+tx_delaycode
+tx_delaycode的值默认是在方案dts中指定，可以通过sysfs下的该节点进行动态修改，方便调试阶段的验证。
+```
+### debugfs
+```
+常用于查询mmc的工作状态，包括频率，位宽，模式等信息。
+cat /sys/kernel/debug/mmc0/ios
+clock:          204800000 Hz
+actual clock:   204800000 Hz
+vdd:            21 (3.3 ~ 3.4 V)
+bus mode:       2 (push-pull)
+chip select:    0 (don't care)
+power mode:     2 (on)
+bus width:      2 (4 bits)
+timing spec:    6 (sd uhs SDR104)
+signal voltage: 1 (1.80 V)
+driver type:    0 (driver type B)
+```
+# FAQ

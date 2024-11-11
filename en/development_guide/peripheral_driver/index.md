@@ -3,7 +3,7 @@ sidebar_position: 5
 slug: /development_guide/peripheral_driver
 ---
 
-# Peripheral driver
+# 外设驱动
 
 介绍文档编写目的、使用范围和相关人员。
 
