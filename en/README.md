@@ -36,14 +36,14 @@ More is comming.
 
 - [Image](image.md)
 - [Source](source.md)
-- [Device Management](device_management.md)
-- [Solution Management](solution_management.md)
+- [Device Management](device/device_management.md)
+- [Solution Management](device/solution_management.md)
 
 ## Advanced guide
 
-- [Peripheral Driver](development_guide/peripheral_driver/index.md)
-- [Boot](development_guide/boot.md)
-- [Media](development_guide/media.md)
+- [Peripheral Driver](device/peripheral_driver/index.md)
+- [Boot](device/boot.md)
+- [Media](media/index.md)
 
 ## Release notes
 

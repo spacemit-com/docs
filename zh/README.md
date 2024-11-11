@@ -36,14 +36,14 @@ Bianbu Linux 是 Spacemit Stone 系列芯片的 BSP，即 SDK。包含监管程�
 
 - [镜像](image.md)
 - [源码](source.md)
-- [设备管理](device_management.md)
-- [方案管理](solution_management.md)
+- [设备管理](device/device_management.md)
+- [方案管理](device/solution_management.md)
 
 ## 进阶指南
 
-- [外设驱动](development_guide/peripheral_driver/index.md)
-- [启动](development_guide/boot.md)
-- [多媒体](development_guide/media.md)
+- [外设驱动](device/peripheral_driver/index.md)
+- [启动](device/boot.md)
+- [多媒体](media/index.md)
 
 ## 更新说明
 
