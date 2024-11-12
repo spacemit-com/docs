@@ -339,16 +339,16 @@ gpio81配置为panel复位pin，gpio82和gpio83配置为panel电源控制pin。
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dsi2 {
- status = "okay";
+        status = "okay";
 
- panel2: panel2@0 {
-  status = "okay";
-  compatible = "spacemit,mipi-panel2";
-  reg = <0>;
+        panel2: panel2@0 {
+                status = "okay";
+                compatible = "spacemit,mipi-panel2";
+                reg = <0>;
 
-  gpios-reset = <81>;     // 配置panel 复位 gpio
-  gpios-dc = <82 83>;     // 配置panel 电源控制 gpio
- };
+                gpios-reset = <81>;     // 配置panel 复位 gpio
+                gpios-dc = <82 83>;     // 配置panel 电源控制 gpio
+        };
 };
 ```
 
@@ -362,10 +362,10 @@ MIPI DSI电源配置，包括MIPI DSI 1.2v电源控制配置。
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
- status = "okay";
+        status = "okay";
 
- dsi_1v2-supply = <&ldo_5>;      // 引用PMIC DLDO
- vin-supply-names = "dsi_1v2";   // 配置MIPI DSI 1.2v电源
+        dsi_1v2-supply = <&ldo_5>;      // 引用PMIC DLDO
+        vin-supply-names = "dsi_1v2";   // 配置MIPI DSI 1.2v电源
 };
 ```
 
@@ -378,46 +378,46 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x-lcd.dtsi
 &soc {
- display-subsystem-dsi {
-  compatible = "spacemit,saturn-le";
-  reg = <0 0xC0340000 0 0x2A000>;
-  ports = <&dpu_online2_dsi>;
-  interconnects = <&dram_range1>;
-  interconnect-names = "dma-mem";
- };
+	display-subsystem-dsi {
+		compatible = "spacemit,saturn-le";
+		reg = <0 0xC0340000 0 0x2A000>;
+		ports = <&dpu_online2_dsi>;
+		interconnects = <&dram_range1>;
+		interconnect-names = "dma-mem";
+	};
 
- dpu_online2_dsi: port@c0340000 {
-  compatible = "spacemit,dpu-online2";
-  interrupt-parent = <&intc>;
-  interrupts = <90>, <89>;
-  interrupt-names = "ONLINE_IRQ", "OFFLINE_IRQ";
-  clocks = <&ccu CLK_DPU_PXCLK>,          // mipi dsi dpu pxclk 配置
-    <&ccu CLK_DPU_MCLK>,           // mipi dsi dpu mclk 配置
-    <&ccu CLK_DPU_HCLK>,           // mipi dsi dpu hclk 配置
-    <&ccu CLK_DPU_ESC>,            // mipi dsi dpu escclk 配置
-    <&ccu CLK_DPU_BIT>;            // mipi dsi dpu bitclk 配置
-  clock-names = "pxclk", "mclk", "hclk", "escclk", "bitclk";
-  resets = <&reset RESET_MIPI>,           // mipi dsi dpu dsi reset 配置
-    <&reset RESET_LCD_MCLK>,       // mipi dsi dpu mclk reset 配置
-    <&reset RESET_LCD>,            // mipi dsi dpu lcd reset 配置
-    <&reset RESET_DSI_ESC>;        // mipi dsi dpu esc reset 配置
-  reset-names= "dsi_reset", "mclk_reset", "lcd_reset","esc_reset";
-  power-domains = <&power K1X_PMU_LCD_PWR_DOMAIN>;
-  pipeline-id = <ONLINE2>;
-  ip = "spacemit-saturn";
-  spacemit-dpu-min-mclk = <40960000>;
-  type = <DSI>;
-  clk,pm-runtime,no-sleep;
-  status = "disabled";
+	dpu_online2_dsi: port@c0340000 {
+		compatible = "spacemit,dpu-online2";
+		interrupt-parent = <&intc>;
+		interrupts = <90>, <89>;
+		interrupt-names = "ONLINE_IRQ", "OFFLINE_IRQ";
+		clocks = <&ccu CLK_DPU_PXCLK>,          // mipi dsi dpu pxclk 配置
+			 <&ccu CLK_DPU_MCLK>,           // mipi dsi dpu mclk 配置
+			 <&ccu CLK_DPU_HCLK>,           // mipi dsi dpu hclk 配置
+			 <&ccu CLK_DPU_ESC>,            // mipi dsi dpu escclk 配置
+			 <&ccu CLK_DPU_BIT>;            // mipi dsi dpu bitclk 配置
+		clock-names = "pxclk", "mclk", "hclk", "escclk", "bitclk";
+		resets = <&reset RESET_MIPI>,           // mipi dsi dpu dsi reset 配置
+			 <&reset RESET_LCD_MCLK>,       // mipi dsi dpu mclk reset 配置
+			 <&reset RESET_LCD>,            // mipi dsi dpu lcd reset 配置
+			 <&reset RESET_DSI_ESC>;        // mipi dsi dpu esc reset 配置
+		reset-names= "dsi_reset", "mclk_reset", "lcd_reset","esc_reset";
+		power-domains = <&power K1X_PMU_LCD_PWR_DOMAIN>;
+		pipeline-id = <ONLINE2>;
+		ip = "spacemit-saturn";
+		spacemit-dpu-min-mclk = <40960000>;
+		type = <DSI>;
+		clk,pm-runtime,no-sleep;
+		status = "disabled";
 
-  dpu_online2_dsi_out: endpoint@0 {
-   remote-endpoint = <&dsi2_in>;
-  };
+		dpu_online2_dsi_out: endpoint@0 {
+			remote-endpoint = <&dsi2_in>;
+		};
 
-  dpu_offline0_dsi_out: endpoint@1 {
-   remote-endpoint = <&wb0_in>;
-  };
- };
+		dpu_offline0_dsi_out: endpoint@1 {
+			remote-endpoint = <&wb0_in>;
+		};
+	};
 }
 ```
 
@@ -427,10 +427,10 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
- status = "okay";
+	status = "okay";
 
- spacemit-dpu-bitclk = <1000000000>;     // mipi dsi dpu bitclk 配置
- spacemit-dpu-escclk = <76800000>;       // mipi dsi dpu escclk 配置
+	spacemit-dpu-bitclk = <1000000000>;     // mipi dsi dpu bitclk 配置
+	spacemit-dpu-escclk = <76800000>;       // mipi dsi dpu escclk 配置
 };
 ```
 
@@ -440,11 +440,12 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
 / { lcds: lcds {
- lcd_gx09inx101_mipi: lcd_gx09inx101_mipi {
+	lcd_gx09inx101_mipi: lcd_gx09inx101_mipi {
 
-  phy-bit-clock = <1000000000>;   // mipi dsi dphy bitclk 配置
-  phy-esc-clock = <76800000>;     // mipi dsi dphy escclk 配置
- };
+		phy-bit-clock = <1000000000>;   // mipi dsi dphy bitclk 配置
+		phy-esc-clock = <76800000>;     // mipi dsi dphy escclk 配置
+	};
+
 };};
 ```
 
@@ -523,9 +524,9 @@ spacemit 平台计算 MIPI DSI Bit clock 时, 需要乘以系数 1.1。
 以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
 配置mipi dsi dpu timing及mipi dsi dphy timing。
 
-pixel clock= (hactive + hfp + hbp + hsync) *(vactive + vfp + vbp + vsync)* fps = （1200 + 50 + 40 + 10）*(1920 + 20 + 16 + 4)* 60 = 152880000 HZ
+pixel clock= (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ 
 
-bit clock = (((hactive + hfp + hbp + hsync) *(vactive + vfp + vbp + vsync)* fps  *bpp) / lane bumber)* 1.1 = (（（1200 + 50 + 40 + 10）*(1920 + 20 + 16 + 4)* 60 *24）/ 4)* 1.1 = 1009008000 HZ
+bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ
 
 通过display timing计算，pixel clock值为152880000 HZ，系统可配置为153000000 HZ，bit clock值为1009008000 HZ，系统可配置为1000000000 HZ。
 dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clock配置为1000000000。
@@ -593,34 +594,35 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
- status = "okay";                                        // 使能MIPI DSI dpu
+	status = "okay";                                       // 使能MIPI DSI dpu
 };
 
 &dsi2 {
- status = "okay";                                        // 使能MIPI DSI host
- panel2: panel2@0 {
-  status = "okay";                                // 使能panel
-  compatible = "spacemit,mipi-panel2";
-  reg = <0>;
+	status = "okay";                                        // 使能MIPI DSI host
+	panel2: panel2@0 {
+		status = "okay";                                // 使能panel
+		compatible = "spacemit,mipi-panel2";
+		reg = <0>;
 
-  gpios-reset = <81>;                             // 配置 panel 复位 gpio
-  gpios-dc = <82 83>;                             // 配置 panel 电源控制 gpio
-  id = <2>;                                       // 配置 panel id
-  delay-after-reset = <10>;                       // 配置 plane 复位延时时间（单位：ms）
-  force-attached = "lcd_gx09inx101_mipi";         // 配置 plane 型号
- };
+		gpios-reset = <81>;                             // 配置 panel 复位 gpio
+		gpios-dc = <82 83>;                             // 配置 panel 电源控制 gpio
+		id = <2>;                                       // 配置 panel id
+		delay-after-reset = <10>;                       // 配置 plane 复位延时时间（单位：ms）
+		force-attached = "lcd_gx09inx101_mipi";         // 配置 plane 型号
+	};
+
 };
 
 &lcds {
- status = "okay";                                        // 使能lcds
+	status = "okay";                                          // 使能lcds
 };
 
 &pwm14 {
- status = "okay";                                        // 使能pwm
+	status = "okay";                                        // 使能pwm
 };
 
 &pwm_bl {                                                       // 使能背光
- status = "okay";
+ 	status = "okay";
 };
 
 ```
@@ -807,63 +809,66 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
- status = "okay";                                // 使能mipi dsi dpu
- memory-region = <&dpu_resv>;                    // 配置mipi dsi dpu预留内存
- spacemit-dpu-bitclk = <1000000000>;             // mipi dsi dpu bitclk 配置
- spacemit-dpu-escclk = <76800000>;               // mipi dsi dpu escclk 配置
- dsi_1v2-supply = <&ldo_5>;                      // 引用PMIC DLDO
- vin-supply-names = "dsi_1v2";                   // 配置MIPI DSI 1.2v电源
+	status = "okay";                                // 使能mipi dsi dpu
+	memory-region = <&dpu_resv>;                    // 配置mipi dsi dpu预留内存
+	spacemit-dpu-bitclk = <1000000000>;             // mipi dsi dpu bitclk 配置
+	spacemit-dpu-escclk = <76800000>;               // mipi dsi dpu escclk 配置
+	dsi_1v2-supply = <&ldo_5>;                      // 引用PMIC DLDO
+	vin-supply-names = "dsi_1v2";                   // 配置MIPI DSI 1.2v电源
+
 };
 
 &dsi2 {
- status = "okay";                                // 使能mipi dsi host
+	status = "okay";                                // 使能mipi dsi host
 
- panel2: panel2@0 {
-  status = "okay";                        // 使能panel
-  compatible = "spacemit,mipi-panel2";
-  reg = <0>;
+	panel2: panel2@0 {
+		status = "okay";                        // 使能panel
+		compatible = "spacemit,mipi-panel2";
+		reg = <0>;
 
-  gpios-reset = <81>;                     // panel 复位 gpio
-  gpios-dc = <82 83>;                     // panel 电源控制 gpio
-  id = <2>;                               // 配置 panel id
-  delay-after-reset = <10>;               // 配置 plane 复位延时时间（单位：ms）
-  force-attached = "lcd_gx09inx101_mipi"; // 配置 plane 型号
- };
+		gpios-reset = <81>;                     // panel 复位 gpio
+		gpios-dc = <82 83>;                     // panel 电源控制 gpio
+		id = <2>;                               // 配置 panel id
+		delay-after-reset = <10>;               // 配置 plane 复位延时时间（单位：ms）
+		force-attached = "lcd_gx09inx101_mipi"; // 配置 plane 型号
+	};
+
 };
 
 &lcds {
- status = "okay";                                // 使能lcds
+	status = "okay";                                 // 使能lcds
 };
 
 &pwm14 {                                                // 配置pwm
- pinctrl-names = "default";
- pinctrl-0 = <&pinctrl_pwm14_1>;
- status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm14_1>;
+	status = "okay";
+
 };
 
 &pwm_bl {                                               // 配置背光
- pwms = <&pwm14 2000>;
- brightness-levels = <
-  0   40  40  40  40  40  40  40  40  40  40  40  40  40  40  40
-  40  40  40  40  40  40  40  40  40  40  40  40  40  40  40  40
-  40  40  40  40  40  40  40  40  40  41  42  43  44  45  46  47
-  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63
-  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79
-  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95
-  96  97  98  99  100 101 102 103 104 105 106 107 108 109 110 111
-  112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
-  128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143
-  144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159
-  160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175
-  176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
-  192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207
-  208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223
-  224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239
-  240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255
- >;
- default-brightness-level = <100>;
+ 	pwms = <&pwm14 2000>;
+	brightness-levels = <
+		0   40  40  40  40  40  40  40  40  40  40  40  40  40  40  40
+		40  40  40  40  40  40  40  40  40  40  40  40  40  40  40  40
+		40  40  40  40  40  40  40  40  40  41  42  43  44  45  46  47
+		48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63
+		64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79
+		80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95
+		96  97  98  99  100 101 102 103 104 105 106 107 108 109 110 111
+		112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
+		128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143
+		144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159
+		160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175
+		176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
+		192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207
+		208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223
+		224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239
+		240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255
+	>;
+	default-brightness-level = <100>;
 
- status = "okay";
+	status = "okay";
 };
 
 ```
@@ -970,14 +975,14 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_hdmi {
- memory-region = <&dpu_resv>;                    // 配置hdmi dpu预留内存
- status = "okay";
+	memory-region = <&dpu_resv>;                    // 配置hdmi dpu预留内存
+	status = "okay";
 };
 
 &hdmi{
- pinctrl-names = "default";
- pinctrl-0 = <&pinctrl_hdmi_0>;
- status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hdmi_0>;
+	status = "okay";
 };
 ```
 
