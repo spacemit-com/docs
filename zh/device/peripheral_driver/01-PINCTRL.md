@@ -272,6 +272,108 @@ struct pinctrl_state *pinctrl_lookup_state(struct pinctrl *p,
 ```
 int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
 ```
+
+### 使用demo
+#### pinctrl为内核定义状态
+linux定义了"default"、"init"、"idle"和"sleep"四种标准pins状态，kernel框架层会进行管理，模块驱动不用操作。
+default: 设备pins默认状态
+init:    设备驱动probe阶段初始化状态
+sleep:   PM(电源管理)流程设备睡眠状态时pins状态, .suspend时设置
+idle:    runtime suspend时pins状态，pm_runtime_suspend或 
+         pm_runtime_idle时设置
+
+如gmac0控制器使用pins定义为"default"状态, gmac控制器驱动不用做任何操作，kernel框架会完成eth0 pins的设置。
+dts配置如下:
+```c
+eth0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_gmac0_1>;
+};
+```
+#### pinctrl名称自定义
+以k1 sd卡控制器举例：
+k1 sd卡控制器定义了3种pins状态"default"、"fast"和"debug"。
+dts中定义和引用如下:
+```c
+&pinctrl {
+    ...
+    pinctrl_mmc1: mmc1_grp {
+		pinctrl-single,pins = <
+			K1X_PADCONF(MMC1_DAT3, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_d3 */
+			K1X_PADCONF(MMC1_DAT2, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_d2 */
+			K1X_PADCONF(MMC1_DAT1, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_d1 */
+			K1X_PADCONF(MMC1_DAT0, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_d0 */
+			K1X_PADCONF(MMC1_CMD,  MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_cmd */
+			K1X_PADCONF(MMC1_CLK,  MUX_MODE0, (EDGE_NONE | PULL_DOWN | PAD_3V_DS4))	/* mmc1_clk */
+		>;
+	};
+
+	pinctrl_mmc1_fast: mmc1_fast_grp {
+		pinctrl-single,pins = <
+			K1X_PADCONF(MMC1_DAT3, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_1V8_DS3))	/* mmc1_d3 */
+			K1X_PADCONF(MMC1_DAT2, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_1V8_DS3))	/* mmc1_d2 */
+			K1X_PADCONF(MMC1_DAT1, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_1V8_DS3))	/* mmc1_d1 */
+			K1X_PADCONF(MMC1_DAT0, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_1V8_DS3))	/* mmc1_d0 */
+			K1X_PADCONF(MMC1_CMD,  MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_1V8_DS3))	/* mmc1_cmd */
+			K1X_PADCONF(MMC1_CLK,  MUX_MODE0, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS3))	/* mmc1_clk */
+		>;
+	};
+
+    pinctrl_mmc1_debug: mmc1_debug_grp {
+		pinctrl-single,pins = <
+			K1X_PADCONF(MMC1_DAT3, MUX_MODE3, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* uart0_txd */
+			K1X_PADCONF(MMC1_DAT2, MUX_MODE3, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* uart0_rxd */
+			K1X_PADCONF(MMC1_DAT1, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_d1 */
+			K1X_PADCONF(MMC1_DAT0, MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_d0 */
+			K1X_PADCONF(MMC1_CMD,  MUX_MODE0, (EDGE_NONE | PULL_UP   | PAD_3V_DS4))	/* mmc1_cmd */
+			K1X_PADCONF(MMC1_CLK,  MUX_MODE0, (EDGE_NONE | PULL_DOWN | PAD_3V_DS4))	/* mmc1_clk */
+		>;
+	};
+    ...
+};
+
+&sdhci0 {
+	pinctrl-names = "default","fast","debug";
+	pinctrl-0 = <&pinctrl_mmc1>;
+	pinctrl-1 = <&pinctrl_mmc1_fast>;
+	pinctrl-2 = <&pinctrl_mmc1_debug>;
+    ...
+};
+
+```
+k1 sd控制器驱动
+sdhci-of-k1x.c管理上述pins
+```c
+/* 获取pinctrl handler */
+spacemit->pinctrl = devm_pinctrl_get(&pdev->dev);
+...
+
+/* 查找fast/default/debug状态的pins配置，并进行设置 */
+if (spacemit->pinctrl && !IS_ERR(spacemit->pinctrl)) {
+        if (clock >= 200000000) {
+			    spacemit->pin = pinctrl_lookup_state(spacemit->pinctrl, "fast");
+			    if (IS_ERR(spacemit->pin))
+				        pr_warn("could not get sdhci fast pinctrl state.\n");
+			    else
+				        pinctrl_select_state(spacemit->pinctrl, spacemit->pin);
+		} else if (clock == 0) {
+			    spacemit->pin = pinctrl_lookup_state(spacemit->pinctrl, "debug");
+			    if (IS_ERR(spacemit->pin))
+				        pr_debug("could not get sdhci debug pinctrl state. ignore it\n");
+			    else
+				        pinctrl_select_state(spacemit->pinctrl, spacemit->pin);
+		} else {
+			    spacemit->pin = pinctrl_lookup_state(spacemit->pinctrl, "default");
+			    if (IS_ERR(spacemit->pin))
+				        pr_warn("could not get sdhci default pinctrl state.\n");
+			    else
+				        pinctrl_select_state(spacemit->pinctrl, spacemit->pin);
+		}
+}
+...
+
+```
+
 ## Debug介绍
 ### sysfs
 查看系统当前pinctrl控制信息和pin配置信息
