@@ -990,7 +990,7 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
 
 ### API介绍
 
-DRM驱动API介绍请参考linux内核文档（<https://docs.kernel.org/gpu/drm-kms.html）>
+DRM驱动API介绍请参考linux内核文档[drm-kms](https://docs.kernel.org/gpu/drm-kms.html)
 
 ## Debug介绍
 
