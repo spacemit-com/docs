@@ -30,3 +30,40 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - 音视频接口驱动：DSI、HDMI、CSI等
 - 工业扩展接口驱动：CAN-FD、UART、I2C、SPI、PWM等
 - 存储接口驱动：SDHC、SPI-Flash等
+
+## 快速索引
+高速扩展接口驱动
+- [GMAC](09-GMAC.md)  
+- [USB](10-USB.md)  
+- [PCIe](11-PCIe.md)   
+
+音视频接口驱动
+- [Display](12-Display.md)  
+- [V2D](13-V2D.md)  
+- [Audio](17-Audio.md)
+
+工业扩展接口驱动
+- [PWM](03-PWM.md)  
+- [IR-RX](04-IR-RX.md)
+- [UART](05-UART.md)
+- [I2C](06-I2C.md)  
+- [QSPI](07-QSPI.md) 
+- [gpadc](gpadc.md)
+
+存储接口驱动
+- [SDHC](08-SDHC.md)
+
+系统基础驱动
+- [PINCTRL](01-PINCTRL.md) 
+- [GPIO](02-GPIO.md)    
+- [Clock](16-Clock.md)  
+- [DMA](21-DMA.md)
+- [RTC](rtc.md)
+
+功耗子系统驱动
+- [thremal](thermal.md)  
+- [Cpufreq](15-Cpufreq.md)  
+- [Stanby](\bianbu-linux-docs\zh\device\standby.md)
+
+其他
+- [CRYPTO](18-CRYPTO.md)
