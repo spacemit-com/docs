@@ -274,13 +274,12 @@ int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
 ```
 
 ### 使用demo
-#### pins为内核定义状态
-linux定义了"default"、"init"、"idle"和"sleep"四种标准pins状态，kernel框架层会进行管理，模块驱动不用操作。
-default: 设备pins默认状态
-init:    设备驱动probe阶段初始化状态
-sleep:   PM(电源管理)流程设备睡眠状态时pins状态, .suspend时设置
-idle:    runtime suspend时pins状态，pm_runtime_suspend或 
-         pm_runtime_idle时设置
+#### pins状态为内核已定义
+linux定义了"default"、"init"、"idle"和"sleep"四种标准pins状态，kernel框架层会进行管理，模块驱动不用操作。  
+- default: 设备pins默认状态  
+- init:    设备驱动probe阶段初始化状态
+- sleep:   PM(电源管理)流程设备睡眠状态时pins状态, .suspend时设置
+- idle:    runtime suspend时pins状态，pm_runtime_suspend或pm_runtime_idle时设置
 
 如gmac0控制器使用pins定义为"default"状态, gmac控制器驱动不用做任何操作，kernel框架会完成eth0 pins的设置。
 dts配置如下:
@@ -290,9 +289,8 @@ eth0 {
     pinctrl-0 = <&pinctrl_gmac0_1>;
 };
 ```
-#### pins状态自定义
-以k1 sd卡控制器举例：
-k1 sd卡控制器定义了3种pins状态"default"、"fast"和"debug"。
+#### pins状态自定义  
+以k1 sd卡控制器举例，k1 sd卡控制器定义了3种pins状态"default"、"fast"和"debug"。  
 dts中定义和引用如下:
 ```c
 &pinctrl {
