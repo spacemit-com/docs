@@ -274,7 +274,7 @@ int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
 ```
 
 ### 使用demo
-#### pinctrl为内核定义状态
+#### pins为内核定义状态
 linux定义了"default"、"init"、"idle"和"sleep"四种标准pins状态，kernel框架层会进行管理，模块驱动不用操作。
 default: 设备pins默认状态
 init:    设备驱动probe阶段初始化状态
@@ -290,7 +290,7 @@ eth0 {
     pinctrl-0 = <&pinctrl_gmac0_1>;
 };
 ```
-#### pinctrl名称自定义
+#### pins状态自定义
 以k1 sd卡控制器举例：
 k1 sd卡控制器定义了3种pins状态"default"、"fast"和"debug"。
 dts中定义和引用如下:
