@@ -10,11 +10,11 @@ spacemit平台Display模块使用DRM框架，DRM全称是Direct Rendering Manage
 
 ![display-drm](static/display-drm.png)
 
-#### 用户空间(Libdrm)
+#### 用户空间Libdrm
 
 DRM框架在用户空间提供的Lib，用户或应用程序在用户空间调用libdrm提供的库函数， 即可访问到显示的资源，并对显示资源进行管理和使用。
 
-#### 内核空间(DRM driver)
+#### 内核空间DRM driver
 
 DRM driver提供了一系列的 IOCTL 接口，可以分成两类：Graphics Execution Manager (GEM)、Kernel Mode-Setting (KMS)。
 
