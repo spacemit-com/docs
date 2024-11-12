@@ -22,7 +22,7 @@ Clock系统相关的器件包括：
 系统中可能存在很多个这样的硬件模块，呈树形结构，linux将他们管理成一个时钟树（clock-tree），根节点一般是晶振，接着是pll，然后是mux或者div，最终叶子节点一般是gate。CCF实现了多种基础时钟类型，例如固定速率时钟fixed_rate clock、门控时钟gate clock、分频器时钟divider clock和复用器时钟mux clock等。一般为了方便使用，会根据时钟树设计，实现一些时钟类型。
 
 ## 源码结构介绍
-
+### Clock控制器驱动源码
 Clock控制器驱动代码在drivers/clk/spacemit目录下：
 ```
 drivers/clk/spacemit
@@ -47,6 +47,12 @@ clock控制器驱动实现了5种时钟类型:
 - ddn类型，分数divider，有一级除频，对应分母，一级倍频，对应分子
 - mix类型，混合类型，支持gate/mux/divider的任一种或者随意组合
 - ddr类型，ddr相关的特殊时钟类型  
+
+### 各时钟index定义
+各时钟index定义在dt-bindings下：
+```
+include/dt-bindings/clock/spacemit-k1x-clock.h
+```
 
 # 配置介绍
 主要包括驱动使能配置和dts配置
@@ -145,26 +151,13 @@ clock controller的dts配置如下：
 
 
 ```
-模块如要使用clock功能，需要在dts配置clocks和clock-names属性，然后在驱动中通过CCF API进行Clock相关的操作。以can为例：
-```
-                flexcan0: fdcan@d4028000 {
-                        compatible = "spacemit,k1x-flexcan";
-                        reg = <0x0 0xd4028000 0x0 0x4000>;
-                        interrupts = <16>;
-                        interrupt-parent = <&intc>;
-                        clocks = <&ccu CLK_CAN0>,<&ccu CLK_CAN0_BUS>; #配置模块需要使用的时钟index
-                        clock-names = "per","ipg";                    #配置clocks对应的名称，驱动里可以通过这个字符串获取对应时钟
-                        resets = <&reset RESET_CAN0>;
-                        fsl,clk-source = <0>;
-                        status = "disabled";
-                };
 
-```
 # 接口描述
 
 ## API介绍
 CCF为设备驱动提供了通用的时钟操作的接口
-- get接口
+- get  
+获取时钟句柄
 ```c
 /*
 * clk_get - get clk
@@ -195,7 +188,8 @@ struct clk *devm_clk_get(struct device *dev, const char *id);
 struct clk *of_clk_get_by_name(struct device_node *np, const char *name);
 ```
 上述接口，第二个参数如果缺省，会默认获取dts里"clocks"项配置的第一个时钟。
-- put接口
+- put  
+释放时钟句柄
 ```c
 /*
 * clk_put - put clk
@@ -211,7 +205,8 @@ void clk_put(struct clk *clk);
 */
 void devm_clk_put(struct device *dev, struct clk *clk);
 ```
-- prepare
+- prepare  
+prepare时钟，一般是enable时钟之前的一些准备工作
 ```c
 /**
  * clk_prepare - prepare a clock source
@@ -221,7 +216,8 @@ void devm_clk_put(struct device *dev, struct clk *clk);
  */
 int clk_prepare(struct clk *clk);
 ```
-- unprepare
+- unprepare  
+unprepare时钟，一般是disable时钟后的一些善后工作
 ```c
 /**
  * clk_unprepare - undo preparation of a clock source
@@ -232,7 +228,8 @@ int clk_prepare(struct clk *clk);
  */
 void clk_unprepare(struct clk *clk);
 ```
-- enable
+- enable  
+使能时钟
 ```c
 /**
  * clk_enable - inform the system when the clock source should be running.
@@ -243,7 +240,8 @@ void clk_unprepare(struct clk *clk);
  */
 int clk_enable(struct clk *clk);
 ```
-- disable
+- disable  
+关闭时钟
 ```c
 /**
  * clk_disable - inform the system when the clock source is no longer required.
@@ -258,8 +256,9 @@ int clk_enable(struct clk *clk);
  */
 void clk_disable(struct clk *clk);
 ```
-clk_prepare_enable是clk_prepare和clk_enable的组合，clk_disable_unprepare是clk_unprepare和clk_disable的组合
-- set rate
+clk_prepare_enable是clk_prepare和clk_enable的组合，clk_disable_unprepare是clk_unprepare和clk_disable的组合，推荐使用这两个接口
+- set rate  
+设置时钟频率
 ```c
 /**
  * clk_set_rate - set the clock rate for a clock source
@@ -271,7 +270,8 @@ clk_prepare_enable是clk_prepare和clk_enable的组合，clk_disable_unprepare�
  */
 int clk_set_rate(struct clk *clk, unsigned long rate);
 ```
-- get rate
+- get rate  
+获取当前时钟频率
 ```c
 /**
  * clk_get_rate - obtain the current clock rate (in Hz) for a clock source.
@@ -281,7 +281,8 @@ int clk_set_rate(struct clk *clk, unsigned long rate);
 unsigned long clk_get_rate(struct clk *clk);
 
 ```
-- set parent
+- set parent  
+设置父时钟
 ```c
 /**
  * clk_set_parent - set the parent clock source for this clock
@@ -292,7 +293,8 @@ unsigned long clk_get_rate(struct clk *clk);
 int clk_set_parent(struct clk *clk, struct clk *parent);
 
 ```
-- get parent
+- get parent  
+获取当前父时钟句柄
 ```c
 /**
  * clk_get_parent - get the parent clock source for this clock
@@ -302,7 +304,8 @@ int clk_set_parent(struct clk *clk, struct clk *parent);
  */
 struct clk *clk_get_parent(struct clk *clk);
 ```
-- round rate
+- round rate  
+获取与目标频率接近并且时钟控制器可以提供的频率
 ```c
 /**
  * clk_round_rate - adjust a rate to the exact rate a clock can provide
@@ -320,6 +323,85 @@ struct clk *clk_get_parent(struct clk *clk);
  * Returns rounded clock rate in Hz, or negative errno.
  */
 long clk_round_rate(struct clk *clk, unsigned long rate);
+```
+### 使用示例
+模块如要使用clock功能，需要在dts配置clocks和clock-names属性，然后在驱动中通过CCF API进行Clock相关的操作。
+- 配置dts  
+在include/dt-bindings/clock/spacemit-k1x-clock.h找到对应的时钟index，配置到模块dts中。
+以can0为例，can0有两个时钟，一个是模块工作时钟CLK_CAN0，另一个是总线时钟CLK_CAN0_BUS。dts配置如下：
+```
+                flexcan0: fdcan@d4028000 {
+                        compatible = "spacemit,k1x-flexcan";
+                        reg = <0x0 0xd4028000 0x0 0x4000>;
+                        interrupts = <16>;
+                        interrupt-parent = <&intc>;
+                        clocks = <&ccu CLK_CAN0>,<&ccu CLK_CAN0_BUS>; #配置can0时钟的index
+                        clock-names = "per","ipg";                    #配置clocks对应的名称，驱动里可以通过这个字符串获取对应时钟
+                        resets = <&reset RESET_CAN0>;
+                        fsl,clk-source = <0>;
+                        status = "disabled";
+                };
+
+```
+- 加头文件和clk句柄  
+```
+#include <linux/clk.h>
+```
+```
+struct flexcan_priv {
+
+        struct clk *clk_ipg;
+        struct clk *clk_per;
+};
+```
+
+- 获取时钟  
+一般在驱动probe阶段通过devm_clk_get获取时钟句柄，当驱动probe失败或者remove时，驱动自动释放对应的时钟句柄
+```
+        clk_ipg = devm_clk_get(&pdev->dev, "ipg");               #获取总线时钟CLK_CAN0_BUS对应的时钟句柄
+        if (IS_ERR(clk_ipg)) {
+                dev_err(&pdev->dev, "no ipg clock defined\n");
+                return PTR_ERR(clk_ipg);
+        }
+
+        clk_per = devm_clk_get(&pdev->dev, "per");               #或取工作时钟CLK_CAN0对应的时钟句柄
+        if (IS_ERR(clk_per)) {
+                dev_err(&pdev->dev, "no per clock defined\n");
+                return PTR_ERR(clk_per);
+        }
+
+```
+- 使能时钟  
+通过clk_prepare_enable使能时钟节点
+```
+        if (priv->clk_ipg) {
+                err = clk_prepare_enable(priv->clk_ipg);         #使能总线时钟CLK_CAN0_BUS
+                if (err)
+                        return err;
+        }
+
+        if (priv->clk_per) {
+                err = clk_prepare_enable(priv->clk_per);         #使能工作时钟CLK_CAN0
+                if (err)
+                        clk_disable_unprepare(priv->clk_ipg);
+        }
+
+```
+- 获取时钟频率  
+通过clk_get_rate获取时钟频率
+```
+clock_freq = clk_get_rate(clk_per);                  #获取工作时钟CLK_CAN0当前频率
+```
+- 设置时钟频率  
+通过clk_set_rate修改时钟频率，第一个参数是时钟句柄struct clk*，第二个参数是目标频率
+```
+clk_set_rate(clk_per, clock_freq);                   #设置工作时钟CLK_CAN0频率
+```
+- 关闭时钟  
+通过clk_disable_unprepare关闭时钟
+```
+clk_disable_unprepare(priv->clk_per);                #关闭工作时钟CLK_CAN0
+clk_disable_unprepare(priv->clk_ipg);                #关闭总线时钟CLK_CAN0_BUS
 ```
 
 ## Debug介绍
