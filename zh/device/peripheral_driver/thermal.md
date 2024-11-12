@@ -1,7 +1,13 @@
-介绍THERMAL的功能和使用方法。
-# 模块介绍
+# Thermal
+
+介绍thermal的功能和使用方法。
+
+## 模块介绍
+
 thermal特指一套关于温控机制的驱动框架，Linux thermal框架是Linux系统下温度控制的一套架构，主要用来解决随着设备性能的不断增强而引起的日益严重的发热问题
-## 功能介绍
+
+### 功能介绍
+
 ![](static/thermal.png)
 
 1. thermal_cooling_device对应系实施冷却措施的驱动，是温控的执行者  
@@ -10,8 +16,10 @@ thermal特指一套关于温控机制的驱动框架，Linux thermal框架是Lin
 4. thermal zone device，主要用来创建thermal zone结点和连接thermal sensor， 在/sys/class/thermal目录下的thermal_zone, 该节点通过dts文件配置生成
 5. thermal sensor是温度传感器，主要是给thermal提供温度感知
 
-## 源码结构介绍
+### 源码结构介绍
+
 CPU调频平台驱动目录如下：
+
 ```
 drivers/thermal/
 ├── cpufreq_cooling.c
@@ -33,15 +41,18 @@ drivers/thermal/
 ├── thermal_of.c
 ├── thermal_sysfs.c
 ```
-# 关键特性
-## 特性
+
+## 关键特性
+
+### 特性
+
 | 特性 | 特性说明 |
 | :-----| :----|
 | 支持cpu温度控制 |
 | 支持115°C过温关机 |
- 
 
 测试方法
+
 ```
 利用外部温枪或者跑负载大而变动的应用以创造温度一个温度可变的环境，查看thermal以及cpufreq的节点看是否cpu调温符合预期  
 1. thermal sensor节点
@@ -49,27 +60,33 @@ drivers/thermal/
 2. cpu调频节点
     2.1 cat /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq
 ```
-# 配置介绍
+
+## 配置介绍
+
 主要包括驱动使能配置和dts配置
-## CONFIG配置
+
+### CONFIG配置
+
 THERMAL配置如下：
+
 ```
 CONFIG_K1X_THERMAL:
 Enable this option if you want to have support for thermal management
 controller present in Spacemit SoCs
 
-	Symbol: K1X_THERMAL [=y]
-	Type  : tristate
-	Defined at drivers/thermal/Kconfig:450
-	Prompt: Spacemit K1X Thermal Support
-	Depends on: THERMAL [=y] && OF [=y] && SOC_SPACEMIT [=y]
-	Location:
-		-> Device Drivers
-			-> Thermal drivers (THERMAL [=y])
-				-> Spacemit K1X Thermal Support (K1X_THERMAL [=y]) 
+ Symbol: K1X_THERMAL [=y]
+ Type  : tristate
+ Defined at drivers/thermal/Kconfig:450
+ Prompt: Spacemit K1X Thermal Support
+ Depends on: THERMAL [=y] && OF [=y] && SOC_SPACEMIT [=y]
+ Location:
+  -> Device Drivers
+   -> Thermal drivers (THERMAL [=y])
+    -> Spacemit K1X Thermal Support (K1X_THERMAL [=y]) 
 ```
 
-## dts配置
+### dts配置
+
 ```
 &thermal_zones {
         cluster0_thermal {
@@ -200,19 +217,25 @@ controller present in Spacemit SoCs
 };
 
 ```
-# 接口描述
-## 测试介绍
-测试thermal驱动可以按照上述测试方法的描述，进行测试
-## API介绍
+
+## 接口介绍
+
+### API介绍
+
 请参考内核目录下面的Document文档介绍：  
-vi Documentation/driver-api/thermal/
+Documentation/driver-api/thermal/
 
 ## Debug介绍
+
 ### sysfs
 
 ```
 请参考内核目录下面的：
 Documentation/driver-api/thermal/sysfs-api.rst
 ```
-### debugfs
-# FAQ
+
+## 测试介绍
+
+测试thermal驱动可以按照上述测试方法的描述，进行测试
+
+## FAQ

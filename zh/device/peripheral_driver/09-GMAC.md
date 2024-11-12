@@ -1,24 +1,34 @@
+# GMAC
+
 介绍GMAC的功能和使用方法。
-# 模块介绍
+
+## 模块介绍
+
 GMAC（Gigabit Media Access Controller）模块是一种用于支持千兆以太网通信的控制器，负责数据帧的发送、接收和网络流量管理。
-## 功能介绍
+
+### 功能介绍
+
 ![](static/zengyu2.png)  
 协议栈层：负责实现操作系统内核使用的各种网络协议。  
 网络设备抽象层：屏蔽驱动实现细节，为上层的TCP/IP协议栈提供统一、标准化的接口。  
 网络设备驱动层：网络设备驱动层直接操作具体的GMAC硬件，实现数据的实际传输控制和设备管理。  
 物理层：GMAC、PHY等物理设备。
 
-## 源码结构介绍
+### 源码结构介绍
+
 gmac驱动代码在drivers\net\ethernet\spacemit目录下：
+
 ```
 drivers\net\ethernet\spacemit
-|-- emac-ptp.c		        #提供PTP协议支持
+|-- emac-ptp.c          #提供PTP协议支持
 |-- k1x-emac.c                  #k1 gmac驱动代码
-|-- k1x-emac.h  		#k1 gmac驱动头文件
+|-- k1x-emac.h    #k1 gmac驱动头文件
 ```
 
-# 关键特性
-## 特性
+## 关键特性
+
+### 特性
+
 | 特性 | 特性说明 |
 | :-----| :----|
 | 支持10/100/1000M以太网 | 兼容多速率以太网连接 |
@@ -29,55 +39,65 @@ drivers\net\ethernet\spacemit
 | 支持PTP | 实现设备间亚微秒级时间同步 |
 | 支持电源管理 | 支持挂起恢复适应低功耗需求 |
 
+### 性能参数
 
+|  | 单网卡单工 | 单网卡双工 | 双网卡单工 | 双网卡双工 |
+| :---: | :---: | :---: | :---: | :---: |
+| TX速率 (MB/s) | 942 | 658 | 468 | 298 |
+| RX速率 (MB/s) | 941 | 661 | 464 | 326 |
 
-## 性能参数
-|  | 单网卡单工 | 单网卡双工 | 双网卡单工 | 双网卡双工 | 
-| :---: | :---: | :---: | :---: | :---: | 
-| TX速率 (MB/s) | 942 | 658 | 468 | 298 | 
-| RX速率 (MB/s) | 941 | 661 | 464 | 326 | 
+#### 单网卡测试
 
-
-
-
-### 单网卡测试
 两块k1-deb1板子，记作机器A和机器B，其eth0口用网线直连，并将IP地址设置在同一网段，例如：
+
 ```
 #机器A
 ifconfig eth0 192.168.0.1 netmask 255.255.255.0
 #机器B
 ifconfig eth1 192.168.0.2 netmask 255.255.255.0
 ```
+
 确保互相能够ping通后方可进行下面的测试
-#### 单工/TX
+
+##### 单工/TX
+
 ```
 #机器A
 iperf3 -s -A 1 -D -B 192.168.0.1 
 #机器B
 iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 
 ```
-#### 单工/RX
+
+##### 单工/RX
+
 ```
 #机器A
 iperf3 -s -A 1 -D -B 192.168.0.1 
 #机器B
 iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 -R
 ```
-#### 双工
+
+##### 双工
+
 ```
 #机器A
 iperf3 -s -A 1 -D -B 192.168.0.1 
 #机器B
 iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 --bidir
 ```
-### 双网卡测试
+
+#### 双网卡测试
+
 两块k1-deb1板子eth0、eth1口均用网线直连，重复上述测试
 
+## 配置介绍
 
-# 配置介绍
 主要包括驱动使能配置和dts配置
-## CONFIG配置
+
+### CONFIG配置
+
 NET_VENDOR_SPACEMIT：如果使用的是 Spacemit 类型的以太网芯片，请将此选项设置 Y
+
 ```
 config NET_VENDOR_SPACEMIT
         bool "Spacemit devices"
@@ -93,7 +113,9 @@ config NET_VENDOR_SPACEMIT
           be asked for your specific chipset/driver in the following questions.
      
 ```
+
 K1X_EMAC：启用 Spacemit的GMAC驱动
+
 ```
 config K1X_EMAC
         bool "k1-x Emac Driver"
@@ -105,12 +127,11 @@ config K1X_EMAC
 
 ```
 
-
-## dts配置
+### dts配置
 
 gmac dts 配置，需要确定以太网使用的 pin 组，phy 复位 gpio，phy 型号及地址。tx phase 和 rx phase 一般采用默认值。
 
-### pinctrl
+#### pinctrl
 
 查看开发板原理图，找到 gmac 使用的 pin 组。
 
@@ -125,7 +146,7 @@ gmac dts 配置，需要确定以太网使用的 pin 组，phy 复位 gpio，phy
 };
 ```
 
-### gpio
+#### gpio
 
 查看开发板原理图，找到以太网 phy 复位信号 gpio，假设 eth0 phy 复位 gpio 为 gpio 110。
 
@@ -137,9 +158,9 @@ gmac dts 配置，需要确定以太网使用的 pin 组，phy 复位 gpio，phy
 }
 ```
 
-### phy 配置
+#### phy 配置
 
-#### phy 标识
+##### phy 标识
 
 查看开发板原理图，确认以太网 phy 的型号和 phy id。
 
@@ -147,11 +168,11 @@ gmac dts 配置，需要确定以太网使用的 pin 组，phy 复位 gpio，phy
 
 Phy id 信息可以查找 phy spec 或联系 phy 厂商提供。
 
-#### phy 地址
+##### phy 地址
 
 查看开发板原理图，确认以太网 phy 的地址，假设为 1。
 
-#### phy 配置
+##### phy 配置
 
 根据 5.3.1 和 5.3.2 得到的 phy 标识 id 和 phy 地址，对 phy 进行配置。
 
@@ -173,7 +194,7 @@ Phy id 信息可以查找 phy spec 或联系 phy 厂商提供。
 };
 ```
 
-### tx phase 和 rx phase
+#### tx phase 和 rx phase
 
 Tx-phase 默认值为 90，rx-phase 为 73。
 
@@ -185,7 +206,9 @@ Tx-phase 默认值为 90，rx-phase 为 73。
     rx-phase = <73>;
 };
 ```
-### dts 配置
+
+#### dts 配置
+
 综合开发板以太网硬件信息，配置如下。
 
 ```c
@@ -227,63 +250,50 @@ Tx-phase 默认值为 90，rx-phase 为 73。
         };
 };
 ```
-# 接口描述
-## 测试介绍
-查看网络接口信息
-```c
-ifconfig -a
-```
-打开网络设备
-```c
-ifconfig <INTERFACE> up
-```
-关闭网络设备
-```c
-ifconfig <INTERFACE> down
-```
-测试和另一台主机的连通性，假设其IP地址为192.168.0.1
-```c
-ping 192.168.0.1 
-```
-采用DHCP协议分配IP地址
-```c
-udhcpc
-```
-## API介绍
-### emac_ioctl
+
+## 接口介绍
+
+### API介绍
+
+#### emac_ioctl
+
 `emac_ioctl`用于访问`PHY`（物理层）设备寄存器和配置硬件时间戳功能，各命令含义如下：  
 `SIOCGMIIPHY`：获取 `PHY` 设备地址。  
 `SIOCGMIIREG`：读取指定的 `PHY` 寄存器。  
 `SIOCSMIIREG`：写入指定的 `PHY` 寄存器。  
 `SIOCSHWTSTAMP`：配置设备的硬件时间戳。  
+
 ```c
 static int emac_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 {
-	int ret = -EOPNOTSUPP;
+ int ret = -EOPNOTSUPP;
 
-	if (!netif_running(ndev))
-		return -EINVAL;
+ if (!netif_running(ndev))
+  return -EINVAL;
 
-	switch (cmd) {
-	case SIOCGMIIPHY:
-	case SIOCGMIIREG:
-	case SIOCSMIIREG:
-		if (!ndev->phydev)
-			return -EINVAL;
-		ret = phy_mii_ioctl(ndev->phydev, rq, cmd);
-		break;
-	case SIOCSHWTSTAMP:
-		ret = emac_hwtstamp_ioctl(ndev, rq);
-		break;
-	default:
-		break;
-	}
+ switch (cmd) {
+ case SIOCGMIIPHY:
+ case SIOCGMIIREG:
+ case SIOCSMIIREG:
+  if (!ndev->phydev)
+   return -EINVAL;
+  ret = phy_mii_ioctl(ndev->phydev, rq, cmd);
+  break;
+ case SIOCSHWTSTAMP:
+  ret = emac_hwtstamp_ioctl(ndev, rq);
+  break;
+ default:
+  break;
+ }
 
-	return ret;
+ return ret;
 }
 ```
-### emac_get_link_ksettings
+
+#### emac_get_link_ksettings
+
 `emac_get_link_ksettings` 函数用于获取网络设备的速度、双工模式、自协商状态等链路信息，用户使用`ethtool <INTERFACE>`命令时该函数会被调用：
+
 ```
 # ethtool eth0
 Settings for eth0:
@@ -309,37 +319,47 @@ Settings for eth0:
         MDI-X: Unknown
         Link detected: no
 ```
+
 `emac_get_link_ksettings` 函数实现如下：
+
 ```c
 static int emac_get_link_ksettings(struct net_device *ndev,
-					struct ethtool_link_ksettings *cmd)
+     struct ethtool_link_ksettings *cmd)
 {
-	if (!ndev->phydev)
+ if (!ndev->phydev)
                 return -ENODEV;
         /* 调用phy驱动接口获取物理层链路信息 */
-	phy_ethtool_ksettings_get(ndev->phydev, cmd); 
-	return 0;
+ phy_ethtool_ksettings_get(ndev->phydev, cmd); 
+ return 0;
 }
 ```
-### emac_set_link_ksettings
+
+#### emac_set_link_ksettings
+
 `emac_set_link_ksettings` 函数用于设置网络设备的链路配置，如速度、双工模式、自协商状态等。当用户调用如下命令时，该接口会被调用：
+
 ```
 #设置链路速度1000M、全双工、启动自动协商
 ethtool -s eth0 speed 1000 duplex full autoneg on
 ```
+
 `emac_set_link_ksettings`实现如下：
+
 ```c
 static int emac_set_link_ksettings(struct net_device *ndev,
-					const struct ethtool_link_ksettings *cmd)
+     const struct ethtool_link_ksettings *cmd)
 {
-	if (!ndev->phydev)
+ if (!ndev->phydev)
                 return -ENODEV;
         /* 调用phy驱动接口设置物理层链路配置 */
-	return phy_ethtool_ksettings_set(ndev->phydev, cmd);
+ return phy_ethtool_ksettings_set(ndev->phydev, cmd);
 }
 ```
-### emac_get_ethtool_stats
+
+#### emac_get_ethtool_stats
+
 `emac_get_ethtool_stats`用于获取GMAC统计信息，所有的统计项目如下：
+
 ```c
 struct emac_hw_stats {
     u32 tx_ok_pkts;                // 成功发送的有效数据包数量
@@ -383,7 +403,9 @@ struct emac_hw_stats {
     spinlock_t stats_lock;         // 用于保护上述统计数据访问的自旋锁，防止数据竞争
 };
 ```
+
 当用户使用如下命令时，该函数会被调用：
+
 ```
 # ethtool -S eth0
 NIC statistics:
@@ -425,7 +447,9 @@ NIC statistics:
      rx_drp_fifo_full_pkts: 0
      rx_truncate_fifo_full_pkts: 0
 ```
+
 函数实现如下：
+
 ```c
 static void emac_get_ethtool_stats(struct net_device *dev,
                                    struct ethtool_stats *stats, u64 *data)
@@ -453,8 +477,11 @@ static void emac_get_ethtool_stats(struct net_device *dev,
         }
 }
 ```
-### emac_get_ts_info
+
+#### emac_get_ts_info
+
 `emac_get_ts_info` 函数用于提供网络设备的时间戳信息，当用户使用如下命令时该函数被调用：
+
 ```
 # ethtool --show-time-stamping eth0
 Time stamping parameters for eth0:
@@ -482,7 +509,9 @@ Hardware Receive Filter Modes:
         ptpv2-sync            (HWTSTAMP_FILTER_PTP_V2_SYNC)
         ptpv2-delay-req       (HWTSTAMP_FILTER_PTP_V2_DELAY_REQ)
 ```
+
 `emac_get_ts_info` 函数实现如下：
+
 ```c
 static int emac_get_ts_info(struct net_device *dev,
                               struct ethtool_ts_info *info)
@@ -523,9 +552,11 @@ static int emac_get_ts_info(struct net_device *dev,
 }
 
 ```
+
 ## Debug介绍
 
 ### debugfs
+
 ```
 #用于便捷地查询或修改gmac的接口、tx phase、rx phase配置
 /sys/kernel/debug/cac80000.ethernet # cat clk_tuning
@@ -533,4 +564,37 @@ Emac MII Interface : RGMII
 Current rx phase : 73
 Current tx phase : 60
 ```
-# FAQ
+
+## 测试介绍
+
+查看网络接口信息
+
+```c
+ifconfig -a
+```
+
+打开网络设备
+
+```c
+ifconfig <INTERFACE> up
+```
+
+关闭网络设备
+
+```c
+ifconfig <INTERFACE> down
+```
+
+测试和另一台主机的连通性，假设其IP地址为192.168.0.1
+
+```c
+ping 192.168.0.1 
+```
+
+采用DHCP协议分配IP地址
+
+```c
+udhcpc
+```
+
+## FAQ

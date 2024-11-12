@@ -1,9 +1,10 @@
+# gpadc
 介绍gpadc的功能和使用方法。
 
-# 模块介绍
+## 模块介绍
 IIO是linux内核中的一个子系统，专门用于处理工业控制、测量设备的数据采集和处理。IIO子系统支持的设备类型众多，包括模数转换器(ADC)、数模转换器(DAC)、加速度计、陀螺仪、惯性测量单元、温度传感器，我们本章节所介绍的gpadc是一个模数转换器，其嵌入到了我们的PMIC芯片中
 
-## 功能介绍
+### 功能介绍
 ![](static/gpadc.png)  
 
 1. iio core，提供驱动程序和用户空间之间的接口、负责设备枚举、注册和管理  
@@ -11,7 +12,7 @@ IIO是linux内核中的一个子系统，专门用于处理工业控制、测量
 3. IIO缓冲区，用于存储传感器和其他测量设备数据的内存区域  
 4. IIO事件处理，用于处理来自传感器和其他测量设备的中断和事件
 
-## 源码结构介绍
+### 源码结构介绍
 
 ```
 * IIO core
@@ -23,18 +24,18 @@ IIO是linux内核中的一个子系统，专门用于处理工业控制、测量
 * IIO事件处理
     drivers/iio/industrialio-event.c
 ```
-# 关键特性
+## 关键特性
 
-## 特性
+### 特性
 | 特性 |
 | :-----|
 | 软件支持6路ADC |
 | 12bit ADC转换精度，100Hz~50Khz采样率 |
 
-# 配置介绍
+## 配置介绍
 主要包括驱动使能配置和dts配置
 
-## CONFIG配置
+### CONFIG配置
 
 ```
 Symbol: SPACEMIT_P1_ADC [=y]
@@ -48,7 +49,7 @@ Location:
 			-> Analog to digital converters
 				-> Spacemit P1 adc driver (SPACEMIT_P1_ADC [=y])   
 ```
-## dts配置
+### dts配置
 我们的gpadc内嵌在pmic中，使能gpadc需要配置两个dts点
 
 1. gpadc channel pinctrl配置
@@ -75,18 +76,9 @@ ext_adc: adc {
 
 ```
 
-# 接口描述
-## 测试介绍
-通过动态改变外部采样电压值来进行简单的测试，其软件读取电压值的方法如下：
-```
-cd /sys/bus/iio/devices/iio:device0
-cat in_voltage2_raw
-cat in_voltage2_scale
+## 接口介绍
 
-得到的两个节点做乘法运算就是得到的采样电压值(单位为mV)
-
-```
-## API介绍
+### API介绍
 ```
 struct iio_dev *iio_device_alloc(struct device *parent, int sizeof_priv); --- 申请iio_dev结构体
 struct iio_dev *devm_iio_device_alloc(struct device *dev, int sizeof_priv) --- 申请 iio_dev
@@ -101,5 +93,15 @@ void iio_device_unregister(struct iio_dev *indio_dev) -- 注销iio设备
 cd /sys/bus/iio/devices/iio:device0  --- iio框架目录  
 in_voltage2_raw  -- 读取的adc硬件寄存器的值  
 in_voltage2_scale  --- 读取的adc的精度  
+```
+## 测试介绍
+通过动态改变外部采样电压值来进行简单的测试，其软件读取电压值的方法如下：
+```
+cd /sys/bus/iio/devices/iio:device0
+cat in_voltage2_raw
+cat in_voltage2_scale
+
+得到的两个节点做乘法运算就是得到的采样电压值(单位为mV)
+
 ```
 # FAQ

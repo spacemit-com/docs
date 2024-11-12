@@ -1,9 +1,13 @@
+# PMIC
+
 介绍regulator的功能和使用方法。
 
-# 模块介绍
+## 模块介绍
+
 regulator翻译起来就是调节器，一些可以输出电压电流的设备可以使用该子系统，我司P1芯片就是一款包含该功能的PMIC；针对Linux内核来说，regulator是一套软件框架，该框架旨在提供标准内核接口来控制电压和电流。
 
-## 功能介绍
+### 功能介绍
+
 ![](static/regulator.png)  
 
 1. regulator consumer: 有调节器供电的设备，他们消耗调节器提供的电力
@@ -11,7 +15,7 @@ regulator翻译起来就是调节器，一些可以输出电压电流的设备�
 3. regulator diver: regulator的驱动代码，负责向framework注册设备，并且与底层硬件通讯
 4. machine： 主要是配置各个regulator的属性
 
-## 源码结构介绍
+### 源码结构介绍
 
 ```
 drivers/regulator/
@@ -30,38 +34,42 @@ drivers/regulator/
 ├── of_regulator.c
 ├── spacemit-regulator.c
 ```
-# 关键特性
 
-## 特性
+## 关键特性
+
+### 特性
+
 | 特性 | 特性说明 |
 | :-----| :----|
 | 支持6路DCDC  | 支持动态调压/enable/disable |
 | 支持5路ALDO | 支持调压/enable/disable |
 | 支持7路DLDO | 支持调压/enable/disable |
 
-# 配置介绍
+## 配置介绍
+
 主要包括驱动使能配置和dts配置
 
-## CONFIG配置
+### CONFIG配置
 
 ```
 CONFIG_REGULATOR_SPACEMIT:
 
-	This driver provides support for the voltage regulators on the
-	spacemit pmic.
+ This driver provides support for the voltage regulators on the
+ spacemit pmic.
 
-	Symbol: REGULATOR_SPACEMIT [=y]
-	Type  : tristate
-	Defined at drivers/regulator/Kconfig:1666
-		Prompt: Spacemit regulator support
-		Depends on: REGULATOR [=y] && MFD_SPACEMIT_PMIC [=y]
-		Location: 
-			-> Device Drivers
-				-> Voltage and Current Regulator Support (REGULATOR [=y])
-					-> Spacemit regulator support (REGULATOR_SPACEMIT [=y])
-		Selects: REGULATOR_FIXED_VOLTAGE [=y] 
+ Symbol: REGULATOR_SPACEMIT [=y]
+ Type  : tristate
+ Defined at drivers/regulator/Kconfig:1666
+  Prompt: Spacemit regulator support
+  Depends on: REGULATOR [=y] && MFD_SPACEMIT_PMIC [=y]
+  Location: 
+   -> Device Drivers
+    -> Voltage and Current Regulator Support (REGULATOR [=y])
+     -> Spacemit regulator support (REGULATOR_SPACEMIT [=y])
+  Selects: REGULATOR_FIXED_VOLTAGE [=y] 
 ```
-## dts配置
+
+### dts配置
 
 ```
 &i2c8 {
@@ -205,9 +213,10 @@ CONFIG_REGULATOR_SPACEMIT:
 };
 ```
 
-# 接口描述
+## 接口描述
 
-## API介绍
+### API介绍
+
 ```
 请参考内核文档：
 Documentation/power/regulator/consumer.rst
@@ -217,6 +226,7 @@ Documentation/power/regulator/regulator.rst
 ```
 
 ### demo
+
 ```
 1. 配置dts，引用想要使用的regulator
     &cpu_0 {
@@ -240,9 +250,11 @@ Documentation/power/regulator/regulator.rst
 
 ## Debug介绍
 
-# FAQ
-# 附录
-## SPL/UBOOT 使用方法
+## FAQ
+
+## 附录
+
+### SPL/UBOOT 使用方法
 
 ```
 uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
@@ -383,7 +395,7 @@ uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
 };
 ```
 
-### SPL 阶段电源开启及电压设置方法
+#### SPL 阶段电源开启及电压设置方法
 
 ```c
                         dcdc_6: DCDC_REG1 {
@@ -399,7 +411,7 @@ uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
                         };
 ```
 
-### UBOOT 阶段电源开启及电压设置方法
+#### UBOOT 阶段电源开启及电压设置方法
 
 uboot 阶段有两种方式设置或者开启电源，第一种是直接在 dts 中配置
 

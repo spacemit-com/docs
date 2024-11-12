@@ -1,12 +1,17 @@
+# Audio
+
 介绍Audio的功能和使用方法。
 
-# 模块介绍
+## 模块介绍
+
 Audio模块包含2个I2S，1个HDMIAUDIO。
 
-## 功能介绍
+### 功能介绍
+
 ![](static/AUDIO.png)
 
 ALSA音频框架可以分为以下几个层次：  
+
 - ALSA Library  
 对应用程序提供统一的API接口，各个APP应用程序只要调用 alsa-lib 提供的 API接口来实现放音、录音、控制。现在提供了两套基本的库，tinyalsa是一个简化的alsa-lib库，Android系统主要使用
 - ALSA CORE  
@@ -19,14 +24,16 @@ ALSA 的标准框架，是 ALSA-driver 的核心部分，提供了各种音频�
 **Platform**：一般是指某一个SoC平台，可以理解为某款Soc，具有I2S，AC97音频接口等，内部有时钟，DMA单元用于传输音频数据。Platform驱动只与特定的Soc有关，实现Soc的音频DMA驱动和Soc端的dai接口驱动，它只与SoC相关，与Machine无关，这样我们就可以把Platform抽象出来，使得同一款SoC不用做任何的改动，就可以用在不同的Machine中。  
 **Codec**：音频编解码器，Codec里面包含了I2S接口、D/A、A/D、Mixer、PA(功放)，通常包含多种输入（Mic、Line-in、I2S、PCM）和多个输出（耳机、喇叭、听筒，Line-out），一般Soc可通过I2C来控制codec芯片。Codec驱动只与Codec编解码器驱动有关，与Soc和Machine无关。Codec和Platform一样，要实现为可重用的部件，同一个Codec可以被不同的Machine使用。
 
-### k1 Audio功能介绍
+### 音频方案介绍
 
 K1目前支持两种音频声卡方案  
 方案一：HDMIAUDIO，支持播放
 方案二：I2S0搭配一个I2C外挂的Codec ES8326B，支持播放和录制
 
-## 源码结构介绍
+### 源码结构介绍
+
 I2S/HDMIAUDIO控制器驱动代码在sound/soc/spacemit目录下：
+
 ```
 sound/soc/spacemit
 ├── Kconfig
@@ -39,32 +46,44 @@ sound/soc/spacemit
 ├── spacemit-snd-sspa.c       #hdmiaudio驱动
 ├── spacemit-snd-sspa.h
 ```
+
 Codec ES8326B驱动代码在sound/soc/codec目录下：
+
 ```
 sound/soc/codec
 ├── es8326.c
 ├── es8326.h
 ```
-# I2S
 
-## 关键特性
+## I2S
+
+### 关键特性
+
   支持48000采样率，16bit采样深度，2声道  
   支持播放和录制功能  
   支持全双工  
 
-## 配置介绍
+### 配置介绍
+
 主要包括驱动使能配置和dts配置
-### CONFIG配置
-#### 音频功能支持
+
+#### CONFIG配置
+
+##### 音频功能支持
+
 CONFIG_SOUND、CONFIG_SND、CONFIG_SND_SOC为ALSA音频驱动框架提供支持，默认情况，此选项为Y
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
                 Advanced Linux Sound Architecture (SND [=y])
                         ALSA for SoC audio support (SND_SOC [=y])
 ```
-#### K1音频功能支持
+
+##### 音频功能支持
+
 CONFIG_SND_SOC_SPACEMIT、CONFIG_SPACEMIT_CARD、CONFIG_SPACEMIT_PCM为K1音频功能提供支持，默认情况下，此选项为Y
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -74,8 +93,11 @@ Device Drivers
                                         Audio Simple Card (SPACEMIT_CARD [=y])
                                         Audio Platform Pcm (SPACEMIT_PCM [=y])
 ```
-#### I2S功能支持
+
+##### I2S功能支持
+
 CONFIG_SPACEMIT_I2S为I2S功能提供支持，默认情况下，此选项为Y
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -86,10 +108,14 @@ Device Drivers
                                         Audio Platform Pcm (SPACEMIT_PCM [=y])
                                         Audio Cpudai I2S (SPACEMIT_I2S [=y])
 ```
-### DTS配置
-#### pinctrl
+
+#### DTS配置
+
+##### pinctrl
+
 - i2s0 pinctrl配置  
 有两组pinctrol配置，根据实际情况硬件设计进行配置
+
 ```
         pinctrl_sspa0_0: sspa0_0_grp {
                 pinctrl-single,pins =<
@@ -120,6 +146,7 @@ Device Drivers
 ```
 
 - i2s1 pinctrl配置  
+
 ```
         pinctrl_sspa1: sspa1_grp {
                 pinctrl-single,pins =<
@@ -139,11 +166,16 @@ Device Drivers
 
 ```
 
-### I2S-Codec声卡配置
-#### Codec配置
+#### I2S-Codec声卡配置
+
+##### Codec配置
+
 以Codec ES8326B为例，进行完整声卡配置
-##### Config配置
+
+###### Config配置
+
 打开ES8326B配置
+
 ```
 Device Drivers│
         Sound card support (SOUND [=y])
@@ -153,9 +185,11 @@ Device Drivers│
                                         Everest Semi ES8326 CODEC (SND_SOC_ES8326 [=y])
 ```
 
-##### dts配置
+###### dts配置
+
 - gpio  
 需要按实际硬件设计来配置，例如K1某些开发板上，ES8326B通过gpio129完成耳机插拔检测，通过gpio127控制板级扬声器。
+
 ```
         es8326: es8326@19{
                 interrupt-parent = <&gpio>;
@@ -165,7 +199,7 @@ Device Drivers│
 
 ```
 
-##### dts 配置示例
+###### dts 配置示例
 
 Codec ES8236B的完整方案配置如下：
 
@@ -182,8 +216,11 @@ Codec ES8236B的完整方案配置如下：
                 status = "okay";
         };
 ```
-##### mclk配置
+
+###### mclk配置
+
 Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
+
 ```
 
 &sound_codec {
@@ -196,10 +233,12 @@ Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
 };
 
 ```
+
 注意：spacemit,mclk-fs只支持配置成64/128/256，即3.072/6.144/12.288MHz
 
-#### 声卡配置
-##### dts配置
+##### 声卡配置
+
+###### dts配置
 
 ```
         sound_codec: snd-card@1 {
@@ -228,25 +267,34 @@ Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
 
 ```
 
-# HDMIAUDIO
+## HDMIAUDIO
 
-## 关键特性
+### 关键特性
+
   支持48000采样率，16bit采样深度，2声道  
   只支持播放
 
-## 配置介绍
+### 配置介绍
+
 主要包括驱动使能配置和dts配置。因为HDMIAUDIO依赖于HDMI显示功能，需要确保HDMI显示已支持，请参考对应的文档。
-### CONFIG配置
-#### 音频功能支持
+
+#### CONFIG配置
+
+##### 音频功能支持
+
 CONFIG_SOUND、CONFIG_SND、CONFIG_SND_SOC为ALSA音频驱动框架提供支持，默认情况，此选项为Y
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
                 Advanced Linux Sound Architecture (SND [=y])
                         ALSA for SoC audio support (SND_SOC [=y])
 ```
-#### K1音频功能支持
+
+##### K1音频功能支持
+
 CONFIG_SND_SOC_SPACEMIT、CONFIG_SPACEMIT_CARD、CONFIG_SPACEMIT_PCM为K1音频功能提供支持，默认情况下，此选项为Y
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -256,8 +304,11 @@ Device Drivers
                                         Audio Simple Card (SPACEMIT_CARD [=y])
                                         Audio Platform Pcm (SPACEMIT_PCM [=y])
 ```
-#### HDMIAUDIO功能支持
+
+##### HDMIAUDIO功能支持
+
 CONFIG_SPACEMIT_HDMIAUDIO、CONFIG_SPACEMIT_DUMMYCODEC为HDMIAUDIO功能提供支持，默认情况下，此选项为Y
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -269,15 +320,18 @@ Device Drivers
                                         Audio Cpudai HDMI Audio (SPACEMIT_HDMIAUDIO [=y])
                                         Audio CodecDai Dummy Codec (SPACEMIT_DUMMYCODEC [=y]) 
 ```
-### DTS配置
+
+#### DTS配置
+
 ```
 &hdmiaudio {
         status = "okay";
 };
 ```
 
-### HDMIAUDIO声卡配置
-#### dts配置
+#### HDMIAUDIO声卡配置
+
+##### dts配置
 
 ```
 
@@ -304,69 +358,27 @@ Device Drivers
 
 ```
 
-# 接口描述
-## 测试介绍
-音频功能可以通过alsa-utils/tinyalsa工具完成功能测试，目前bianbu-linux上已集成alsa-utils工具。
-### 播放测试
-- 查看playback设备
-```
-//aplay-l查看播放设备，可以看到有两个播放设备
-root:/# aplay -l
-**** PLAYBACK 硬體裝置清單 ****
-card 0: sndhdmi [snd-hdmi], device 0: SSPA2-dummy_codec dummy_codec-0 []
-  子设备: 1/1
-  子设备 #0: subdevice #0
-card 1: sndes8326 [snd-es8326], device 0: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 []
-  子设备: 1/1
-  子设备 #0: subdevice #0
-root:/#
-//hdmiaudio播放设备，cardid为0，deviceid为0
-//I2S-Codec播放设备，cardid为1，deviceid为0
-```
-- 播放测试  
-选择设备进行播放，通过cardid和deviceid进行指定
-```
-//选择hdmiaudio声卡进行播放
-aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.way
-//选择I2S-Codec声卡进行播放
-aplay -Dhw:1,0 -r 48000 -f S16_LE --periopd-size=1024 --buffer-size=4096 xxx.way
+## 接口介绍
 
-```
-### 录音测试
-- 查看capture设备
-```
-//arecord-l查看播放设备，可以看到有一个录制设备
-root@spacemit-k1-x-deb1-board:~# arecord -1
-****
-CAPTURE硬體裝置清單
-****
-card 1: sndes8326 [snd-es8326], device 0: i2s-daai0-ES8326 HiFi ES8326 HiFi-@
-子设备:1/1
-子设备 #0: subdevice #0
-root@spacemit-k1-x-deb1-board:~#
-//I2S-Codec录制设备，cardid为1，deviceid为0
-```
-- 录音测试  
-选择设备进行录制，通过cardid和deviceid进行指定
-```
-//选择I2S-Codec声卡进行录制
-arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
-```
-## API介绍
+### API介绍
 
 请参阅相关的Linux官方文档。
 
 ## Debug介绍
 
 可以通过/proc/asound/下的节点进行debug
+
 - 查看声卡设备
+
 ```
 root:/# cat /proc/asound/pcm
 00-00: SSPA2-dummy_codec dummy_codec-0 :  : playback 1
 01-00: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 :  : playback 1 : capture 1
 root:/#
 ```
+
 - 查看声卡状态等信息
+
 ```
 root:/# cat /proc/asound/card1/pcm0p/sub0/status
 state: RUNNING
@@ -401,4 +413,63 @@ buffer_size: 4096
 root:/# 
 ```
 
-# FAQ
+## 测试介绍
+
+音频功能可以通过alsa-utils/tinyalsa工具完成功能测试，目前bianbu-linux上已集成alsa-utils工具。
+
+### 播放测试
+
+- 查看playback设备
+
+```
+//aplay-l查看播放设备，可以看到有两个播放设备
+root:/# aplay -l
+**** PLAYBACK 硬體裝置清單 ****
+card 0: sndhdmi [snd-hdmi], device 0: SSPA2-dummy_codec dummy_codec-0 []
+  子设备: 1/1
+  子设备 #0: subdevice #0
+card 1: sndes8326 [snd-es8326], device 0: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 []
+  子设备: 1/1
+  子设备 #0: subdevice #0
+root:/#
+//hdmiaudio播放设备，cardid为0，deviceid为0
+//I2S-Codec播放设备，cardid为1，deviceid为0
+```
+
+- 播放测试  
+选择设备进行播放，通过cardid和deviceid进行指定
+
+```
+//选择hdmiaudio声卡进行播放
+aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.way
+//选择I2S-Codec声卡进行播放
+aplay -Dhw:1,0 -r 48000 -f S16_LE --periopd-size=1024 --buffer-size=4096 xxx.way
+
+```
+
+### 录音测试
+
+- 查看capture设备
+
+```
+//arecord-l查看播放设备，可以看到有一个录制设备
+root@spacemit-k1-x-deb1-board:~# arecord -1
+****
+CAPTURE硬體裝置清單
+****
+card 1: sndes8326 [snd-es8326], device 0: i2s-daai0-ES8326 HiFi ES8326 HiFi-@
+子设备:1/1
+子设备 #0: subdevice #0
+root@spacemit-k1-x-deb1-board:~#
+//I2S-Codec录制设备，cardid为1，deviceid为0
+```
+
+- 录音测试  
+选择设备进行录制，通过cardid和deviceid进行指定
+
+```
+//选择I2S-Codec声卡进行录制
+arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
+```
+
+## FAQ
