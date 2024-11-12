@@ -158,6 +158,79 @@ int gpio_get_value(unsigned gpio)
 ```
 int gpio_to_irq(unsigned gpio)
 ```
+### demo示例
+以某方案 eth0 使用 gpio 110 作为 phy 的 reset 信号为例:  
+方案dts配置和引用
+
+```c
+&gpio{
+        gpio-ranges = <
+                ...
+                &pinctrl 110 GPIO_110 1
+                ...
+        >;
+};
+...
+&pinctrl {
+        pinctrl-single,gpio-range = <
+                &range GPIO_110 1 (MUX_MODE0 | EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)
+                ...
+        >;
+};
+...
+&eth0 {
+    emac,reset-gpio = <&gpio 110 0>;
+    emac,reset-active-low;
+};
+```
+gmac驱动中操作gpio_110  
+k1x-emac.c代码
+```c
+/* 获取eth0设备节点reset-gpio 编号 */
+rst_gpio = of_get_named_gpio(np, "emac,reset-gpio", 0);
+...
+/* 申请指定的gpio */
+if (gpio_request(rst_gpio, "mdio-reset"))
+        return 0;
+...
+/* 设置rst_gpio为输出模式，且信号值为1, active_state为真 */
+gpio_direction_output(rst_gpio, active_state ? 1 : 0);
+...
+if (delays[0])
+	msleep(DIV_ROUND_UP(delays[0], 1000));
+
+/* 设置rst_gpio信号值为0 */
+gpio_set_value(rst_gpio, active_state ? 0 : 1);
+if (delays[1])
+	msleep(DIV_ROUND_UP(delays[1], 1000));
+
+/* 设置rst_gpio信号值为1 */
+gpio_set_value(rst_gpio, active_state ? 1 : 0);
+if (delays[2])
+	msleep(DIV_ROUND_UP(delays[2], 1000));
+```
+
+gpio中断使用  
+```c
+/* 获取设备节点gpio-irq 编号 */
+gpio_irq = of_get_named_gpio(np, "A,gpio-irq", 0);
+
+/* 获取中断号 */
+int irq = gpio_to_irq(gpio_irq);
+if (irq < 0) {
+	printk("unable to get irq num\n");
+	return -1;
+}
+
+/* 申请中断 */
+if(request_irq(irq, irq_handler, IRQF_TRIGGER_RISING,
+	"test_irq", NULL)) {
+	printk(unable to request irq\n");
+	return -EINVAL;
+}
+
+```
+
 ## debug介绍
 ### sysfs
 读取和操作GPIO端口
