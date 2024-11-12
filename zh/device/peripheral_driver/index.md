@@ -63,7 +63,7 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 功耗子系统驱动
 - [thremal](thermal.md)  
 - [Cpufreq](15-Cpufreq.md)  
-- [Stanby](\bianbu-linux-docs\zh\device\standby.md)
+- [Stanby](../standby.md)
 
 其他
 - [CRYPTO](18-CRYPTO.md)
