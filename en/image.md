@@ -8,7 +8,7 @@ We provide images for each released version for you to experience. The default i
 
 ## Download
 
-URL: [bianbu-linux](https://archive.spacemit.com/image/k1/version/bianbu-linux/).
+Image URL: [bianbu-linux](https://archive.spacemit.com/image/k1/version/bianbu-linux/).
 
 ## Flashing
 

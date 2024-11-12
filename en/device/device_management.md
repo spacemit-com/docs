@@ -161,7 +161,7 @@ After bringing up and verifying functionality, it is recommended to add a new de
    make
    ```
 
-### Supporting Single CS DDR
+## Single CS DDR
 
 FSBL supports dual CS DDR by default. Modify `bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_spl.dts` to support single CS DDR.
 
@@ -176,7 +176,7 @@ FSBL supports dual CS DDR by default. Modify `bsp-src/uboot-2022.10/arch/riscv/d
  	};
 ```
 
-If the device has EEPROM, it can adapt through EEPROM. To be updated.
+If the device has EEPROM, it can adapt through EEPROM.
 
 ## Adaptability through EEPROM
 
@@ -186,7 +186,7 @@ Related files:
 
 ```shell
 bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
-bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
+bsp-src/uboot-2022.10/arch/riscv/dts/<device>.dts
 ```
 
 ### Supported EEPROM List
@@ -234,9 +234,13 @@ bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
    make
    ```
 
-### Using tlv_eeprom to Write Information
+### Flash EEPROM
 
-Writing information refers to writing `product_name` and other information into the EEPROM. Currently, the information in the EEPROM is encoded in TLV format, and the `tlv_eeprom` command in u-boot can be used to write information.
+If the EEPROM is empty, you can use the Titantools Key Programing tools to program it.
+
+### Using tlv_eeprom
+
+The information in the EEPROM is encoded in TLV format, and you can use the `tlv_eeprom` command in u-boot. Below is an introduction on how to modify `Product Name`, `Base MAC Address`, and `MAC Address`.
 
 1. Connect the PC to the device's debug serial port. When the device starts, press the `s` key on the PC serial terminal until entering the u-boot shell.
 
@@ -245,10 +249,10 @@ Writing information refers to writing `product_name` and other information into 
    => 
    ```
 
-2. Write `product_name`, for example, `k1_hs450`.
+2. Write `Product Name`, for example, `k1-x_MUSE-Book`.
 
    ```shell
-   => tlv_eeprom set 0x21 k1_hs450
+   => tlv_eeprom set 0x21 k1-x_MUSE-Book
    => tlv_eeprom write
    Programming passed.
    ```
@@ -257,25 +261,25 @@ Writing information refers to writing `product_name` and other information into 
 
    For versions v1.0beta3.1 and later, name it according to the device dts file name (without suffix) to facilitate u-boot automatic loading of dtb.
 
-3. `reset` to check if the dtb for `hs450` can be loaded. If successful, u-boot will print the following:
+3. `reset` to check if the dtb for `k1-x_MUSE-Book` can be loaded. If successful, u-boot will print the following:
 
    ```shell
    product_name: k1_deb1
    detect dtb_name: k1-x_deb1.dtb
    ```
 
-The SDK also supports reading the following information from EEPROM:
+4. Program the `Base MAC Address`, for example, `FE:FE:FE:96:A5:47`.
 
-- Serial Number：`0x23`
-- Base MAC Address：`0x24`
-- Manufacture Date：`0x25`
-- Device Version：`0x26`
-- MAC Addresses：`0x2A`
-- Manufacturer：`0x2B`
-- SDK Version：`0x40`
+   ```shell
+   => tlv_eeprom set 0x24 FE:FE:FE:96:A5:47
+   => tlv_eeprom write
+   Programming passed.
+   ```
 
-The MAC Address will be updated to the dtb as the physical address of the network card.
+   If there are two network interfaces, you need to program the `MAC Address`, so the address of the second network interface will automatically increment by 1.
 
-### Writing Tool
-
-In development.
+   ```shell
+   => tlv_eeprom set 0x2A 2
+   => tlv_eeprom write
+   Programming passed.
+   ```

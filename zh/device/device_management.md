@@ -161,7 +161,7 @@ bringup后，功能验证完，推荐在SDK添加一个新设备。例如，添�
    make
    ```
 
-### 支持单CS DDR
+## 单CS DDR
 
 FSBL默认支持双CS DDR，修改`bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_spl.dts`可以支持单CS DDR。
 
@@ -176,7 +176,7 @@ FSBL默认支持双CS DDR，修改`bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_spl
  	};
 ```
 
-如何设备有EEPROM，支持通过EEPROM实现自适应，待更新。
+如何设备有EEPROM，支持通过EEPROM实现自适应。
 
 ## 通过EEPROM实现自适应
 
@@ -186,14 +186,14 @@ SDK构建的固件支持通过EEPROM实现自适应多设备。
 
 ```shell
 bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
-bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
+bsp-src/uboot-2022.10/arch/riscv/dts/<device>.dts
 ```
 
 ### EEPROM支持列表
 
 - `atmel,24c02`
 
-### 添加新EEPROM
+### 添加新的EEPROM
 
 1. 修改`bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_spl.dts`，更新EEPROM的I2C地址，例如新地址为`0xA0`。
 
@@ -234,9 +234,13 @@ bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
    make
    ```
 
-### 使用tlv_eeprom写号
+### 烧写EEPROM信息
 
-写号是指将`product_name`等信息写入EEPROM。目前，在EEPROM中的信息是按照TLV编码的，可以使用u-boot的`tlv_eeprom`命令写号。
+如果 EEPROM 是空白的，可以使用 Titantools 的写号工具烧写。
+
+### 修改EEPROM信息
+
+在 EEPROM 中的信息是按照TLV编码的，可以使用 u-boot 的 tlv_eeprom 命令。下面介绍修改如何修改 `Product Name`、 `Base MAC Address` 和 `MAC Address`。
 
 1. PC接上设备的调试串口，设备启动时，在PC串口终端按下键盘的`s`键，直到进入u-boot shell。
 
@@ -245,10 +249,10 @@ bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
    => 
    ```
 
-2. 烧写`product_name`，例如`k1_hs450`。
+2. 烧写`Product Name`，例如`k1-x_MUSE-Book`。
 
    ```shell
-   => tlv_eeprom set 0x21 k1_hs450
+   => tlv_eeprom set 0x21 k1-x_MUSE-Book
    => tlv_eeprom write
    Programming passed.
    ```
@@ -257,25 +261,25 @@ bsp-src/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
 
    v1.0beta3.1和之后的版本，请以设备dts的文件名（不带后缀）命名，方便u-boot自动加载dtb。
 
-3. `reset`检查是否可以加载`hs450`的dtb，正常的话u-boot有如下打印。
+3. `reset`检查是否可以加载`k1-x_MUSE-Book`的dtb，正常的话u-boot有如下打印。
 
    ```shell
-   product_name: k1_deb1
-   detect dtb_name: k1-x_deb1.dtb
+   product_name: k1-x_MUSE-Book
+   detect dtb_name: k1-x_MUSE-Book.dtb
    ```
 
-SDK还支持从EEPROM读取以下信息：
+4. 烧写`Base MAC Address`，例如`FE:FE:FE:96:A5:47`。
 
-- Serial Number：`0x23`
-- Base MAC Address：`0x24`
-- Manufacture Date：`0x25`
-- Device Version：`0x26`
-- MAC Addresses：`0x2A`
-- Manufacturer：`0x2B`
-- SDK Version：`0x40`
+   ```shell
+   => tlv_eeprom set 0x24 FE:FE:FE:96:A5:47
+   => tlv_eeprom write
+   Programming passed.
+   ```
 
-其中MAC Address会更新到dtb，作为网卡物理地址。
+   如果有两个网口，需要烧写`MAC Address`，这样第二个网口的地址会自动加1。
 
-### 写号工具
-
-开发中。
+   ```shell
+   => tlv_eeprom set 0x2A 2
+   => tlv_eeprom write
+   Programming passed.
+   ```
