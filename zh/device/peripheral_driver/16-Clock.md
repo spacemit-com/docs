@@ -1,8 +1,9 @@
+# CLock
 介绍Clock的功能和使用方法。
 
-# 模块介绍
+## 模块介绍
 Clock是时钟模块的控制器。
-## 功能介绍
+### 功能介绍
 ![](static/CLOCK.png)
 
 Linux为了做好时钟管理，提供了一个时钟管理框架Common Clock Framework（以下简称CCF），为设备驱动提供统一的操作接口，使设备驱动不必关心时钟硬件实现的具体细节。  
@@ -21,8 +22,8 @@ Clock系统相关的器件包括：
 
 系统中可能存在很多个这样的硬件模块，呈树形结构，linux将他们管理成一个时钟树（clock-tree），根节点一般是晶振，接着是pll，然后是mux或者div，最终叶子节点一般是gate。CCF实现了多种基础时钟类型，例如固定速率时钟fixed_rate clock、门控时钟gate clock、分频器时钟divider clock和复用器时钟mux clock等。一般为了方便使用，会根据时钟树设计，实现一些时钟类型。
 
-## 源码结构介绍
-### Clock控制器驱动源码
+### 源码结构介绍
+#### Clock控制器驱动源码
 Clock控制器驱动代码在drivers/clk/spacemit目录下：
 ```
 drivers/clk/spacemit
@@ -48,15 +49,15 @@ clock控制器驱动实现了5种时钟类型:
 - mix类型，混合类型，支持gate/mux/divider的任一种或者随意组合
 - ddr类型，ddr相关的特殊时钟类型  
 
-### 各时钟index定义
+#### 各时钟index定义
 各时钟index定义在dt-bindings下：
 ```
 include/dt-bindings/clock/spacemit-k1x-clock.h
 ```
 
-# 配置介绍
+## 配置介绍
 主要包括驱动使能配置和dts配置
-## CONFIG配置
+### CONFIG配置
 CONFIG_COMMON_CLK为Common Clock Framework提供支持，默认情况下，此选项为Y
 ```
 Device Drivers
@@ -68,7 +69,7 @@ CONFIG_SPACEMIT_K1X_CCU 为K1 Clock控制器驱动提供支持，默认情况下
 	Common Clock Framework (COMMON_CLK[=y])
 	        Clock support for Spacemit k1x SoCs (SPACEMIT_K1X_CCU [=y])
 ```
-## DTS配置
+### DTS配置
 clock controller的dts配置如下：
 ```
 / {
@@ -152,9 +153,9 @@ clock controller的dts配置如下：
 
 ```
 
-# 接口描述
+## 接口描述
 
-## API介绍
+### API介绍
 CCF为设备驱动提供了通用的时钟操作的接口
 - get  
 获取时钟句柄
@@ -475,4 +476,4 @@ pll3_20
 0
 /sys/kernel/debug/clk/can0_clk #
 ```
-# FAQ
+## FAQ

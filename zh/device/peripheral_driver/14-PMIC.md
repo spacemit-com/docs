@@ -225,7 +225,7 @@ Documentation/power/regulator/regulator.rst
 
 ```
 
-### demo
+### demo示例
 
 ```
 1. 配置dts，引用想要使用的regulator

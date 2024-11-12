@@ -104,4 +104,4 @@ cat in_voltage2_scale
 得到的两个节点做乘法运算就是得到的采样电压值(单位为mV)
 
 ```
-# FAQ
+## FAQ

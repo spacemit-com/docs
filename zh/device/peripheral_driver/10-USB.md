@@ -840,4 +840,4 @@ suspend_power_on: R/W, 控制系统休眠时是否关闭电源，由DTS配置默
 USB可以通过第三方工具完成性能和功能测试，eg：fio用于USB存储测试，目前bianbu-linux上已集成fio工具。
 鼠标键盘功能可以通过查看input子系统，网卡功能可以使用iperf3等。
 
-# FAQ
+## FAQ

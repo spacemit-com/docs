@@ -275,4 +275,4 @@ driver type:    0 (driver type B)
 
 MMC/SD等存储可以通过第三方工具完成性能和功能测试，eg：fio，bonnie++，目前bianbu-linux上已集成fio工具。可以通过fio工具进行读写性能，老化测试。
 
-# FAQ
+## FAQ
