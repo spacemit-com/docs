@@ -338,7 +338,7 @@ USB2.0 OTG 控制器 host 模式对应的设备树节点为 `ehci`，作为 host
 
 ##### 以OTG模式工作(基于K1 EXTCON)
 
-此配置只适用于MicroUSB接口，且需要支持VBUS PIN、ID PIN唤醒的方案。
+此配置只适用于MicroUSB接口，且需要支持VBUS PIN、ID PIN检测OTG自动切换角色的方案。
 
 以 otg(基于K1 EXTCON)模式工作，硬件方案需要进行如下设计：  
 
