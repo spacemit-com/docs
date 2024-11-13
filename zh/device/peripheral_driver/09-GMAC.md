@@ -21,8 +21,8 @@ gmac驱动代码在drivers\net\ethernet\spacemit目录下：
 ```
 drivers\net\ethernet\spacemit
 |-- emac-ptp.c          #提供PTP协议支持
-|-- k1x-emac.c                  #k1 gmac驱动代码
-|-- k1x-emac.h    #k1 gmac驱动头文件
+|-- k1x-emac.c          #k1 gmac驱动代码
+|-- k1x-emac.h          #k1 gmac驱动头文件
 ```
 
 ## 关键特性
