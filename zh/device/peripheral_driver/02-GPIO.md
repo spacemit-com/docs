@@ -123,7 +123,7 @@ pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
     emac,reset-gpio = <&gpio 110 0>;
 };
 ```
-## 接口描述
+## 接口介绍
 
 ### API介绍
 申请指定的gpio
@@ -203,4 +203,4 @@ gpiochip1: GPIOs 512-517, parent: platform/spacemit-pinctrl@spm8821, spacemit-pi
 ```
 devmem reg_addr
 ```
-# FAQ
+## FAQ

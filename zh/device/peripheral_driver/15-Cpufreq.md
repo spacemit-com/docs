@@ -1,4 +1,4 @@
-# Cpufreq
+# CPUFREQ
 
 介绍CPUFREQ的功能和使用方法。
 

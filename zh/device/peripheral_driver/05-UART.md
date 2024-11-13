@@ -1,4 +1,4 @@
-# uart
+# UART
 
 介绍uart的配置和调试方式
 

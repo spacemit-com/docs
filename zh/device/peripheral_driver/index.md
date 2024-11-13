@@ -48,7 +48,7 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [UART](05-UART.md)
 - [I2C](06-I2C.md)  
 - [QSPI](07-QSPI.md) 
-- [gpadc](gpadc.md)
+- [GPADC](gpadc.md)
 
 存储接口驱动
 - [SDHC](08-SDHC.md)
@@ -61,9 +61,9 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [RTC](rtc.md)
 
 功耗子系统驱动
-- [thremal](thermal.md)  
-- [Cpufreq](15-Cpufreq.md)  
-- [Stanby](../standby.md)
+- [Thermal](thermal.md)  
+- [CPUFREQ](15-Cpufreq.md)  
+- [Standby](../standby.md)
 
 其他
 - [CRYPTO](18-CRYPTO.md)
