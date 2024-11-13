@@ -201,8 +201,45 @@ bt_pwrseq：
 - clock是蓝牙的时钟配置。
 - power-on-delay-ms是设置蓝牙上电后的延时，默认是10ms。
 
-## 接口描述
-### WIFI基本功能测试接口介绍
+## 接口介绍
+
+### API介绍
+平台部分的接口，包括WIFI上下电，获取中断以及sdio扫描等接口。
+- void spacemit_wlan_set_power(bool on_off)
+
+   设置WIFI电源，0为关闭，1为打开
+- int spacemit_wlan_get_oob_irq(void);
+
+   获取平台irq中断号
+- void spacemit_sdio_detect_change(int enable_scan);
+
+   扫描sdio总线
+
+## Debug介绍
+
+### sysfs
+
+```
+sdio的tx_delaycode的值默认是在方案dts中指定，可以通过sysfs下的该节点进行动态修改，方便调试阶段的验证。
+echo 0x7f > /sys/devices/platform/soc/d4280800.sdh
+动态修改必须要在wifi驱动加载之前才能生效。
+```
+### debugfs
+```
+常用于查询sdio的工作状态，包括频率，位宽，模式等信息。
+cat /sys/kernel/debug/mmc1/ios
+clock:          204800000 Hz
+actual clock:   187500000 Hz
+vdd:            21 (3.3 ~ 3.4 V)
+bus mode:       2 (push-pull)
+chip select:    0 (don't care)
+power mode:     2 (on)
+bus width:      2 (4 bits)
+timing spec:    6 (sd uhs SDR104)
+signal voltage: 1 (1.80 V)
+driver type:    0 (driver type B)
+```
+## 测试介绍
 
 首先确认wpa_supplicant服务有正常运行。
 ```
@@ -249,41 +286,7 @@ OK
 OK
 > enable_network 0
 ```
-### API介绍
-平台部分的接口，包括WIFI上下电，获取中断以及sdio扫描等接口。
-- void spacemit_wlan_set_power(bool on_off)
 
-   设置WIFI电源，0为关闭，1为打开
-- int spacemit_wlan_get_oob_irq(void);
-
-   获取平台irq中断号
-- void spacemit_sdio_detect_change(int enable_scan);
-
-   扫描sdio总线
-
-### Debug介绍
-#### sysfs
-
-```
-sdio的tx_delaycode的值默认是在方案dts中指定，可以通过sysfs下的该节点进行动态修改，方便调试阶段的验证。
-echo 0x7f > /sys/devices/platform/soc/d4280800.sdh
-动态修改必须要在wifi驱动加载之前才能生效。
-```
-#### debugfs
-```
-常用于查询sdio的工作状态，包括频率，位宽，模式等信息。
-cat /sys/kernel/debug/mmc1/ios
-clock:          204800000 Hz
-actual clock:   187500000 Hz
-vdd:            21 (3.3 ~ 3.4 V)
-bus mode:       2 (push-pull)
-chip select:    0 (don't care)
-power mode:     2 (on)
-bus width:      2 (4 bits)
-timing spec:    6 (sd uhs SDR104)
-signal voltage: 1 (1.80 V)
-driver type:    0 (driver type B)
-```
 ## FAQ
 问题1
 

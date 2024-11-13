@@ -247,7 +247,8 @@ bt_pwrseq：
 - clock是蓝牙的时钟配置。
 - power-on-delay-ms是设置蓝牙上电后的延时，默认是10ms。
 
-## 接口描述
+## 接口介绍
+
 ### UART hciattach
 
 hciattach 是 BlueZ 为 UART 接口蓝牙控制器提供的初始化工具，USB 接口的蓝牙直接忽略。
@@ -261,7 +262,63 @@ rtk_hciattach -n -s 115200 ttyS1 rtk_h5 &
 ```
 hciattach -s 1500000 /dev/ttyS1 any 1500000 flow nosleep
 ```
-### BT基本功能测试接口介绍
+
+### API介绍
+平台部分将BT上下电封装在rfkill子系统中，可以直接使用rfkill操作蓝牙的供电。
+```
+# rfkill list
+0: spacemit-bt: Bluetooth
+        Soft blocked: no
+        Hard blocked: no
+1: phy0: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+2: hci0: Bluetooth
+        Soft blocked: no
+        Hard blocked: no
+
+# rfkill block blutooth
+# rfkill list
+0: spacemit-bt: Bluetooth
+        Soft blocked: yes
+        Hard blocked: no
+1: phy0: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+2: hci0: Bluetooth
+        Soft blocked: yes
+        Hard blocked: no
+```
+其中spacemit-bt是平台注册的rfkill设备，hci0是蓝牙协议栈注册的rfkill设备。
+
+平台初始化时只需要主动打开spacemit-bt对应的蓝牙设备即可。
+```
+cat /sys/class/rfkill/rfkill0/type
+bluetooth
+cat /sys/class/rfkill/rfkill0/name
+spacemit-bt
+echo 1 > /sys/class/rfkill/rfkill0/state
+```
+操作rfkill时需要确认type和name是否为spacemit-bt的蓝牙设备。
+
+## Debug介绍
+### sysfs
+sysfs下可以查询对应rfkill的状态信息。
+```
+cat /sys/class/rfkill/rfkill0/state
+1
+```
+sysfs下可以查询对应uart的信息。
+```
+/sys/devices/platform/soc/d4017100.uart
+```
+### debugfs
+debugfs下可以查询蓝牙协议栈相关组件的信息
+```
+/sys/kernel/debug/bluetooth# ls
+hci0  l2cap  rfcomm  rfcomm_dlc  sco
+```
+## 测试介绍
 使用bluetoothctl与bluetoothd服务进行交互
 
 首先确保bluetoothd服务正常运行，输入bluetoothctl进入命令行：
@@ -340,61 +397,6 @@ Device 84:7B:57:FB:20:8D (public)
 
 ```
 
-### API介绍
-平台部分将BT上下电封装在rfkill子系统中，可以直接使用rfkill操作蓝牙的供电。
-```
-# rfkill list
-0: spacemit-bt: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-1: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-2: hci0: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-
-# rfkill block blutooth
-# rfkill list
-0: spacemit-bt: Bluetooth
-        Soft blocked: yes
-        Hard blocked: no
-1: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-2: hci0: Bluetooth
-        Soft blocked: yes
-        Hard blocked: no
-```
-其中spacemit-bt是平台注册的rfkill设备，hci0是蓝牙协议栈注册的rfkill设备。
-
-平台初始化时只需要主动打开spacemit-bt对应的蓝牙设备即可。
-```
-cat /sys/class/rfkill/rfkill0/type
-bluetooth
-cat /sys/class/rfkill/rfkill0/name
-spacemit-bt
-echo 1 > /sys/class/rfkill/rfkill0/state
-```
-操作rfkill时需要确认type和name是否为spacemit-bt的蓝牙设备。
-
-### Debug介绍
-#### sysfs
-sysfs下可以查询对应rfkill的状态信息。
-```
-cat /sys/class/rfkill/rfkill0/state
-1
-```
-sysfs下可以查询对应uart的信息。
-```
-/sys/devices/platform/soc/d4017100.uart
-```
-#### debugfs
-debugfs下可以查询蓝牙协议栈相关组件的信息
-```
-/sys/kernel/debug/bluetooth# ls
-hci0  l2cap  rfcomm  rfcomm_dlc  sco
-```
 ## FAQ
 问题1
 
