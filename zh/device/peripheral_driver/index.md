@@ -42,7 +42,7 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [V2D](13-V2D.md)  
 - [Audio](17-Audio.md)
 
-工业扩展接口驱动
+低速扩展接口驱动
 - [PWM](03-PWM.md)  
 - [IR-RX](04-IR-RX.md)
 - [UART](05-UART.md)
@@ -64,6 +64,10 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [Thermal](thermal.md)  
 - [CPUFREQ](15-Cpufreq.md)  
 - [Standby](../standby.md)
+
+第三方外设驱动
+- [WIFI](WIFI.md)
+- [BT](BT.md)
 
 其他
 - [CRYPTO](18-CRYPTO.md)

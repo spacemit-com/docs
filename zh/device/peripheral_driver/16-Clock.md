@@ -1,4 +1,4 @@
-# CLock
+# Clock
 介绍Clock的功能和使用方法。
 
 ## 模块介绍
