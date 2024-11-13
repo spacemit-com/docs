@@ -8,7 +8,7 @@ GMAC（Gigabit Media Access Controller）模块是一种用于支持千兆以太
 
 ### 功能介绍
 
-![](static/net.png)
+![](static/net.png)   
 应用层：面向用户提供应用服务。  
 协议栈层：实现网络协议，为应用层提供系统调用接口。  
 网络设备抽象层：屏蔽驱动实现细节，为协议栈提供统一接口。  
