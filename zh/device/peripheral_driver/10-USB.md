@@ -18,9 +18,9 @@ Linux中，支持两种USB角色，可以外接USB外设的Host模式和作为US
 
 USB Host角色驱动框架图可以分为以下几个层次：  
 
-- USB Host Controller：这是USB控制器驱动层，负责初始化USB控制器以及底层的数据收发操作，直接控制底层寄存器。  
-- USB Core：这是核心层，负责抽象出USB层次和基于URB的传输，并提供接口供上下使用。  
-- USB Class：这是USB设备功能层，负责实现USB设备驱动、USB功能驱动，对接内核其他框架（如HID、UVC、Storage等）。  
+- USB Host Controller Driver：这是USB控制器驱动层，负责初始化控制器以及进行底层数据收发操作。  
+- USB Core Services：这是核心层，负责抽象出USB层次和基于URB的传输，并提供接口供上下使用。  
+- USB Class Driver：这是USB设备功能层，负责实现USB设备驱动、USB功能驱动，对接内核其他框架（如HID、UVC、Storage等）。  
 
 #### USB Device
 
@@ -28,10 +28,10 @@ USB Host角色驱动框架图可以分为以下几个层次：
 
 USB Device角色驱动框架图可以分为以下几个层次：  
 
-- USB Device Controller：这是USB Device角色控制器驱动层，负责初始化USB控制器以及底层的数据收发操作，直接控制底层寄存器。  
+- USB Device Controller Driver：这是USB Device角色控制器驱动层，负责初始化控制器及进行底层数据收发操作。  
 - UDC Core：这是核心层，负责抽象出USB Device层次和基于usb_request的传输，并提供接口供上下使用。  
 - Composite: 用于组合多个USB Device功能为一个设备，支持用户空间通过configfs配置，或者legacy驱动硬编码组合好的Functions。  
-- Function：这是USB Device功能层，负责实现USB Device模式的功能驱动，对接内核其他框架（如存储、V4L2、网络等）。  
+- Function Driver：这是USB Device功能层，负责实现USB Device模式的功能驱动，对接内核其他框架（如存储、V4L2、网络等）。  
 
 这些层次结构共同构成了Linux系统中USB子系统的框架，确保了USB模块系统中的正常运行和数据传输。
 
@@ -51,7 +51,7 @@ drivers/usb
         |-- k1x_udc_core.c    # Device模式驱动。
 ```
 
-usb2.0host控制器驱动代码在drivers/usb目录下：
+USB2.0 HOST控制器驱动代码在drivers/usb目录下：
 
 ```
 drivers/usb
@@ -61,7 +61,7 @@ drivers/usb
     |-- ehci-k1x-ci.c     # EHCI Host模式平台驱动, 需要和EHCI Host驱动组合使用。
 ```
 
-usb3.0drd控制器驱动代码在drivers/usb目录下：
+USB3.0 DRD控制器驱动代码在drivers/usb目录下：
 
 ```
 drivers/usb
@@ -79,10 +79,10 @@ drivers/usb
 ```
 drivers/
 |-- extcon/
-    |-- extcon-k1xci.c   # ID Pin+Vbus Pin检测连接器驱动,需搭配OTG驱动使用。
+|    |-- extcon-k1xci.c   # MicroUSB Pin检测连接器驱动,需搭配OTG驱动、Extcon驱动使用。
 |-- usb
-    |-- misc/
-        |-- spacemit_onboard_hub.c # 用于板载USB外设供电配置的帮助驱动。
+|    |-- misc/
+|        |-- spacemit_onboard_hub.c # 用于板载USB外设供电配置的帮助驱动。
 ```
 
 ## 关键特性
@@ -241,16 +241,16 @@ Device Drivers
 
 USB2.0 OTG支持4种配置模式，通常情况下配置为**以Device Only模式工作**。
 
-如果支持手动切换Host，推荐配置为**以OTG模式工作(基于usb-role-switch)**并且配置为默认Device角色。
+如果支持手动切换Host，推荐配置为    **以OTG模式工作(基于usb-role-switch)** 并且配置为默认Device角色。
 
 如果支持自动切换双角色（如Type-C OTG接口），推荐配置为**以OTG模式工作(基于usb-role-switch)**，并接入Type-C驱动或者GPIO检测。
 
 ##### 以Device Only 模式工作
 
-USB2.0 OTG 控制器 device 模式对应的设备树节点为 udc，作为 device 模式工作时，需要配置 dts
+USB2.0 OTG 控制器 device 模式对应的设备树节点为 `udc`，作为 device 模式工作时，需要配置 dts
 
-1. disable ehci节点。
-2. enable usbphy节点。
+1. disable `ehci`节点。
+2. enable `usbphy`节点。
 3. udc节点的 `spacemit,udc-mode` 属性为 `MV_USB_MODE_UDC` 来选择 device 模式。
 
 方案 dts 配置如下：
@@ -270,10 +270,10 @@ USB2.0 OTG 控制器 device 模式对应的设备树节点为 udc，作为 devic
 
 ##### 以Host Only模式工作
 
-USB2.0 OTG 控制器 host 模式对应的设备树节点为 ehci，作为 host 模式工作时，可以通过 dts 配置:
+USB2.0 OTG 控制器 host 模式对应的设备树节点为 `ehci`，作为 host 模式工作时，可以通过 dts 配置:
 
-1. disable udc 节点。
-2. ehci节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
+1. disable `udc` 节点。
+2. `ehci`节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
 3. 如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
 4. 可选属性`spacemit,reset-on-resume`，用于控制系统休眠唤醒后是否reset控制器。
 
@@ -295,15 +295,15 @@ USB2.0 OTG 控制器 host 模式对应的设备树节点为 ehci，作为 host �
 
 此配置模式适合大部分方案，可接入Type—C角色检测、GPIO角色检测、支持用户手动切换等。
 
-需要为 otg 节点配置`usb-role-switch`属性，以启用对role-switch的支持，通常适用于typec连接器，也支持其他如GPIO检测，接入方法可参考Linux内核文档usb-connector、typec相关章节。配置后，/sys/class/usb_role/下会出现一个 mv-otg-role-switch 节点。
+需要为 `otg` 节点配置`usb-role-switch`属性，以启用对role-switch的支持，通常适用于typec连接器，也支持其他如GPIO检测，具体接入方法可参考Linux内核文档usb-connector、typec相关章节。配置后，/sys/class/usb_role/下会出现一个 mv-otg-role-switch 节点。
 
-通过启用otg节点，并且配置otg节点的`role-switch-user-control`属性。
+通过启用`otg`节点，并且配置`otg`节点的`role-switch-user-control`属性。
 
-otg节点支持配置vbus-gpios用于控制角色切换时的vbus。
+`otg`节点支持配置`vbus-gpios`用于控制角色切换时的vbus。
 
-otg节点的`role-switch-default-mode`属性决定开机后的默认角色，可选host，peripheral。
+`otg`节点的`role-switch-default-mode`属性决定开机后的默认角色，可选`host`，`peripheral`。
 
-otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs的/sys/class/usb_role/mv-otg-role-switch/role手动控制角色切换。
+`otg`节点的`role-switch-user-control`属性决定用户是否可以通过sysfs的/sys/class/usb_role/mv-otg-role-switch/role手动控制角色切换。
 
 ```c
 &usbphy {
@@ -330,7 +330,7 @@ otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs�
 };
 
 &ehci {
-        spacemit,udc-mode = <MV_USB_MODE_HOST>;
+        spacemit,udc-mode = <MV_USB_MODE_OTG>;
         status = "okay";
 };
 
@@ -338,7 +338,7 @@ otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs�
 
 ##### 以OTG模式工作(基于K1 EXTCON)
 
-此配置适用于MicroUSB接口，且需要支持VBUS PIN、ID PIN唤醒的方案。
+此配置只适用于MicroUSB接口，且需要支持VBUS PIN、ID PIN唤醒的方案。
 
 以 otg(基于K1 EXTCON)模式工作，硬件方案需要进行如下设计：  
 
@@ -351,10 +351,9 @@ otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs�
 dts 需要进行下面的配置：
 
 1. 使用 pinctrl 把 GPIO64(另可选GPIO125)配置为 VBUS_ON0 功能，把 GPIO65(另可选GPIO126)配置为USB_ID0功能，用于检测 otg 接口状态。
-2. 使能 usbphy、extcon、otg、udc、ehci 节点。
-3. 把 dts 中 udc 节点、ehci 节点、otg 节点的 spacemit,udc-mode 属性配置为 MV_USB_MODE_OTG。
-4. 在 dts 中需要通过 otg 节点和 udc 节点的 spacemit,extern-attr 配置 vbus 和 idpin 的检测支持，配置为 MV_USB_HAS_VBUS_IDPIN_DETECTION。
-5. otg 节点需要配置 vbus-gpio，用于驱动根据进入 host 模式情形下控制对外 5v 供电开关。切换为 host 模式时，在 vbus-gpio 被驱动拉高以前，VBUS_ON0 不能为高。
+2. 使能 `usbphy`、`extcon`、`otg`、`udc`、`ehci`` 节点。
+3. 把 dts 中 `udc` 节点、`ehci` 节点、`otg` 节点的 `spacemit,udc-mode` 属性配置为 `MV_USB_MODE_OTG`。
+4. 在 dts 中需要通过 `otg` 节点和 `udc` 节点的 `spacemit,extern-attr` 配置 vbus 和 idpin 的检测支持，配置为 `MV_USB_HAS_VBUS_IDPIN_DETECTION`。
 
 otg 节点方案 dts 配置示例如下（假设使用 pinctrl 配置采用 k1-x_pinctrl.dtsi 中的 pinctrl_usb0_1 节点），参考 k1-x_evb.dts：
 
@@ -394,11 +393,11 @@ otg 节点方案 dts 配置示例如下（假设使用 pinctrl 配置采用 k1-x
 ##### USB休眠唤醒
 
 K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
-USB2.0 OTG需要在otg节点和ehci节点配置 spacemit,reset-on-resume 属性使能reset-resume。
+USB2.0 OTG需要在`otg`节点和`ehci`节点配置 `spacemit,reset-on-resume` 属性使能reset-resume。
 
 如果需要支持USB Remote Wakeup：  
-需要对ehci节点，otg节点禁用 spacemit,reset-on-resume 属性，并且启用 wakeup-source 属性。
-此外系统pmu需要使能usb唤醒的唤醒源，参考电源管理文档相关章节。
+需要对`ehci`节点，`otg`节点禁用 `spacemit,reset-on-resume` 属性，并且启用 `wakeup-source` 属性。
+此外系统pmu需要使能usb唤醒的唤醒源，参考下文章节。
 
 ```c
 &otg {
@@ -441,9 +440,9 @@ Device Drivers
 
 USB2.0 HOST支持配置为**以Host Only模式工作**。
 
-USB2.0 HOST 控制器 host 模式对应的设备树节点为 ehci1，作为 host 模式工作时，可以通过 dts 配置:
+USB2.0 HOST 控制器 host 模式对应的设备树节点为 `ehci1`，作为 host 模式工作时，可以通过 dts 配置:
 
-1. ehci1节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
+1. `ehci1`节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
 2. 如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
 3. 可选属性`spacemit,reset-on-resume`，用于控制系统休眠唤醒后是否reset控制器。
 
@@ -458,16 +457,15 @@ USB2.0 HOST 控制器 host 模式对应的设备树节点为 ehci1，作为 host
 };
 ```
 
-USB2.0 HOST控制器也支持以OTG模式工作(基于usb-role-switch)，具体参考方案dts和USB2.0 OTG配置介绍的相关内容。
 
 ##### USB休眠唤醒
 
 K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
-USB2.0 HOST控制器需要在ehci节点配置 spacemit,reset-on-resume 属性使能reset-resume。
+USB2.0 HOST控制器需要在`ehci1`节点配置 `spacemit,reset-on-resume` 属性使能reset-resume。
 
 如果需要支持USB Remote Wakeup：  
-需要对ehci1节点禁用 spacemit,reset-on-resume 属性，并且启用 wakeup-source 属性。
-此外系统pmu需要使能usb唤醒的唤醒源，参考电源管理文档相关章节。
+需要对ehci1节点禁用 spacemit,reset-on-resume 属性，并且启用 `wakeup-source` 属性。
+此外系统pmu需要使能usb唤醒的唤醒源，见下文章节。
 
 ```c
 &ehci1 {
@@ -522,7 +520,7 @@ Device Drivers
 
 ##### 以Host Only模式工作
 
-USB3.0 DRD控制器的设备树节点为 usbdrd3.对应 high-speed utmi phy 节点为 usb2phy，对应 superspeed pipe phy 节点为 combphy，使用 USB3.0 DRD 控制器时需要使能这两个节点。phy 节点无参数配置。
+USB3.0 DRD控制器的设备树节点为 `usbdrd3`。对应 high-speed utmi phy 节点为 `usb2phy`，对应 superspeed pipe phy 节点为 `combphy`，使用 USB3.0 DRD 控制器时需要使能这两个节点。phy 节点无参数配置。
 
 ```
 &usb2phy {
@@ -533,7 +531,7 @@ USB3.0 DRD控制器的设备树节点为 usbdrd3.对应 high-speed utmi phy 节�
 };
 ```
 
-USB3.0 DRD控制器有部分参数通过 dts 的 usbdrd3 节点的子节点 dwc3 节点配置，需要配置部分quirk参数如下：
+USB3.0 DRD控制器有部分参数通过 dts 的 `usbdrd3` 节点的子节点 `dwc3` 节点配置，需要配置部分quirk参数如下：
 
 ```c
 &usbdrd3 {
@@ -552,15 +550,15 @@ USB3.0 DRD控制器有部分参数通过 dts 的 usbdrd3 节点的子节点 dwc3
 };
 ```
 
-如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
+如果host需要使用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
 
 ##### 以Device Only模式工作
 
-USB3.0 DRD 控制器的角色通过 usbdrd3 节点的子节点 dwc3 的 dr_mode 属性配置，可选 host、peripheral、otg。dr_mode 属性配置为 peripheral 则以 device only 模式工作。
+USB3.0 DRD 控制器的角色通过 `usbdrd3` 节点的子节点 `dwc3` 的 `dr_mode` 属性配置，可选 `host` 、 `peripheral` 、 `otg` 。 `dr_mode` 属性配置为 `peripheral` 则以 device only 模式工作。
 
 ##### 以DRD模式工作
 
-配置 dr_mode 为 otg 模式时，dts 节点中需要配置 usb-role-switch 布尔属性为真。可以通过 role-switch-default-mode 字符串属性配置对应的默认角色，可选值为 host、peripheral。
+配置 `dr_mode` 为 `otg` 模式时，dts 节点中需要配置 `usb-role-switch` 布尔属性为真。可以通过 `role-switch-default-mode` 字符串属性配置对应的默认角色，可选值为 `host` 、 `peripheral`。
 
 ```c
 &usbdrd3 {
@@ -591,11 +589,11 @@ echo device > /sys/kernel/debug/usb/c0a00000.dwc3/mode
 ##### USB休眠唤醒
 
 K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
-USB3.0 DRD控制器需要在usbdrd3节点配置reset-on-resume属性使能reset-resume。
+USB3.0 DRD控制器需要在`usbdrd3`节点配置`reset-on-resume`属性使能reset-resume。
 
 如果需要支持USB Remote Wakeup：  
-需要对usbdrd3节点禁用 reset-on-resume 属性，并且启用 wakeup-source 属性。
-此外系统pmu需要使能usb唤醒的唤醒源，参考电源管理文档相关章节。
+需要对`usbdrd3`节点禁用 `reset-on-resume` 属性，并且启用 `wakeup-source` 属性。
+此外系统pmu需要使能usb唤醒的唤醒源，见下文章节。
 
 ```c
 &usbdrd3 {
@@ -662,6 +660,7 @@ Device Drivers
 
 - hub-gpios：用于hub上电。
 - vbus-gpios：用于对外vbus供电。
+
 支持属性：
 - hub_inter_delay_ms: int, hub-gpios中的gpio之间的延迟。
 - vbus_inter_delay_ms: int, vbus-gpios中gpio之间的延迟。
@@ -681,15 +680,35 @@ usb2hub: usb2hub {
 
 ### USB休眠唤醒配置介绍
 
-1. 休眠需要低功耗的场景，建议休眠时关闭USB对外5VVBUS供电，对于USB供电支持GPIO控制的方案，可以参考spacemit_onboard_hub驱动的配置说明。  
-2. 对于以下场景，建议休眠时保留USB对外5VVBUS供电，对于支持GPIO控制VBUS的方案，可以参
-考6.4。
+#### 供电设计
+休眠需要低功耗的场景，建议休眠时关闭USB对外5V VBUS供电，对于USB供电支持GPIO控制的方案，可以参考其他USB DTS配置中关于spacemit_onboard_hub驱动的配置说明。  
+
+对于以下场景，休眠时需要保留USB对外5V VBUS（或板载USB外设供电）供电：
+   - 支持USB Remote Wakeup如USB键盘鼠标唤醒的功能。
    - 需要打开摄像头视频流进入休眠，唤醒后恢复上层应用视频流的应用场景。部分摄像头如果休
 眠断电不支持恢复。
-   - 对于上电后初始化较久的设备（从上电到枚举大于3s），需要休眠唤醒过程不出现设备断开重
+   - 对于存在上电后初始化较久的设备（从上电到响应枚举大于2s，如部分4G模组），需要休眠唤醒过程不出现设备断开重
 连接的行为，建议休眠时不要关闭电源供电。
    - 对于适应设备兼容性及需要使用USB对外提供供电的其他场景。
-3. 关于如何启用系统对USB RemoteWakeup支持，参见电源管理的standby小节。
+
+对于以下场景，休眠时需要保持对SOC的USB模块1.8V供电（AVDD18_USB, AVDD18_PCIE）：
+   - 支持USB Remote Wakeup如USB键盘鼠标唤醒的功能。
+   - 未启用 `reset-on-resume`/`spacemit,reset-on-resume`的情况（见各控制器章节）。
+#### CONFIG配置
+需要使能 CONFIG_PM_SLEEP。
+
+#### DTS配置
+这里介绍如何使能系统的USB唤醒源，各个控制器的DTS配置请参考控制器相关章节。
+如果需要支持USB Remote Wakeup如USB键盘鼠标从休眠唤醒系统的功能，需要为设备树下`soc->pmu->power`节点配置 `pmu_wakeup5` bool属性。
+
+DTS示例：
+```cpp
+&pmu {
+	power: power-controller {
+		pmu_wakeup5;
+	};
+};
+```
 
 ## 接口介绍
 
@@ -697,13 +716,17 @@ usb2hub: usb2hub {
 
 #### Host API介绍
 
-USB host设备通常会接入系统其他子系统，如U盘存储设备接入存储子系统、USB HID接入INPUT子系统等，请参阅相关的Linux内核API介绍。
+USB host端接入的设备通常会接入系统其他子系统，如U盘存储设备接入存储子系统、USB HID接入INPUT子系统等，请参阅相关的Linux内核API介绍。
+
+如果需要开发自定义协议的USB外设驱动，可参考Linux内核driver-api/usb/writing_usb_driver进行内核态驱动开发或参考libusb文档进行用户态驱动开发。
 
 #### Device API介绍
 
-USB Device支持通过Configfs配置，请参考Linux内核文档usb/gadget_configfs。
+USB Device支持通过Configfs配置，请参考Linux内核文档usb/gadget_configfs，部分功能需要搭配应用层服务程序使用。
 
 此外SpacemiT提供了[bianbu-linux/usb-gadget工具](https://gitee.com/bianbu-linux/usb-gadget)，其中有使用Configfs配置USB Device的脚本可供使用和参考，请参阅对应页面的帮助文档。
+
+如果需要开发自定义协议的USB Device模式驱动，可基于FunctionFS开发用户态驱动，可参考Linux内核文档usb/functionfs和Linux内核源码目录tools/usb/ffs-aio-example案例。
 
 ## Debug介绍
 
@@ -830,14 +853,35 @@ host
 
 ```
 # cd /sys/kernel/debug/usb/usb2hub/
-hub_on: R/W，hub-gpios的开关情况。可写入 0/1 控制。
-vbus_on: R/W, vbus-gpios的开关情况。可写入 0/1 控制。
-suspend_power_on: R/W, 控制系统休眠时是否关闭电源，由DTS配置默认值。
+hub_on: hub-gpios的开关情况。可写入 0/1 控制。
+vbus_on: vbus-gpios的开关情况。可写入 0/1 控制。
+suspend_power_on: 控制系统休眠时是否关闭电源，由DTS配置默认值。
 ```
 
 ## 测试介绍
 
-USB可以通过第三方工具完成性能和功能测试，eg：fio用于USB存储测试，目前bianbu-linux上已集成fio工具。
-鼠标键盘功能可以通过查看input子系统，网卡功能可以使用iperf3等。
+USB设备识别可以通过应用层工具 lsusb 查看，还可以使用 lsub -tv 查看树形详细信息。
+```
+$ lsusb
+Bus 003 Device 002: ID 2109:0817 VIA Labs, Inc. USB3.0 Hub
+Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+.....
+```
+
+USB设备描述符可以通过应用层工具 lsusb -v 查看。
+```
+$ lsusb -v -s 001:001
+
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            9 Hub
+.....
+```
+
+针对USB外设可以通过第三方工具完成性能和功能测试，举例：USB存储的读写测试可以使用fio工具，目前bianbu-linux上已集成fio；
+鼠标键盘功能验证可以通过查看input子系统（可选用evtest、getevent等工具）；网卡功能可以使用ping命令、iperf3等测试。
 
 ## FAQ
