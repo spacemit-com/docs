@@ -74,6 +74,27 @@ qspi 通信倍速支持 x1/x2/x4。
 
 ### CONFIG配置
 
+CONFIG_SPI 为SPI总线协议提供支持，默认情况，此选项为Y
+```
+Device Drivers
+        SPI support (SPI [=y])
+```
+
+CONFIG_SPI_MEM 为简化操作SPI接口存储器设备提供支持，默认情况，此选项为Y
+```
+Device Drivers
+        SPI support (SPI [=y])
+                SPI memory extension (SPI_MEM [=y])
+```
+
+CONFIG_SPI_K1X_QSPI 为K1 qspi控制器驱动提供支持，默认情况下，此选型为Y
+```
+Device Drivers
+        SPI support (SPI [=y])
+                K1X QuadSPI Controller (SPI_K1X_QSPI [=y])
+
+```
+
 ### dts配置
 
 #### pinctrl
