@@ -351,7 +351,7 @@ USB2.0 OTG 控制器 host 模式对应的设备树节点为 `ehci`，作为 host
 dts 需要进行下面的配置：
 
 1. 使用 pinctrl 把 GPIO64(另可选GPIO125)配置为 VBUS_ON0 功能，把 GPIO65(另可选GPIO126)配置为USB_ID0功能，用于检测 otg 接口状态。
-2. 使能 `usbphy`、`extcon`、`otg`、`udc`、`ehci`` 节点。
+2. 使能 `usbphy`、`extcon`、`otg`、`udc`、`ehci` 节点。
 3. 把 dts 中 `udc` 节点、`ehci` 节点、`otg` 节点的 `spacemit,udc-mode` 属性配置为 `MV_USB_MODE_OTG`。
 4. 在 dts 中需要通过 `otg` 节点和 `udc` 节点的 `spacemit,extern-attr` 配置 vbus 和 idpin 的检测支持，配置为 `MV_USB_HAS_VBUS_IDPIN_DETECTION`。
 
