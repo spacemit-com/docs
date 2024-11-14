@@ -48,6 +48,7 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [UART](05-UART.md)
 - [I2C](06-I2C.md)  
 - [QSPI](07-QSPI.md) 
+- [SPI](SPI.md) 
 - [GPADC](gpadc.md)
 
 存储接口驱动
