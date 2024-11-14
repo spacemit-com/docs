@@ -2792,3 +2792,73 @@ index 801895d7d4..3f633d30a1 100644
 -- 
 2.25.1
 ```
+
+### 6.7 不支持烧写gzip格式镜像文件
+
+spacemit刷机机制会将大文件镜像压缩成gzip，以解决usb传输大文件数据慢的问题。刷机服务会默认检测数据为gzip格式，则做解压的处理。如果需要烧写gzip镜像到到自定义分区，可以做以下修改
+
+- 方式一，对指定的分区不做gzip检查，如分区usbfs
+
+```c
+diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
+index 88d8778376..a37cbde596 100644
+--- a/drivers/fastboot/fb_mmc.c
++++ b/drivers/fastboot/fb_mmc.c
+@@ -689,7 +689,7 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
+            fastboot_mmc_get_part_info(cmd, &dev_desc, &info, response) < 0)
+                return;
+ 
+-       if (check_gzip_format((uchar *)download_buffer, src_len) >= 0) {
++       if (check_gzip_format((uchar *)download_buffer, src_len) >= 0 && strcmp("usbfs", cmd) != 0) {
+                /*is gzip data and equal part name*/
+                gzip_image = true;
+                if (strcmp(cmd, part_name_t)){
+
+
+```
+
+- 方式二，关掉压缩镜像刷机功能(***不推荐，导致刷机时间更长***)
+
+```c
+//关闭刷机服务压缩镜像的检查
+//uboot-2022.10
+diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
+index 88d8778376..5f8d4f8931 100644
+--- a/drivers/fastboot/fb_mmc.c
++++ b/drivers/fastboot/fb_mmc.c
+@@ -689,7 +689,7 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
+            fastboot_mmc_get_part_info(cmd, &dev_desc, &info, response) < 0)
+                return;
+ 
+-       if (check_gzip_format((uchar *)download_buffer, src_len) >= 0) {
++       if (false) {
+                /*is gzip data and equal part name*/
+                gzip_image = true;
+                if (strcmp(cmd, part_name_t)){
+
+
+//关闭刷机工具对镜像的压缩处理
+//buildroot-ext，可直接改刷机包里面的partition_universal.json，注意json格式最后一行不能带逗号
+diff --git a/board/spacemit/k1/partition_universal.json b/board/spacemit/k1/partition_universal.json
+index e02a1d0..e9da5a9 100644
+--- a/board/spacemit/k1/partition_universal.json
++++ b/board/spacemit/k1/partition_universal.json
+@@ -36,15 +36,13 @@
+             "name": "bootfs",
+             "offset": "4M",
+             "size": "256M",
+-            "image": "bootfs.img",
+-            "compress": "gzip-5"
++            "image": "bootfs.img"
+         },
+         {
+             "name": "rootfs",
+             "offset": "260M",
+             "size": "-",
+-            "image": "rootfs.ext4",
+-            "compress": "gzip-5"
++            "image": "rootfs.ext4"
+         }
+     ]
+ }
+```

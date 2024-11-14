@@ -2807,3 +2807,73 @@ index 801895d7d4..3f633d30a1 100644
 -- 
 2.25.1
 ```
+
+### 6.7 gzip format image file is not supported
+
+The spacemit flashing mechanism compresses large file images into gzip to solve the problem of slow usb transfer of large file data.The flashing service decompresses the detection data in gzip format by default.If you need to burn the gzip image to a custom partition, you can make the following changes
+
+- method 1, Do not perform gzip check on the specified partition, such as partition usbfs
+
+```c
+diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
+index 88d8778376..a37cbde596 100644
+--- a/drivers/fastboot/fb_mmc.c
++++ b/drivers/fastboot/fb_mmc.c
+@@ -689,7 +689,7 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
+            fastboot_mmc_get_part_info(cmd, &dev_desc, &info, response) < 0)
+                return;
+ 
+-       if (check_gzip_format((uchar *)download_buffer, src_len) >= 0) {
++       if (check_gzip_format((uchar *)download_buffer, src_len) >= 0 && strcmp("usbfs", cmd) != 0) {
+                /*is gzip data and equal part name*/
+                gzip_image = true;
+                if (strcmp(cmd, part_name_t)){
+
+
+```
+
+- method 2, Turn off the compressed image brushing function(***not recommended, resulting in longer flashing time***)
+
+```c
+//Turn off the check of the brush service compressed image
+//uboot-2022.10
+diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
+index 88d8778376..5f8d4f8931 100644
+--- a/drivers/fastboot/fb_mmc.c
++++ b/drivers/fastboot/fb_mmc.c
+@@ -689,7 +689,7 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
+            fastboot_mmc_get_part_info(cmd, &dev_desc, &info, response) < 0)
+                return;
+ 
+-       if (check_gzip_format((uchar *)download_buffer, src_len) >= 0) {
++       if (false) {
+                /*is gzip data and equal part name*/
+                gzip_image = true;
+                if (strcmp(cmd, part_name_t)){
+
+
+//Disable image compression by the brush tool
+//buildroot-ext. you can directly change the partition_universal.json in the flashing package, note that the last line of the json format cannot contain commas
+diff --git a/board/spacemit/k1/partition_universal.json b/board/spacemit/k1/partition_universal.json
+index e02a1d0..e9da5a9 100644
+--- a/board/spacemit/k1/partition_universal.json
++++ b/board/spacemit/k1/partition_universal.json
+@@ -36,15 +36,13 @@
+             "name": "bootfs",
+             "offset": "4M",
+             "size": "256M",
+-            "image": "bootfs.img",
+-            "compress": "gzip-5"
++            "image": "bootfs.img"
+         },
+         {
+             "name": "rootfs",
+             "offset": "260M",
+             "size": "-",
+-            "image": "rootfs.ext4",
+-            "compress": "gzip-5"
++            "image": "rootfs.ext4"
+         }
+     ]
+ }
+```
