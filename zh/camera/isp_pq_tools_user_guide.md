@@ -61,6 +61,7 @@ Figure - ISP Tool 框架
 ### PC 端 tuning tool 安装
 
 调试软件是免安装的压缩文件，解压即可使用，文件名 AsrIspToolVX.X.X.X.rar
+调试工具可通过该链接获取：https://archive.spacemit.com/tools/isp-tunning/
 
 解压后包含如下文件：
 
