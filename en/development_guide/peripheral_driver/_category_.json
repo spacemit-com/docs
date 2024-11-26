@@ -1,8 +1,0 @@
-{
-  "label": "外设驱动",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "description": "接口和外设列表"
-  }
-}

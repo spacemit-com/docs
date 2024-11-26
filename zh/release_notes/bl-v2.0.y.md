@@ -4,6 +4,23 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0更新说明
 
+## v2.0.2更新说明
+
+发布日期：2024-11-11
+
+### 主要更新
+
+- u-boot 支持非 AI 扩展核作为启动核
+- 支持 Hynix LPDDR4x DRAM 颗粒
+- 支持 DDR 带宽统计工具
+- 支持 es8323 audio codec 芯片
+- 支持 rt-linux patch
+- 支持 AMD 显卡
+- 修复关闭 CPU 1 ~ 7 后，rtl8852bs 中断过多导致系统卡死的问题
+- 修复 gpio74 引脚的 pwm 无法正常工作的问题
+- 修复 Node.js 运行概率性出现非法指令的问题
+- 关闭 LOCKDEP 选项，避免其影响系统运行性能
+
 ## v2.0.1更新说明
 
 发布日期：2024-10-28

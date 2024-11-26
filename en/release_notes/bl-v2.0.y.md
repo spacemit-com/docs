@@ -4,6 +4,23 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0 Release Notes
 
+## v2.0.2 release note
+
+Release date: 2024-11-11
+
+### Major Updates
+
+- u-boot supports non-AI extension cores as boot cores
+- Supports Hynix LPDDR4x DRAM chips
+- Supports DDR bandwidth statistics tool
+- Supports es8323 audio codec chip
+- Supports rt-linux patch
+- Supports AMD graphics cards
+- Fixed the issue where the system would freeze due to excessive interrupts from rtl8852bs after shutting down CPUs 1 to 7
+- Fixed the issue where the PWM on gpio74 pin was not working properly
+- Fixed the issue where Node.js would occasionally encounter illegal instructions
+- Disabled the LOCKDEP option to avoid affecting system performance
+
 ## v2.1 release note
 
 Release date: 2024-10-28

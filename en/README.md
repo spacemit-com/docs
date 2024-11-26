@@ -7,6 +7,10 @@ sidebar_position: 1
 
 Bianbu Linux is the BSP (Board Support Package) for the Spacemit Stone series chips, including the SDK (Software Development Kit). It consists of the supervisor program interface (OpenSBI), bootloader (U-Boot/UEFI), Linux kernel, root file system (containing various middleware and libraries), and examples. Its goal is to provide processor Linux support for customers and enable the development of drivers and applications.
 
+## System Architecture
+
+![](static/bianbu-linux-arch.png)
+
 ## Main components
 
 The following are the components of Bianbu Linux:
@@ -34,15 +38,9 @@ More is comming.
 
 ## Quick start guide
 
-- [Download and Build](download_and_build.md)
-- [Device Management](device_management.md)
-- [Solution Management](solution_management.md)
-
-## Advanced guide
-
-- [Peripheral Driver](development_guide/peripheral_driver/00-intro.md)
-- [Boot](development_guide/boot.md)
-- [Media](development_guide/media.md)
+- [Image](image.md)
+- [Source](source.md)
+- [Tools](tools.md)
 
 ## Release notes
 
