@@ -314,6 +314,7 @@ bianbu-desktop 上可以安装 k1x-gpu-test 来获取相关demo：`sudo apt inst
 ### 4.2 编译 & 运行
 
 ```bash
+sudo apt install opencl-headers ocl-icd-opencl-dev #安装依赖
 cd k1x-gpu-test/openCLDemo
 cmake .
 make -j
@@ -337,7 +338,7 @@ Calculate time for 102400000 addition operations: 218847 us
 add_definitions(-DCL_TARGET_OPENCL_VERSION=300)
 
 # 添加链接库
-set(LINK_LIBRARIES PVROCL)  //设置链接库变量，指定链接库名称
+set(LINK_LIBRARIES OpenCL)  //设置链接库变量，指定链接库名称
 
 add_executable(gpu-addDemo ${CMAKE_CURRENT_SOURCE_DIR}/add_demo.c)
 add_executable(testDemo ${CMAKE_CURRENT_SOURCE_DIR}/testDemo.c) # 创建新的可执行文件
