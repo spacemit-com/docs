@@ -4,6 +4,20 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0更新说明
 
+## v2.0.4更新说明
+
+发布日期：2024-12-11
+
+### 主要更新
+
+- 修复 openssl speed -evp chacha20 非法指令的问题
+- 修复个别场景 rwsem/spinlock 等出错问题
+- u-boot 优化 PCIe 枚举时间
+- 优化内核启动速度
+- 优化 PCIe memory range 定义，提升 NVMe SSD 读写性能
+- 更新 GPU 驱动至 v24.2
+- 支持 GRUB
+
 ## v2.0.2更新说明
 
 发布日期：2024-11-11

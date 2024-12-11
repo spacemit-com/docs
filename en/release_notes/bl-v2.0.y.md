@@ -4,6 +4,20 @@ sidebar_position: 2
 
 # Bianbu Linux 2.0 Release Notes
 
+## v2.0.4 release note
+
+Release date: 2024-12-11
+
+### Major Updates
+
+- Fixed the issue of illegal instruction with `openssl speed -evp chacha20`
+- Fixed errors in certain scenarios with `rwsem/spinlock`
+- Optimized PCIe enumeration time in u-boot
+- Improved kernel boot speed
+- Optimized PCIe memory range definition to enhance NVMe SSD read/write performance
+- Updated GPU driver to v24.2
+- Added support for GRUB
+
 ## v2.0.2 release note
 
 Release date: 2024-11-11
