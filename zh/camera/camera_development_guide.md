@@ -211,16 +211,16 @@ Sensor 驱动是个轻量级的字符串驱动，驱动内主要是来控制 pow
 和 camera 相关的 dts 配置主要分布在以下几个文件(方案间可能会有细微差别)：
 
 ```bash
-路径:archriscvbootdtsspacemitk1-x-camera-sensor.dtsi
+路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
 作用:各类sensor的配置信息
 
-路径:archriscvbootdtsspacemitk1-x-camera-sdk.dtsi
+路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sdk.dtsi
 作用:ccic、csiphy、isp、vi、cpp的配置信息
 
-路径:archriscvbootdtsspacemitk1-x_pinctrl.dtsi
+路径:arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi
 作用:camera所依赖的pinctr1配置信息
 
-路径:archriscvbootdtsspacemitk1-xxxx.dts
+路径:arch/riscv/boot/dts/spacemit/k1-xxxx.dts
 作用:不同方案的board相关配置
 ```
 
@@ -229,7 +229,7 @@ Sensor 驱动是个轻量级的字符串驱动，驱动内主要是来控制 pow
 目前仅有 camera mclk 引脚的配置是通过 pinctrl 进行定义的。
 
 ```
-路径:archriscvbootdtsspacemitk1-x_pinctrl.dtsi
+路径:arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi
 
 pinctrl_camera0: camera0_grp {
     pinctrl-single,pins =<
@@ -249,7 +249,7 @@ pinctrl_camera2: camera2_grp {
     >;
 };
 
-路径:archriscvbootdtsspacemitk1-x-camera-sensor.dtsi
+路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
 
 /* imx315 */
 backsensor: cam_sensor@0 {
@@ -271,7 +271,7 @@ backsensor: cam_sensor@0 {
 方案 dts 中 backsensor 配置如下。
 
 ```bash
-路径:archriscvbootdtsspacemitk1-xxxx.dts
+路径:arch/riscv/boot/dts/spacemit/k1-xxxx.dts
 
 //为了提高效率，需要如下使用GPIO
 //GPIO_111 后边的2表示连续要配置的GPIO，示例中表示GPIO_111，GPIO_112。
@@ -296,7 +296,7 @@ backsensor: cam_sensor@0 {
         status = "okay";
 };
 
-路径:archriscvbootdtsspacemitk1-x-camera-sensor.dtsi
+路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
 //camera ID0对应imx135
 &soc {
 
