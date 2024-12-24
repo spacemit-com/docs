@@ -1,5 +1,29 @@
 以下文档旨在为在 K1 平台上适配其他 AMD 显卡的开发者提供参考指导。本文将以我们在适配 Radeon HD7350 显卡时对内核所做的改动为例，介绍所涉及的关键点，并解释这些修改背后的原因和考量。无论您正在适配与 HD7350 同一代的 GPU，还是其他 AMD GPU，此文档都可作为参考和指导。
 
+# 1. 简介
+Linux内核中的独立显卡驱动主要依托于DRM（Direct Rendering Manager）子系统，这是一个用于管理图形处理单元（GPU）资源的内核模块，旨在提供统一的接口以支持多种硬件设备。独立显卡驱动通常包括以下几个层次：
+ - **用户空间接口**：通过 ioctl 等接口与用户空间的图形库（如 Mesa、X.Org、Wayland）进行交互。
+ - **DRM核心层**：提供基础的框架和通用功能，如内存管理、调度、同步等。
+ - **硬件特定驱动模块**：针对不同厂商和型号的显卡（如 NVIDIA、AMD、Intel 等）实现具体的硬件控制逻辑。
+
+  
+DRM 主要组件有：
+- **DRM核心（DRM Core）**：负责管理显卡设备的初始化、资源分配、内存管理及用户空间与内核空间的通信。
+提供通用的 API 接口，供具体硬件驱动调用。
+- **驱动模块（Driver Modules）**：针对不同品牌和型号的独立显卡，Linux 内核提供相应的驱动模块，如 nouveau（NVIDIA 开源驱动）、amdgpu（AMD 显卡驱动）等。这些模块实现硬件初始化、指令集管理、中断处理、功耗管理等具体功能。
+- **GEM（Graphics Execution Manager）**：提供图形内存对象的管理，支持显存的高效分配与共享。
+通过 GEM，用户空间应用可以创建和管理图形缓冲区，实现高效的图形渲染。
+- **TTM（Translation Table Maps）**：TTM 可以作为 GEM 的后端，负责显存与系统内存之间的映射与管理。
+主要用于处理内存压力和资源分配策略。
+- **调度与同步**：显卡驱动需要有效管理多任务的调度，确保各个图形任务的高效执行。使用同步机制（如 Fence）来协调内核与用户空间之间的操作顺序，避免资源冲突。
+- **内存管理**：负责显存的分配、映射与回收，确保内存资源的高效利用。支持零拷贝技术，减少数据在内核与用户空间之间的传输开销。
+
+radeon 驱动结构框图：
+
+![](static/radeon-driver.png)
+
+# 2. 配置与修改
+
 在将 AMD 显卡适配至 K1 平台时，往往需要对内核中显卡驱动、设备树(Device Tree)、地址映射、缓存策略、DMA 位宽以及中断管理等方面进行修改与调整。对于 RISC-V 架构平台，这些调整需要在理解 RISC-V 的内存管理和 PCIe 地址空间映射机制的前提下进行。本参考文档将从以下几个方面展开：
 
 1. 设备树解析与地址映射；
@@ -9,7 +33,7 @@
 5. MSI 中断支持限制；
 6. linux内核显卡驱动配置。
 
-### 1. 设备树与地址映射
+### 2.1 设备树与地址映射
 
 **设备树解析：**
 
@@ -45,7 +69,7 @@ index 7ea166ca6fb0..fd978a379c37 100644
 
 **提示**：K1平台上pcie2可以使用的地址空间的大小为384MB，包含了配置空间和BAR空间各个区域。在修改设备树时，可以参考现有的 GPU 映射示例，对比不同 GPU 型号的 BAR 地址范围，并适当修改映射区域。
 
-### 2. 添加wc(write-combining)支持
+### 2.2 添加wc(write-combining)支持
 
 ```c 
 diff --git a/arch/riscv/include/asm/pci.h b/arch/riscv/include/asm/pci.h
@@ -68,7 +92,7 @@ K1平台 pci 地址空间映射添加wc(write-combining)支持。
 
 write_combine 生效需要资源本身有 IORESOURCE_PREFETCH 标志，所以结合上面设备树的修改，实现了将 PCI 资源映射到用户空间时，支持 write-combining 模式，从而提高显存访问效率。
 
-### 3. 缓存属性与访问权限设置
+### 2.3 缓存属性与访问权限设置
 
 ```c
 diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
@@ -106,7 +130,7 @@ index b3fffe7b5062..1319178edf03 100644
 
 `ttm_prot_from_caching` 函数中引入 RISC-V 架构支持。当 caching = ttm_write_combined 时，会将相应页表属性设置为写合并模式。在 RISC-V 平台下，当缓存属性为写合并时，对应 PTE 能正确设置为非缓存或写合并的属性。
 
-### 4. DMA 地址宽度 (dma_bits) 调整
+### 2.4 DMA 地址宽度 (dma_bits) 调整
 
 ```c 
 diff --git a/drivers/gpu/drm/radeon/radeon_device.c b/drivers/gpu/drm/radeon/radeon_device.c
@@ -128,7 +152,7 @@ index afbb3a80c0c6..42e6510eccf0 100644
 
 对于其他 AMD 显卡，如若 GPU 本身不需要访问过大的物理内存空间，则可相应调整 `dma_bits` 来确保设备正常工作。
 
-### 5. MSI 中断适配
+### 2.5 MSI 中断适配
 
 ```c 
 diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
@@ -155,7 +179,7 @@ K1平台上某些旧架构 GPU 使用 MSI 中断可能导致中断无法正确�
 - 如果您的 GPU 无法触发中断或系统在插入 GPU 后中断异常，可尝试禁用 MSI。  
 - 仅在必要时才禁用 MSI，如果平台支持 MSI，启用它通常能获得更好的性能和更低的延迟。
 
-### 6. 打开显卡驱动配置
+### 2.6 打开显卡驱动配置
 
 ``` c
 diff --git a/arch/riscv/configs/k1_defconfig b/arch/riscv/configs/k1_defconfig
