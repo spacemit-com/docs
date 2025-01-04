@@ -38,11 +38,14 @@ sudo pip3 install pyyaml
 
 ## 下载
 
-使用repo（版本 >= 2.41）下载完整SDK。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+1. 下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys，因为Bianbu Linux代码托管在Gitee上。
 
-Bianbu Linux代码托管在Gitee上，下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
+2. 使用repo version确认版本，要求repo（版本 >= 2.41）下载完整SDK，否则下载过程会异常。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+```shell
+repo version
+```
 
-下载最新2.0代码：
+3. 下载最新2.0代码：
 
 ```shell
 mkdir ~/bianbu-linux-2.0
@@ -97,15 +100,18 @@ cd ~/bianbu-linux
 make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
-  2. spacemit_k1_minimal_defconfig
-  3. spacemit_k1_plt_defconfig
-  4. spacemit_k1_v2_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
 
 
-your choice (1-4): 
+your choice (1-6): 
+
 ```
 
-编译Bianbu Linux 2.0版本，输入`4`，然后回车即开始编译。
+编译Bianbu Linux 2.0版本，输入`6`，然后回车即开始编译。
 
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
 
@@ -238,7 +244,7 @@ export ARCH=riscv
 ### 编译 opensbi
 
 ```shell
-cd /path/to/opensbi
+cd bsp-src/opensbi
 make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ```
 
@@ -247,7 +253,7 @@ make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ### 编译 u-boot
 
 ```shell
-cd /path/to/uboot-2022.10
+cd bsp-src/uboot-2022.10
 make k1_defconfig
 make -j$(nproc)
 ```
@@ -257,7 +263,7 @@ make -j$(nproc)
 ### 编译linux
 
 ```shell
-cd /path/to/linux-6.6
+cd bsp-src/linux-6.6
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```
