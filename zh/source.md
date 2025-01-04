@@ -42,17 +42,7 @@ sudo pip3 install pyyaml
 
 Bianbu Linux代码托管在Gitee上，下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
 
-下载代码，例如下载`bl-v1.0.y`分支：
-
-```shell
-mkdir ~/bianbu-linux
-cd ~/bianbu-linux
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v1.0.y.xml
-repo sync
-repo start bl-v1.0.y --all
-```
-
-或者下载`bl-v2.0.y`分支：
+下载最新2.0代码：
 
 ```shell
 mkdir ~/bianbu-linux-2.0
@@ -72,7 +62,6 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ```shell
 ├── bsp-src               # 存放linux kernel、uboot、opensbi源码
-│   ├── linux-6.1
 │   ├── linux-6.6
 │   ├── opensbi
 │   └── uboot-2022.10
@@ -116,22 +105,20 @@ Available configs in buildroot-ext/configs/:
 your choice (1-4): 
 ```
 
-编译Bianbu Linux 1.0版本，输入`1`，然后回车即开始编译。
-
-编译Bianbu Linux 2.0版本，输入`4`。
+编译Bianbu Linux 2.0版本，输入`4`，然后回车即开始编译。
 
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
 
 编译完成，可以看到：
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1/images/bianbu-linux-k1.zip
+Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
 
 
 Generating sdcard.img...................................
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/build/genimage.tmp"" (stderr):
-INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1/build/genimage.tmp"/*" (stderr):
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/images"" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"" (stderr):
+INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"/*" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/images"" (stderr):
 INFO: hdimage(sdcard.img): adding partition 'bootinfo' from 'factory/bootinfo_sd.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'fsbl' (in MBR) from 'factory/FSBL.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'env' (in MBR) from 'env.bin' ...
@@ -146,10 +133,10 @@ INFO: hdimage(sdcard.img): adding partition '[GPT backup]' ...
 INFO: hdimage(sdcard.img): writing GPT
 INFO: hdimage(sdcard.img): writing protective MBR
 INFO: hdimage(sdcard.img): writing MBR
-Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bianbu-linux-k1-sdcard.img
+Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
 ```
 
-其中`bianbu-linux-k1.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
+其中`bianbu-linux-k1_v2.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1_v2-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
 
 > Titan Flasher使用指南：[刷机工具使用指南](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
@@ -165,7 +152,7 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bian
 make menuconfig
 ```
 
-保存配置，默认保存到`buildroot-ext/configs/spacemit_k1_defconfig`：
+保存配置，默认保存到`buildroot-ext/configs/spacemit_k1_v2_defconfig`：
 
 ```shell
 make savedefconfig
@@ -179,7 +166,7 @@ make savedefconfig
 make linux-menuconfig
 ```
 
-保存配置，默认保存到`bsp-src/linux-6.1/arch/riscv/configs/k1_defconfig`：
+保存配置，默认保存到`bsp-src/linux-6.6/arch/riscv/configs/k1_defconfig`：
 
 ```shell
 make linux-update-defconfig
@@ -270,7 +257,7 @@ make -j$(nproc)
 ### 编译linux
 
 ```shell
-cd /path/to/linux-6.1
+cd /path/to/linux-6.6
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```

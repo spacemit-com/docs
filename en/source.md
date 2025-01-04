@@ -42,17 +42,7 @@ Use repo (version >= 2.41) to download the complete SDK. If you don't have repo,
 
 Bianbu Linux code is hosted on Gitee. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
 
-To download the code, for example, to download the `bl-v1.0.y` branch:
-
-```shell
-mkdir ~/bianbu-linux
-cd ~/bianbu-linux
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v1.0.y.xml
-repo sync
-repo start bl-v1.0.y --all
-```
-
-Or to download the `bl-v2.0.y` branch:
+Download the latest 2.0 code:
 
 ```shell
 mkdir ~/bianbu-linux-2.0
@@ -72,7 +62,6 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ```shell
 ├── bsp-src               # Stores linux kernel、uboot、opensbi source
-│   ├── linux-6.1
 │   ├── linux-6.6
 │   ├── opensbi
 │   └── uboot-2022.10
@@ -116,22 +105,20 @@ Available configs in buildroot-ext/configs/:
 your choice (1-4): 
 ```
 
-To compile Bianbu Linux 1.0 version, enter `1` and press Enter to start compiling.
-
-To compile Bianbu Linux 2.0 version, enter `4`.
+To compile Bianbu Linux 2.0 version, enter `4` and press Enter to start compiling.
 
 The compilation process may require downloading some third-party software packages, and the time required depends on the network environment. If you have downloaded the third-party software packages required by buildroot in advance, the recommended hardware configuration compilation time is about 1 hour.
 
 After the compilation is complete, you will see:
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1/images/bianbu-linux-k1.zip
+Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
 
 
 Generating sdcard.img...................................
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/build/genimage.tmp"" (stderr):
-INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1/build/genimage.tmp"/*" (stderr):
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/images"" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"" (stderr):
+INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"/*" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/images"" (stderr):
 INFO: hdimage(sdcard.img): adding partition 'bootinfo' from 'factory/bootinfo_sd.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'fsbl' (in MBR) from 'factory/FSBL.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'env' (in MBR) from 'env.bin' ...
@@ -146,10 +133,10 @@ INFO: hdimage(sdcard.img): adding partition '[GPT backup]' ...
 INFO: hdimage(sdcard.img): writing GPT
 INFO: hdimage(sdcard.img): writing protective MBR
 INFO: hdimage(sdcard.img): writing MBR
-Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bianbu-linux-k1-sdcard.img
+Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
 ```
 
-Among them, `bianbu-linux-k1.zip` is suitable for Titan Flasher, or you can unzip it and use fastboot to flash; `bianbu-linux-k1-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
+Among them, `bianbu-linux-k1_v2.zip` is suitable for Titan Flasher, or you can unzip it and use fastboot to flash; `bianbu-linux-k1_v2-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
 
 > Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
@@ -165,7 +152,7 @@ Config:
 make menuconfig
 ```
 
-Save the configuration, which is saved by default to `buildroot-ext/configs/spacemit_k1_defconfig`:
+Save the configuration, which is saved by default to `buildroot-ext/configs/spacemit_k1_v2_defconfig`:
 
 ```shell
 make savedefconfig
@@ -179,7 +166,7 @@ Config:
 make linux-menuconfig
 ```
 
-Save the configuration, which is saved by default to `bsp-src/linux-6.1/arch/riscv/configs/k1_defconfig`:
+Save the configuration, which is saved by default to `bsp-src/linux-6.6/arch/riscv/configs/k1_defconfig`:
 
 ```shell
 make linux-update-defconfig
@@ -270,7 +257,7 @@ The compilation will generate `u-boot-env-default.bin` based on `board/spacemit/
 ### Compile linux
 
 ```shell
-cd /path/to/linux-6.1
+cd /path/to/linux-6.6
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```
