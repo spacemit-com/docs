@@ -38,10 +38,26 @@ sudo pip3 install pyyaml
 
 ## Download
 
-1. Bianbu Linux code is hosted on Gitee. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
-2. Use repo (version >= 2.41) to download the complete SDK. If you don't have repo, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee. 
+2. Use repo --version to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
 ```shell
-repo version
+repo --version
+repo version v2.48
+       (from https://mirrors.tuna.tsinghua.edu.cn/git/git-repo)
+       (tracking refs/heads/stable)
+       (Mon, 7 Oct 2024 18:44:19 +0000)
+repo launcher version 2.50
+       (from /usr/bin/repo)
+       (currently at 2.48)
+repo User-Agent git-repo/2.48 (Linux) git/2.25.1 Python/3.8.10
+git 2.25.1
+git User-Agent git/2.25.1 (Linux) git-repo/2.48
+Python 3.8.10 (default, Nov  7 2024, 13:10:47)
+[GCC 9.4.0]
+OS Linux 5.4.0-196-generic (#216-Ubuntu SMP Thu Aug 29 13:26:53 UTC 2024)
+CPU x86_64 (x86_64)
+Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 Download the latest 2.0 code:
 

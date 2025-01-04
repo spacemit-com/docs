@@ -40,9 +40,25 @@ sudo pip3 install pyyaml
 
 1. 下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys，因为Bianbu Linux代码托管在Gitee上。
 
-2. 使用repo version确认版本，要求repo（版本 >= 2.41）下载完整SDK，否则下载过程会异常。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+2. 使用repo --version确认版本和repo源，要求repo（版本 >= 2.41）和tsinghua源下载完整SDK，否则下载过程会异常。
+如果不满足版本要求或者非tsinghua源，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
 ```shell
-repo version
+repo --version
+repo version v2.48
+       (from https://mirrors.tuna.tsinghua.edu.cn/git/git-repo)
+       (tracking refs/heads/stable)
+       (Mon, 7 Oct 2024 18:44:19 +0000)
+repo launcher version 2.50
+       (from /usr/bin/repo)
+       (currently at 2.48)
+repo User-Agent git-repo/2.48 (Linux) git/2.25.1 Python/3.8.10
+git 2.25.1
+git User-Agent git/2.25.1 (Linux) git-repo/2.48
+Python 3.8.10 (default, Nov  7 2024, 13:10:47)
+[GCC 9.4.0]
+OS Linux 5.4.0-196-generic (#216-Ubuntu SMP Thu Aug 29 13:26:53 UTC 2024)
+CPU x86_64 (x86_64)
+Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
 3. 下载最新2.0代码：
