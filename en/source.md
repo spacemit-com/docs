@@ -38,10 +38,11 @@ sudo pip3 install pyyaml
 
 ## Download
 
-Use repo (version >= 2.41) to download the complete SDK. If you don't have repo, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
-
-Bianbu Linux code is hosted on Gitee. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
-
+1. Bianbu Linux code is hosted on Gitee. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
+2. Use repo (version >= 2.41) to download the complete SDK. If you don't have repo, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+```shell
+repo version
+```
 Download the latest 2.0 code:
 
 ```shell
@@ -97,15 +98,18 @@ cd ~/bianbu-linux
 make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
-  2. spacemit_k1_minimal_defconfig
-  3. spacemit_k1_plt_defconfig
-  4. spacemit_k1_v2_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
 
 
-your choice (1-4): 
+your choice (1-6): 
+
 ```
 
-To compile Bianbu Linux 2.0 version, enter `4` and press Enter to start compiling.
+To compile Bianbu Linux 2.0 version, enter `6` and press Enter to start compiling.
 
 The compilation process may require downloading some third-party software packages, and the time required depends on the network environment. If you have downloaded the third-party software packages required by buildroot in advance, the recommended hardware configuration compilation time is about 1 hour.
 
@@ -238,7 +242,7 @@ export ARCH=riscv
 ### Compile opensbi
 
 ```shell
-cd /path/to/opensbi
+cd bsp-src/opensbi
 make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ```
 
@@ -247,7 +251,7 @@ The compilation will finally generate `platform/generic/firmware/fw_dynamic.itb`
 ### Compile u-boot
 
 ```shell
-cd /path/to/uboot-2022.10
+cd bsp-src/uboot-2022.10
 make k1_defconfig
 make -j$(nproc)
 ```
@@ -257,7 +261,7 @@ The compilation will generate `u-boot-env-default.bin` based on `board/spacemit/
 ### Compile linux
 
 ```shell
-cd /path/to/linux-6.6
+cd bsp-src/linux-6.6
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```
