@@ -1,9 +1,3 @@
-<style>
-img{
-    width: 40%;
-    padding-left: 30%;
-}
-</style>
 # Spacemit Display  Panel Driver Use Cases
 This document introduces the Spacemit platform MIPI & HDMI panel driver use cases and debugging methods for U-Boot and kernel.
 ## Module Introduction

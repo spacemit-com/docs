@@ -1,9 +1,3 @@
-<style>
-img{
-    width: 40%;
-    padding-left: 30%;
-}
-</style>
 # Spacemit 屏幕调试文档
 介绍spacemit k1平台 Uboot 和 kernel 的 mipi 与 hdmi 屏幕驱动用例和调试方法。
 ## 模块介绍
