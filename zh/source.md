@@ -38,21 +38,30 @@ sudo pip3 install pyyaml
 
 ## 下载
 
-使用repo（版本 >= 2.41）下载完整SDK。如果没有repo，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+1. 下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys，因为Bianbu Linux代码托管在Gitee上。
 
-Bianbu Linux代码托管在Gitee上，下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
-
-下载代码，例如下载`bl-v1.0.y`分支：
-
+2. 使用repo --version确认版本和repo源，要求repo（版本 >= 2.41）和tsinghua源下载完整SDK，否则下载过程会异常。
+如果不满足版本要求或者非tsinghua源，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
 ```shell
-mkdir ~/bianbu-linux
-cd ~/bianbu-linux
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v1.0.y.xml
-repo sync
-repo start bl-v1.0.y --all
+repo --version
+repo version v2.48
+       (from https://mirrors.tuna.tsinghua.edu.cn/git/git-repo)
+       (tracking refs/heads/stable)
+       (Mon, 7 Oct 2024 18:44:19 +0000)
+repo launcher version 2.50
+       (from /usr/bin/repo)
+       (currently at 2.48)
+repo User-Agent git-repo/2.48 (Linux) git/2.25.1 Python/3.8.10
+git 2.25.1
+git User-Agent git/2.25.1 (Linux) git-repo/2.48
+Python 3.8.10 (default, Nov  7 2024, 13:10:47)
+[GCC 9.4.0]
+OS Linux 5.4.0-196-generic (#216-Ubuntu SMP Thu Aug 29 13:26:53 UTC 2024)
+CPU x86_64 (x86_64)
+Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-或者下载`bl-v2.0.y`分支：
+3. 下载最新2.0代码：
 
 ```shell
 mkdir ~/bianbu-linux-2.0
@@ -72,7 +81,6 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ```shell
 ├── bsp-src               # 存放linux kernel、uboot、opensbi源码
-│   ├── linux-6.1
 │   ├── linux-6.6
 │   ├── opensbi
 │   └── uboot-2022.10
@@ -108,30 +116,31 @@ cd ~/bianbu-linux
 make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
-  2. spacemit_k1_minimal_defconfig
-  3. spacemit_k1_plt_defconfig
-  4. spacemit_k1_v2_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
 
 
-your choice (1-4): 
+your choice (1-6): 
+
 ```
 
-编译Bianbu Linux 1.0版本，输入`1`，然后回车即开始编译。
-
-编译Bianbu Linux 2.0版本，输入`4`。
+编译Bianbu Linux 2.0版本，输入`6`，然后回车即开始编译。
 
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
 
 编译完成，可以看到：
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1/images/bianbu-linux-k1.zip
+Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
 
 
 Generating sdcard.img...................................
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/build/genimage.tmp"" (stderr):
-INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1/build/genimage.tmp"/*" (stderr):
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/images"" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"" (stderr):
+INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"/*" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/images"" (stderr):
 INFO: hdimage(sdcard.img): adding partition 'bootinfo' from 'factory/bootinfo_sd.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'fsbl' (in MBR) from 'factory/FSBL.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'env' (in MBR) from 'env.bin' ...
@@ -146,10 +155,10 @@ INFO: hdimage(sdcard.img): adding partition '[GPT backup]' ...
 INFO: hdimage(sdcard.img): writing GPT
 INFO: hdimage(sdcard.img): writing protective MBR
 INFO: hdimage(sdcard.img): writing MBR
-Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bianbu-linux-k1-sdcard.img
+Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
 ```
 
-其中`bianbu-linux-k1.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
+其中`bianbu-linux-k1_v2.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1_v2-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
 
 > Titan Flasher使用指南：[刷机工具使用指南](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
@@ -165,7 +174,7 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bian
 make menuconfig
 ```
 
-保存配置，默认保存到`buildroot-ext/configs/spacemit_k1_defconfig`：
+保存配置，默认保存到`buildroot-ext/configs/spacemit_k1_v2_defconfig`：
 
 ```shell
 make savedefconfig
@@ -179,7 +188,7 @@ make savedefconfig
 make linux-menuconfig
 ```
 
-保存配置，默认保存到`bsp-src/linux-6.1/arch/riscv/configs/k1_defconfig`：
+保存配置，默认保存到`bsp-src/linux-6.6/arch/riscv/configs/k1_defconfig`：
 
 ```shell
 make linux-update-defconfig
@@ -251,7 +260,7 @@ export ARCH=riscv
 ### 编译 opensbi
 
 ```shell
-cd /path/to/opensbi
+cd bsp-src/opensbi
 make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ```
 
@@ -260,7 +269,7 @@ make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ### 编译 u-boot
 
 ```shell
-cd /path/to/uboot-2022.10
+cd bsp-src/uboot-2022.10
 make k1_defconfig
 make -j$(nproc)
 ```
@@ -270,7 +279,7 @@ make -j$(nproc)
 ### 编译linux
 
 ```shell
-cd /path/to/linux-6.1
+cd bsp-src/linux-6.6
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```

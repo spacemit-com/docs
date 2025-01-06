@@ -38,21 +38,28 @@ sudo pip3 install pyyaml
 
 ## Download
 
-Use repo (version >= 2.41) to download the complete SDK. If you don't have repo, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
-
-Bianbu Linux code is hosted on Gitee. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
-
-To download the code, for example, to download the `bl-v1.0.y` branch:
-
+1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee. 
+2. Use repo --version to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
 ```shell
-mkdir ~/bianbu-linux
-cd ~/bianbu-linux
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v1.0.y.xml
-repo sync
-repo start bl-v1.0.y --all
+repo --version
+repo version v2.48
+       (from https://mirrors.tuna.tsinghua.edu.cn/git/git-repo)
+       (tracking refs/heads/stable)
+       (Mon, 7 Oct 2024 18:44:19 +0000)
+repo launcher version 2.50
+       (from /usr/bin/repo)
+       (currently at 2.48)
+repo User-Agent git-repo/2.48 (Linux) git/2.25.1 Python/3.8.10
+git 2.25.1
+git User-Agent git/2.25.1 (Linux) git-repo/2.48
+Python 3.8.10 (default, Nov  7 2024, 13:10:47)
+[GCC 9.4.0]
+OS Linux 5.4.0-196-generic (#216-Ubuntu SMP Thu Aug 29 13:26:53 UTC 2024)
+CPU x86_64 (x86_64)
+Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
-
-Or to download the `bl-v2.0.y` branch:
+Download the latest 2.0 code:
 
 ```shell
 mkdir ~/bianbu-linux-2.0
@@ -72,7 +79,6 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ```shell
 ├── bsp-src               # Stores linux kernel、uboot、opensbi source
-│   ├── linux-6.1
 │   ├── linux-6.6
 │   ├── opensbi
 │   └── uboot-2022.10
@@ -108,30 +114,31 @@ cd ~/bianbu-linux
 make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
-  2. spacemit_k1_minimal_defconfig
-  3. spacemit_k1_plt_defconfig
-  4. spacemit_k1_v2_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
 
 
-your choice (1-4): 
+your choice (1-6): 
+
 ```
 
-To compile Bianbu Linux 1.0 version, enter `1` and press Enter to start compiling.
-
-To compile Bianbu Linux 2.0 version, enter `4`.
+To compile Bianbu Linux 2.0 version, enter `6` and press Enter to start compiling.
 
 The compilation process may require downloading some third-party software packages, and the time required depends on the network environment. If you have downloaded the third-party software packages required by buildroot in advance, the recommended hardware configuration compilation time is about 1 hour.
 
 After the compilation is complete, you will see:
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1/images/bianbu-linux-k1.zip
+Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
 
 
 Generating sdcard.img...................................
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/build/genimage.tmp"" (stderr):
-INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1/build/genimage.tmp"/*" (stderr):
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1/images"" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"" (stderr):
+INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"/*" (stderr):
+INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/images"" (stderr):
 INFO: hdimage(sdcard.img): adding partition 'bootinfo' from 'factory/bootinfo_sd.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'fsbl' (in MBR) from 'factory/FSBL.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'env' (in MBR) from 'env.bin' ...
@@ -146,10 +153,10 @@ INFO: hdimage(sdcard.img): adding partition '[GPT backup]' ...
 INFO: hdimage(sdcard.img): writing GPT
 INFO: hdimage(sdcard.img): writing protective MBR
 INFO: hdimage(sdcard.img): writing MBR
-Successfully generated at /home/username/work/bianbu-linux/output/k1/images/bianbu-linux-k1-sdcard.img
+Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
 ```
 
-Among them, `bianbu-linux-k1.zip` is suitable for Titan Flasher, or you can unzip it and use fastboot to flash; `bianbu-linux-k1-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
+Among them, `bianbu-linux-k1_v2.zip` is suitable for Titan Flasher, or you can unzip it and use fastboot to flash; `bianbu-linux-k1_v2-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
 
 > Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
@@ -165,7 +172,7 @@ Config:
 make menuconfig
 ```
 
-Save the configuration, which is saved by default to `buildroot-ext/configs/spacemit_k1_defconfig`:
+Save the configuration, which is saved by default to `buildroot-ext/configs/spacemit_k1_v2_defconfig`:
 
 ```shell
 make savedefconfig
@@ -179,7 +186,7 @@ Config:
 make linux-menuconfig
 ```
 
-Save the configuration, which is saved by default to `bsp-src/linux-6.1/arch/riscv/configs/k1_defconfig`:
+Save the configuration, which is saved by default to `bsp-src/linux-6.6/arch/riscv/configs/k1_defconfig`:
 
 ```shell
 make linux-update-defconfig
@@ -251,7 +258,7 @@ export ARCH=riscv
 ### Compile opensbi
 
 ```shell
-cd /path/to/opensbi
+cd bsp-src/opensbi
 make -j$(nproc) PLATFORM_DEFCONFIG=k1_defconfig PLATFORM=generic
 ```
 
@@ -260,7 +267,7 @@ The compilation will finally generate `platform/generic/firmware/fw_dynamic.itb`
 ### Compile u-boot
 
 ```shell
-cd /path/to/uboot-2022.10
+cd bsp-src/uboot-2022.10
 make k1_defconfig
 make -j$(nproc)
 ```
@@ -270,7 +277,7 @@ The compilation will generate `u-boot-env-default.bin` based on `board/spacemit/
 ### Compile linux
 
 ```shell
-cd /path/to/linux-6.1
+cd bsp-src/linux-6.6
 make k1_defconfig
 LOCALVERSION="" make -j$(nproc)
 ```
