@@ -1,19 +1,26 @@
 # EtherCAT
+
 介绍 EtherCAT 主站驱动的功能和使用方法。
+
 ## 模块介绍
+
 EtherCAT 主站模块是一个高性能实时通信内核模块，支持总线自动扫描、分布式时钟同步和多从设备高效管理，适用于工业自动化领域。
 
 ### 功能介绍
+
 ![](static/EtherCAT.png)  
 
 EtherCAT主站架构如上图所示，由四个部分构成：  
 应用层: 用户应用程序，负责实现工业控制逻辑，通过接口与 EtherCAT 主站驱动交互。  
 EtherCAT主站驱动层：实现核心协议、监测总线拓扑、自动配置从站、同步分布式时钟。  
 EtherCAT设备驱动层：由实时网卡驱动构成，负责ECAT数据帧收发。  
-物理层：网络硬件设备。 
+物理层：网络硬件设备。
+
 ### 源码结构介绍
+
 EtherCAT主站驱动代码在drivers/net/ethercat目录下：  
-```
+
+```c
 # 代码中出现大量配对的xxx.h + xxx.c文件，前者负责数据结构和接口定义，后者负责实现
 # 为了避免文件功能重复描述，我们仅对其中一者加以注释
 .
@@ -128,20 +135,26 @@ EtherCAT主站驱动代码在drivers/net/ethercat目录下：
 
   
 ```
+
 ## 关键特性
+
 | 特性 | 特性说明 |
 | :-----| :----|
 | 自动从站配置 | 支持自动扫描并配置连接的从站设备，简化网络配置 |
-| 分布式时钟同步 | 实现 <1 µs 精度的分布式时钟（DC）同步 |
+| 分布式时钟同步 | 实现 \<1 µs 精度的分布式时钟（DC）同步 |
 | 多协议支持 | 支持 CoE、SoE、FoE 等协议 |
 | 高实时性能 | 支持 1 ms DC 周期，满足大部分工业应用的实时性要求 |
 | 多主站组合 | 支持配置多个主站，每个主站可管理两个网络设备：主设备和备用设备 |
 
 ## 配置介绍
+
 主要包括驱动CONFIG使能配置和dts配置
+
 ### CONFIG配置
+
 ETHERCAT：如果要启用EtherCAT服务，首先将此选项配置为Y
-```
+
+```c
 menuconfig ETHERCAT
         bool "Ethercat native network driver support"
         depends on NET
@@ -149,8 +162,10 @@ menuconfig ETHERCAT
         help
           This section contains all the Ethercat drivers.
 ```
+
 EC_MASTER：启用master驱动
-```
+
+```c
 config EC_MASTER
         tristate "Ethercat master driver support"
         depends on ETHERCAT
@@ -159,9 +174,11 @@ config EC_MASTER
           Ethercat master driver support.
 
 ```
+
 EC_GENERIC：启用通用网卡驱动  
 EC_K1X_EMAC：启用实时网卡驱动  
-```
+
+```c
 config EC_GENERIC
         tristate "Ethercat generic device driver support"
         depends on ETHERCAT
@@ -177,9 +194,13 @@ config EC_K1X_EMAC
           Ethercat generic device driver support.
 
 ```
+
 注：上面两个配置选项选一个即可
+
 ### dts配置
+
 dts中可供配置的选项有：  
+
 1. run-on-cpu：可绑定的cpu选项有 1、2、3、4、5、6、7  
 2. debug-level：支持的debug-level有 0、1、2  
 3. master-count： 最多支持 32 个主站
@@ -189,7 +210,8 @@ dts中可供配置的选项有：
 
 目前支持三种配置模式：  
 一、配置两个主站，例如将eth0绑定到主站0、eth1绑定到主站1  
-```
+
+```c
 ec_master: ethercat_master {
         compatible = "igh,k1x-ec-master";
         run-on-cpu = <1>;         
@@ -213,8 +235,10 @@ eth1: ethernet@cac81000 {
 
 };
 ```
+
 二、配置一个主站、一张网卡用于EtherCAT、一张网卡用于以太网，如eth0用于EtherCAT
-```
+
+```c
 ec_master: ethercat_master {
         compatible = "igh,k1x-ec-master";
         run-on-cpu = <1>;         
@@ -233,8 +257,10 @@ eth0: ethernet@cac80000 {
 
 };
 ```
+
 三、配置一个主站、绑定两张网卡。如eth0用于主设备、eth1用作备份设备
-```
+
+```c
 ec_master: ethercat_master {
         compatible = "igh,k1x-ec-master";
         run-on-cpu = <1>;         
@@ -259,50 +285,74 @@ eth1: ethernet@cac81000 {
 
 };
 ```
+
 ## 接口介绍
+
 ### API介绍
+
 请求主站实例
-```
+
+```c
 ec_master_t *ecrt_request_master(unsigned int master_id);
 ```
+
 创建过程数据域
-```
+
+```c
 ec_domain_t *ecrt_master_create_domain(ec_master_t *master);
 ```
+
 激活主站
-```
+
+```c
 int ecrt_master_activate(ec_master_t *master);
 ```
+
 同步主站参考时钟
-```
+
+```c
 int ecrt_master_sync_reference_clock_to(ec_master_t *master, uint64_t ref_time);
 ```
+
 同步所有从站时钟
-```
+
+```c
 void ecrt_master_sync_slave_clocks(ec_master_t *master);
 ```
+
 配置从站
-```
+
+```c
 ec_slave_config_t *ecrt_master_slave_config(ec_master_t *master, uint16_t alias, uint16_t position, uint32_t vendor_id, uint32_t product_code);
 
 ```
+
 为从站配置PDO映射
-```
+
+```c
 int ecrt_slave_config_pdos(ec_slave_config_t *sc, uint16_t sync_index, const ec_sync_info_t *syncs);
 ```
+
 注册PDO条目到指定数据域
-```
+
+```c
 int ecrt_slave_config_reg_pdo_entry(ec_slave_config_t *sc, uint16_t index, uint8_t subindex， ec_domain_t *domain, unsigned int *offset);
 
 ```
+
 为从站配置分布式时钟
-```
+
+```c
 int ecrt_slave_config_dc(ec_slave_config_t *sc, uint16_t assign_activate, uint32_t sync0_cycle_time, int32_t sync0_shift, uint32_t sync1_cycle_time, int32_t sync1_shift);
 ```
+
 ## debug介绍
+
 ### sysfs
+
 EtherCAT主站信息
-```
+
+```c
 /sys/class/EtherCAT/EtherCAT0
 .
 |-- dev
@@ -316,18 +366,21 @@ EtherCAT主站信息
 `-- uevent
 
 ```
+
 - dev  
 提供主站设备号信息
 - power  
 管理设备的电源状态
-- subsystem   
+- subsystem
  链接：表明设备属于 EtherCAT 子系统
 - uevent  
 主站设备号与设备名
 
 ## 测试介绍
+
 测试EtherCAT主站需要从站，主从连接后会自动开始扫描从站，自动扫描成功后，主站处于PREOP状态，此时等待应用程序运行即可
-```
+
+```c
 [  966.525910] k1x_ec_emac cac80000.ethernet ecm0 (uninitialized): Link is Up - 100Mbps/Full - flow control off
 [  966.535906] EtherCAT 0: Link state of ecm0 changed to UP.
 [  966.552545] EtherCAT 0: 1 slave(s) responding on main device.
@@ -338,4 +391,5 @@ EtherCAT主站信息
 [  966.756564] EtherCAT 0: Slave states on main device: PREOP.
 
 ```
+
 ## FAQ
