@@ -92,7 +92,7 @@ Taking the k1-x_deb1 scheme as an example: gpio81 is configured as the panel res
 ```
 ###### DSI Power Configuration
 MIPI DSI power configuration, including the MIPI DSI 1.2V power control configuration.
-Taking the k1-x_deb1 scheme as an example:  PMIC LDO_5 is configured for MIPI DSI 1.2V.
+Taking the k1-x_deb1 scheme as an example:  PMIC LDO_5 is configured for MIPI DSI 1.2V.(The configuration is actually not required, as it is enabled by default.)
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x_spm8821.dtsi
                     /* dldo */
@@ -130,21 +130,36 @@ Control the backlight brightness via PWM.
 };
 ```
 #### display timing Configure
+In the U-Boot stage, the default values of 88000000 are used for the pix-clock and 614400000 for the bit-clock without requiring additional configuration.
 
-Pixel Clock Calculation:\
-**pixel clock** = htotal * vtotal * fps = (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps\
-**Bit clock**: Data transmission clock frequency per lane in the MIPI DSI data transmission process.\
-Bit clock Calculation：\
-**bit clock** = ((htotal * vtotal * fps * bpp) / lane bumber) * 1.1 = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps * bpp) / lane bumber) * 1.1\
-**DSI clock**: Actual clock signal on the MIPI DSI clock lane.  Uses dual-edge sampling; one clock cycle transmits two bits of data.\
-**dsi clock** = bit clock / 2\
-**Note**： The Spacemit platform requires multiplying the calculated MIPI DSI bit clock by a factor of 1.1.\
-Using the MIPI DSI panel model `lcd_gx09inx101_mipi` as an example, this section describes how to configure the MIPI DSI DPU timing and MIPI DSI DPHY timing.\
-**pixel clock** = (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ\
-**bit clock** = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ\
-Based on the display timing calculations, the pixel clock is 152,880,000 Hz (system configurable to 153,000,000 Hz), and the bit clock is 1,009,008,000 Hz (system configurable to 1,000,000,000 Hz).  In the DTS file, `clock-frequency` is set to 153,000,000, and `spacemit-dpu-bitclk` and `phy-bit-clock` are set to 1,000,000,000.
+A previously functional MIPI DSI panel has been debugged, and its associated C files are located in the `lcd` directory.
+```
+uboot-2022.10/drivers/video/spacemit/dsi/video$ tree lcd
+lcd
+├── lcd_ft8201sinx101.c
+├── lcd_gx09inx101.c
+├── lcd_icnl9911c.c
+├── lcd_icnl9951r.c
+├── lcd_jd9365dah3.c
+└── lcd_lt8911ext_edp_1080p.c
+```
+### Adding A New MIPI Panel Configuration Example
+Using `lcd_gx09inx101` as an example:
+1. Create a new file named `lcd_gx09inx101.c` in the directory `/uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/`.
 ```c
-// uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
+/ SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2023 Spacemit Co., Ltd.
+ *
+ */
+
+#include <linux/kernel.h>
+#include "../../include/spacemit_dsi_common.h"
+#include "../../include/spacemit_video_tx.h"
+#include <linux/delay.h>
+
+#define UNLOCK_DELAY 0
+
 struct spacemit_mode_modeinfo gx09inx101_spacemit_modelist[] = {
         {
                 .name = "1200x1920-60",
@@ -189,80 +204,6 @@ struct spacemit_mipi_info gx09inx101_mipi_info = {
         .eotp_enable = 0,                       // DSI EOTP (End Of Transmission Packet) disabled
 
         .burst_mode = DSI_BURST_MODE_BURST,     // DSI burst mode enabled
-};
-```
-A previously functional MIPI DSI panel has been debugged, and its associated C files are located in the `lcd` directory.
-```
-uboot-2022.10/drivers/video/spacemit/dsi/video$ tree lcd
-lcd
-├── lcd_ft8201sinx101.c
-├── lcd_gx09inx101.c
-├── lcd_icnl9911c.c
-├── lcd_icnl9951r.c
-├── lcd_jd9365dah3.c
-└── lcd_lt8911ext_edp_1080p.c
-```
-### Adding A New MIPI Panel Configuration Example
-Using `lcd_gx09inx101` as an example:
-1. Create a new file named `lcd_gx09inx101.c` in the directory `/uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/`.
-```c
-/ SPDX-License-Identifier: GPL-2.0
-/*
- * Copyright (C) 2023 Spacemit Co., Ltd.
- *
- */
-
-#include <linux/kernel.h>
-#include "../../include/spacemit_dsi_common.h"
-#include "../../include/spacemit_video_tx.h"
-#include <linux/delay.h>
-
-#define UNLOCK_DELAY 0
-
-struct spacemit_mode_modeinfo gx09inx101_spacemit_modelist[] = {
-        {
-                .name = "1200x1920-60",
-                .refresh = 60,
-                .xres = 1200,
-                .yres = 1920,
-                .real_xres = 1200,
-                .real_yres = 1920,
-                .left_margin = 40,
-                .right_margin = 80,
-                .hsync_len = 10,
-                .upper_margin = 16,
-                .lower_margin = 20,
-                .vsync_len = 4,
-                .hsync_invert = 0,
-                .vsync_invert = 0,
-                .invert_pixclock = 0,
-                .pixclock_freq = 153*1000,
-                .pix_fmt_out = OUTFMT_RGB888,
-                .width = 142,
-                .height = 228,
-        },
-};
-
-struct spacemit_mipi_info gx09inx101_mipi_info = {
-        .height = 1920,
-        .width = 1200,
-        .hfp = 80, /* unit: pixel */
-        .hbp = 40,
-        .hsync = 10,
-        .vfp = 20, /* unit: line */
-        .vbp = 16,
-        .vsync = 4,
-        .fps = 60,
-
-        .work_mode = SPACEMIT_DSI_MODE_VIDEO, /*command_mode, video_mode*/
-        .rgb_mode = DSI_INPUT_DATA_RGB_MODE_888,
-        .lane_number = 4,
-        .phy_bit_clock = 1000000000,
-        .phy_esc_clock = 51200000,
-        .split_enable = 0,
-        .eotp_enable = 0,
-
-        .burst_mode = DSI_BURST_MODE_BURST,
 };
 
 static struct spacemit_dsi_cmd_desc gx09inx101_set_id_cmds[] = {
@@ -509,22 +450,21 @@ During the kernel stage, MIPI screen debugging requires:
 2. Creating a new DTSI file for the MIPI screen.
 3. Configuring the appropriate clock (including front porch, back porch, resolution, and calculated pixel clock and bit clock), initial commands, and read ID commands in the DTSI based on the MIPI screen's datasheet, timing information, and the main control chip provided by the screen supplier.
 4. Associating the MIPI panel with the corresponding solution.
-Taking `lcd_jd9365dah3_mipi` as an example: The k1-x_MUSE-Paper-mini-4g solution uses `lcd_jd9365dah3_mipi` as its display screen.  The MIPI DSI-related portion of the DTS is shown below:
-#### 1. k1-x_MUSE-Paper-mini-4g Solution
+Taking `lcd_gx09inx101_mipi` as an example: The k1-x_deb1 solution uses `lcd_gx09inx101_mipi` as its display screen.  The MIPI DSI-related portion of the DTS is shown below:
+#### 1. k1-x_deb1 Solution
 ```
-//linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Paper-mini-4g.dts
-#include "lcd/lcd_jd9365dah3_mipi.dtsi"
+//linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
+#include "lcd/lcd_gx09inx101_mipi.dtsi"
 #include "k1-x-lcd.dtsi"
 #include "k1-x-hdmi.dtsi"
 
-............
 &dpu_online2_dsi {
-        memory-region = <&dpu_resv>;
-        spacemit-dpu-bitclk = <500000000>;
-        dsi_1v2-supply = <&ldo_5>;
-        dsi_1v8-supply = <&ldo_11>;
-        vin-supply-names = "dsi_1v2",
-        status = "okay";
+	memory-region = <&dpu_resv>;
+	spacemit-dpu-bitclk = <1000000000>;     //bit clock
+	spacemit-dpu-escclk = <76800000>;
+	dsi_1v2-supply = <&ldo_5>;              // PMIC DLDO1
+	vin-supply-names = "dsi_1v2";           // MIPI DSI 1.2v
+	status = "okay";
 };
 
 &dsi2 {
@@ -535,13 +475,11 @@ Taking `lcd_jd9365dah3_mipi` as an example: The k1-x_MUSE-Paper-mini-4g solution
                 compatible = "spacemit,mipi-panel2";
                 reg = <0>;
 
-                gpios-reset = <30>;
-                gpios-dc = <34 42>;
-                gpios-avdd = <35 36>;
-                gpios-bl = <31>;
-                id = <2>;
+                gpios-reset = <81>;
+                gpios-dc = <82 83>;gpio
+                id = <2>;                       // panel id
                 delay-after-reset = <10>;
-                force-attached = "lcd_jd9365dah3_mipi";
+                force-attached = "lcd_gx09inx101_mipi";
         };
 };
 
@@ -578,7 +516,6 @@ Taking `lcd_jd9365dah3_mipi` as an example: The k1-x_MUSE-Paper-mini-4g solution
         default-brightness-level = <50>;
         status = "okay";
 };
-............
 ```
 ##### DSI Power Supply
 According to the schematic:
@@ -592,29 +529,16 @@ dsi_1v2-supply = <&ldo_5>;		//dldo1
 vin-supply-names = "dsi_1v2"
 ```
 ##### MIPI Screen Power Supply
-For this solution, the MIPI interface configuration, based on the schematic, requires configuring GPIO, LDO, and PWM.  The configuration is determined by the schematic. For example, the panel gx09inx101 described in the U-Boot documentation does not require LDO power.
+For this solution, the MIPI interface configuration, based on the schematic, requires configuring GPIO and PWM.
 ###### GPIO
-GPIOs requiring control:
-
-  - dcp-gpios = gpio 34;
-  - dcn-gpios = gpio 42 ;
-  - avee-gpios = gpio 35;
-  - avdd-gpios = gpio 36;
-  - enable-gpios = gpio 31;
-  - reset-gpios = gpio 30;
-
+GPIOs requiring control:\
+        dcp-gpios = gpio 82;\
+        dcn-gpios = gpio 83;\
+        reset-gpios = gpio 81;
 ```
-	gpios-reset = <30>;
-	gpios-dc = <34 42>;
-	gpios-avdd = <35 36>;
-	gpios-bl = <31>;
+gpios-reset = <81>;
+gpios-dc = <82 83>;
 ```
-###### Ldo
-```
-si_1v8-supply = <&ldo_11>;
-vin-supply-names = "dsi_1v2", "dsi_1v8";
-```
-
 ###### Pwm
 According to the schematic, LCD_BL_PWM_1V8 can be powered not only through GPIO44 but also by controlling PWM14. This solution uses PWM for power supply, corresponding to the device tree.
 ```
@@ -624,62 +548,63 @@ According to the schematic, LCD_BL_PWM_1V8 can be powered not only through GPIO4
         status = "okay";
 };
 ```
-#### 2. panel Configuration: lcd_jd9365dah3_mipi.dtsi
-Create a new file named `lcd_jd9365dah3_mipi.dtsi` in the path `linux-6.6/arch/riscv/boot/dts/spacemit/lcd/`.
+#### 2. lcd panel Configuration
+Create a new file named `lcd_gx09inx101_mipi.dtsi` in the path `linux-6.6/arch/riscv/boot/dts/spacemit/lcd/`.
 ```
 // SPDX-License-Identifier: GPL-2.0
 
 / { lcds: lcds {
-        lcd_jd9365dah3_mipi: lcd_jd9365dah3_mipi {
+        lcd_gx09inx101_mipi: lcd_gx09inx101_mipi {
                 dsi-work-mode = <1>;
                 dsi-lane-number = <4>;
                 dsi-color-format = "rgb888";
-                width-mm = <108>;
-                height-mm = <172>;
+                width-mm = <142>;
+                height-mm = <228>;
                 use-dcs-write;
 
                 /*mipi info*/
-                height = <1280>;
-                width = <800>;
-                hfp = <40>;
-                hbp = <20>;
-                hsync = <20>;
+                height = <1920>;
+                width = <1200>;
+                hfp = <80>;
+                hbp = <40>;
+                hsync = <10>;
                 vfp = <20>;
-                vbp = <8>;
+                vbp = <16>;
                 vsync = <4>;
                 fps = <60>;
                 work-mode = <0>;
                 rgb-mode = <3>;
                 lane-number = <4>;
-                phy-bit-clock = <500000000>;
+                phy-bit-clock = <1000000000>;
+                phy-esc-clock = <76800000>;
                 split-enable = <0>;
                 eotp-enable = <0>;
-                burst-mode = <2>;
+                burst-mode = <2>;                // mipi dsi burst mode: 2 DSI_BURST_MODE_BURST;
                 esd-check-enable = <0>;
 
-                /* DSI_CMD, DSI_MODE, timeout, len, cmd */
-                // initial-command
                 initial-command = [
-                        39 01 00 02 E0 00
-                        39 01 00 02 E1 93
-                        39 01 00 02 E2 65
-                        39 01 00 02 E3 F8
-                        39 01 00 02 80 03
-                        39 01 00 02 E0 01
-                        39 01 00 02 00 00
-                        39 01 00 02 01 40
-                        39 01 00 02 03 10
+                39 01 00 02 B0 01
+                39 01 00 02 C3 4F
+                39 01 00 02 C4 40
+                39 01 00 02 C5 40
+                39 01 00 02 C6 40
+                39 01 00 02 C7 40
+                39 01 00 02 C8 4D
 
-                        ······
+                    ··········
 
-                        39 01 00 02 2C 6B
-                        39 01 00 02 35 0A
-                        39 01 00 02 E0 00
-                        39 01 78 02 11 00
-                        39 01 05 02 29 00
-                        39 01 00 02 35 00
+                39 01 00 02 DA 19
+                39 01 00 02 DB 17
+                39 01 00 02 DC 17
+                39 01 00 02 DD 18
+                39 01 00 02 DE 1A
+                39 01 00 02 DF 1E
+                39 01 00 02 E0 20
+                39 01 00 02 E1 23
+                39 01 00 02 E2 07
+                39 01 F0 01 11
+                39 01 28 01 29
                 ];
-
                 sleep-in-command = [
                         39 01 78 01 28
                         39 01 78 01 10
@@ -688,22 +613,21 @@ Create a new file named `lcd_jd9365dah3_mipi.dtsi` in the path `linux-6.6/arch/r
                         39 01 96 01 11
                         39 01 32 01 29
                 ];
-                // read-id-command
                 read-id-command = [
-                        37 01 00 01 01
-                        14 01 00 01 04
+                        37 01 00 01 05
+                        14 01 00 05 fb fc fd fe ff
                 ];
 
                 display-timings {
                         timing0 {
-                                clock-frequency = <70217143>;
-                                hactive = <800>;
-                                hfront-porch = <40>;
-                                hback-porch = <20>;
-                                hsync-len = <20>;
-                                vactive = <1280>;
+                                clock-frequency = <153000000>;  // mipi dsi pixclk 
+                                hactive = <1200>;
+                                hfront-porch = <80>;
+                                hback-porch = <40>;
+                                hsync-len = <10>;
+                                vactive = <1920>;
                                 vfront-porch = <20>;
-                                vback-porch = <8>;
+                                vback-porch = <16>;
                                 vsync-len = <4>;
                                 vsync-active = <1>;
                                 hsync-active = <1>;
@@ -713,76 +637,12 @@ Create a new file named `lcd_jd9365dah3_mipi.dtsi` in the path `linux-6.6/arch/r
 };};
 ```
 ##### Timing Calculation
-**pixel clock**= (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （800+ 40+ 20+ 20）* (1280+ 20+ 8+ 4) * 60 = 69273600HZ\
-**bit clock** = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（800+ 40+ 20+ 20）(1280+ 20+ 8+ 4) * 60 * 24）/ 4) * 1.1 = 457205760HZ
+pixel clock= (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ\
+bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ\
 
-Based on display timing calculations, the pixel clock is 69,273,600 Hz, and the system can be configured to 70,000,000 Hz. The bit clock is 457,205,760 Hz, and the system can be configured to 500,000,000 Hz.  In the DTS file, `clock-frequency` is configured to 70,000,000, and `spacemit-dpu-bitclk` and `phy-bit-clock` are configured to 500,000,000.
-
-During debugging, the initial configuration uses the calculated clock values; the system will select the closest available clock frequency for the screen.
-```
-phy-bit-clock = <457205760>;
-
-clock-frequency = <69273600>;
-```
-After the system boots and the screen displays correctly, run the following command in the terminal:
-```
-cat /sys/kernel/debug/clk/clk_summary | grep dpu
-```
-Retrieving the closest `phy-bit-clock` and `clock-frequency` values and reconfiguring them saves the system time spent searching for suitable clocks and contributes to system stability.
-#### System boot log
-The displayed system boot log shows a correlation with the code, located at the following path: `linux-6.6/drivers/gpu/drm/spacemit`
-```
-
-[    3.849556] [drm] spacemit_dsi_probe()
-[    3.854365] [drm] spacemit_panel_probe()
-[    3.858602] [drm] spacemit_dsi_host_attach()
-[    3.863035] [drm] panel driver probe success
-
-······
-
-[    5.417474] [drm] spacemit_dpu_bind()
-[    5.421558] spacemit-dpu-drv soc:port@c0340000: assigned reserved memory node dpu_reserved@2ff40000
-[    5.431147] [drm] dpu plane init ok
-[    5.434709] spacemit-drm-drv c0340000.display-subsystem-dsi: bound soc:port@c0340000 (ops dpu_component_ops)
-[    5.444791] [drm] find possible crtcs: 0x00000001
-[    5.449672] spacemit-drm-drv c0340000.display-subsystem-dsi: bound d421a800.dsi2 (ops dsi_component_ops)
-[    5.459311] spacemit-drm-drv c0340000.display-subsystem-dsi: bound soc:wb0 (ops spacemit_wb_component_ops)
-[    5.469760] [drm] Initialized spacemit 1.0.0 20231115 for c0340000.display-subsystem-dsi on minor 1
-[    5.478964] [drm] spacemit_panel_get_modes()
-[    5.488968] [drm] spacemit_crtc_atomic_enable(power on)
-
-[    5.510794] [drm] pxclk set_clk_val 143000000
-[    5.511049] [drm] dpu_init
-[    5.511099] [drm] spacemit_dsi_encoder_enable()
-[    5.512114] [drm] spacemit_panel_prepare()
-[    5.597334] usb 3-1: new SuperSpeed USB device number 2 using xhci-hcd
-[    5.609192] mipi: UNBLANK!!
-[    5.609196] [drm] spacemit_panel_enable()
-[    5.913337] [drm] DPU type 1 id 2 Start!
-[    5.931659] Console: switching to colour frame buffer device 150x120
-[    6.022804] spacemit-drm-drv c0340000.display-subsystem-dsi: [drm] fb0: spacemitdrmfb frame buffer device
-
-[    6.033858] [drm] spacemit_dpu_bind()
-[    6.037801] spacemit-dpu-drv soc:port@c0440000: assigned reserved memory node dpu_reserved@2ff40000
-[    6.047392] [drm] dpu plane init ok
-[    6.050960] spacemit-drm-drv c0440000.display-subsystem-hdmi: bound soc:port@c0440000 (ops dpu_component_ops)
-[    6.061437] spacemit-drm-drv c0440000.display-subsystem-hdmi: bound c0400500.hdmi (ops spacemit_hdmi_ops)
-[    6.071302] [drm] spacemit_hdmi_connector_detect() hdmi status connected
-[    6.078585] [drm] Initialized spacemit 1.0.0 20231115 for c0440000.display-subsystem-hdmi on minor 2
-[    6.087858] [drm] spacemit_hdmi_connector_detect() hdmi status connected
-[    6.094638] [drm] spacemit_hdmi_get_edid_block() len 128
-[    6.121231] [drm] spacemit_hdmi_get_edid_block() len 128
-[    6.132065] spacemit-drm-drv c0440000.display-subsystem-hdmi: [drm] fb1: spacemitdrmfb frame buffer device
-
-······
-
-[    7.996148] [drm] spacemit_panel_get_modes()
-
-
-```
-
+Based on display timing calculations, the pixel clock value is 152,880,000 Hz, and the system can be configured to 153,000,000 Hz. The bit clock value is 1,009,008,000 Hz, and the system can be configured to 1,000,000,000 Hz. In the DTS file, clock-frequency is set to 153,000,000, while spacemit-dpu-bitclk and phy-bit-clock are set to 1,000,000,000.
 ## FAQ
-### 1. LCD and HDMI Configuration
+### 1. Configure HDMI Only
 Taking the k1-deb1 scheme as an example, the driver DTS defaults to disabling the LCD and enabling the HDMI, with the configuration as follows:\
 Default Configuration
 ```c
@@ -827,6 +687,7 @@ Default Configuration
 	status = "okay";
 };
 ```
+### 2. Configure HDMI and DSI Simultaneously
 To enable both the LCD and HDMI simultaneously, the status of both devices in the DTS configuration must be set to "okay"
 ```c
 //linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
@@ -870,7 +731,7 @@ To enable both the LCD and HDMI simultaneously, the status of both devices in th
 	status = "okay";
 };
 ```
-Configure only the LCD.
+### 3. Configure only the dsi.
 ```c
 //linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
 &dpu_online2_dsi {
@@ -913,7 +774,7 @@ Configure only the LCD.
 	status = "disabled";
 };
 ```
-### 2. Weston main screen configuration
+### 4. Weston main screen configuration
 Weston display script
 ```c
 //buildroot/package/weston/run_weston.sh
@@ -940,7 +801,7 @@ export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/qt/plugins/platforms
 export QT_QPA_PLATFORM=wayland
 weston --log=/var/log/weston --tty=1 --drm-device=card2 --idle-time=0
 ```
-### 3. bianbu-desktop main screen configuration
+### 5. bianbu-desktop main screen configuration
 The mutter application defaults to using DSI as the primary display. If you want to change it to HDMI, you need to modify the mutter package source code and recompile it
 ```c
 //mutter/src/backends/meta-monitor.c
