@@ -38,9 +38,12 @@ sudo pip3 install pyyaml
 
 ## Download
 
-1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee. 
+1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee.
+
 2. Use repo --version to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+
 If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+
 ```shell
 repo --version
 repo version v2.48
@@ -59,6 +62,7 @@ OS Linux 5.4.0-196-generic (#216-Ubuntu SMP Thu Aug 29 13:26:53 UTC 2024)
 CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
+
 Download the latest 2.0 code:
 
 ```shell
@@ -101,7 +105,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## Cross Compilation
 
-### First Complete Compilation
+### Bianbu Linux 2.0 First Complete Compilation
 
 For the first compilation, it is recommended to use `make envconfig` for a complete build.
 
@@ -161,6 +165,46 @@ Among them, `bianbu-linux-k1_v2.zip` is suitable for Titan Flasher, or you can u
 > Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
 The default username for the firmware is `root`, and the password is `bianbu`.
+
+### Bianbu PREEMPT_RT Linux First Complete Compilation
+
+For the first compilation, it is recommended to use `make envconfig` for a complete build.
+
+If you have modified `buildroot-ext/configs/spacemit_<solution>_defconfig`, use `make envconfig` to compile.
+
+In other cases, use `make` to compile.
+
+```shell
+cd ~/bianbu-linux
+make envconfig
+Available configs in buildroot-ext/configs/:
+  1. spacemit_k1_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
+
+
+your choice (1-6): 
+
+```
+
+To compile Bianbu PREEMPT_RT Linux 2.0 version, enter `5` ,then press Enter to start compiling, the compile process will apply PREEMPT_RT patch
+
+```shell
+buildroot-ext/configs//spacemit_k1_rt_defconfig
+Patching linux with PREEMPT_RT patch
+Applying rt-linux-support.patch using patch:
+...
+```
+
+After the compilation is complete, you will see:
+```shell
+Images successfully packed into /home/username/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt.zip
+...
+Successfully generated at /home/username/work/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt-sdcard.img
+```
 
 ### Configuration
 
