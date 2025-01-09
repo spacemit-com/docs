@@ -38,9 +38,12 @@ sudo pip3 install pyyaml
 
 ## Download
 
-1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee. 
+1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee.
+
 2. Use repo --version to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+
 If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+
 ```shell
 repo --version
 repo version v2.48
@@ -59,6 +62,7 @@ OS Linux 5.4.0-196-generic (#216-Ubuntu SMP Thu Aug 29 13:26:53 UTC 2024)
 CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
+
 Download the latest 2.0 code:
 
 ```shell
@@ -101,7 +105,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## Cross Compilation
 
-### bianbu linux2.0 First Complete Compilation
+### Bianbu Linux 2.0 First Complete Compilation
 
 For the first compilation, it is recommended to use `make envconfig` for a complete build.
 
@@ -162,7 +166,7 @@ Among them, `bianbu-linux-k1_v2.zip` is suitable for Titan Flasher, or you can u
 
 The default username for the firmware is `root`, and the password is `bianbu`.
 
-### Bianbu PREEMPT_RT linux First Complete Compilation
+### Bianbu PREEMPT_RT Linux First Complete Compilation
 
 For the first compilation, it is recommended to use `make envconfig` for a complete build.
 

@@ -42,6 +42,7 @@ sudo pip3 install pyyaml
 
 2. 使用repo --version确认版本和repo源，要求repo（版本 >= 2.41）和tsinghua源下载完整SDK，否则下载过程会异常。
 如果不满足版本要求或者非tsinghua源，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+
 ```shell
 repo --version
 repo version v2.48
@@ -103,7 +104,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## 交叉编译
 
-### Bianbu linux2.0首次完整编译
+### Bianbu Linux 2.0 首次完整编译
 
 首次编译，建议使用`make envconfig`完整编译。
 
@@ -162,7 +163,7 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/b
 
 固件默认用户名：`root`，密码：`bianbu`。
 
-### Bianbu PREEMPT_RT linux首次完整编译
+### Bianbu PREEMPT_RT Linux 首次完整编译
 
 首次编译，建议使用`make envconfig`完整编译。
 
@@ -185,6 +186,7 @@ Available configs in buildroot-ext/configs/:
 your choice (1-6): 
 
 ```
+
 Bianbu Linux 2.0支持实时Linux(PREEMPT_RT)内核编译，输入`5`,然后回车即开始编译，首次编译过程中会自动打上PREEMPT_RT补丁
 
 ```shell
@@ -195,6 +197,7 @@ Applying rt-linux-support.patch using patch:
 ```
 
 编译完成，可以看到：
+
 ```shell
 Images successfully packed into /home/username/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt.zip
 ...
