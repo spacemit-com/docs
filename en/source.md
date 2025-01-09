@@ -101,7 +101,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## Cross Compilation
 
-### First Complete Compilation
+### bianbu linux2.0 First Complete Compilation
 
 For the first compilation, it is recommended to use `make envconfig` for a complete build.
 
@@ -161,6 +161,46 @@ Among them, `bianbu-linux-k1_v2.zip` is suitable for Titan Flasher, or you can u
 > Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
 The default username for the firmware is `root`, and the password is `bianbu`.
+
+### Bianbu PREEMPT_RT linux First Complete Compilation
+
+For the first compilation, it is recommended to use `make envconfig` for a complete build.
+
+If you have modified `buildroot-ext/configs/spacemit_<solution>_defconfig`, use `make envconfig` to compile.
+
+In other cases, use `make` to compile.
+
+```shell
+cd ~/bianbu-linux
+make envconfig
+Available configs in buildroot-ext/configs/:
+  1. spacemit_k1_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
+
+
+your choice (1-6): 
+
+```
+
+To compile Bianbu PREEMPT_RT Linux 2.0 version, enter `5` ,then press Enter to start compiling, the compile process will apply PREEMPT_RT patch
+
+```shell
+buildroot-ext/configs//spacemit_k1_rt_defconfig
+Patching linux with PREEMPT_RT patch
+Applying rt-linux-support.patch using patch:
+...
+```
+
+After the compilation is complete, you will see:
+```shell
+Images successfully packed into /home/username/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt.zip
+...
+Successfully generated at /home/username/work/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt-sdcard.img
+```
 
 ### Configuration
 

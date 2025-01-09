@@ -103,7 +103,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## 交叉编译
 
-### 首次完整编译
+### Bianbu linux2.0首次完整编译
 
 首次编译，建议使用`make envconfig`完整编译。
 
@@ -130,8 +130,6 @@ your choice (1-6):
 编译Bianbu Linux 2.0版本，输入`6`，然后回车即开始编译。
 
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
-
-编译完成，可以看到：
 
 ```shell
 Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
@@ -163,6 +161,45 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/b
 > Titan Flasher使用指南：[刷机工具使用指南](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
 固件默认用户名：`root`，密码：`bianbu`。
+
+### Bianbu PREEMPT_RT linux2.0首次完整编译
+
+首次编译，建议使用`make envconfig`完整编译。
+
+修改了`buildroot-ext/configs/spacemit_<solution>_defconfig`，要使用`make envconfig`编译。
+
+其他情况，使用`make`编译即可。
+
+```shell
+cd ~/bianbu-linux
+make envconfig
+Available configs in buildroot-ext/configs/:
+  1. spacemit_k1_defconfig
+  2. spacemit_k1_upstream_defconfig
+  3. spacemit_k1_minimal_defconfig
+  4. spacemit_k1_plt_defconfig
+  5. spacemit_k1_rt_defconfig
+  6. spacemit_k1_v2_defconfig
+
+
+your choice (1-6): 
+
+```
+Bianbu Linux 2.0支持实时Linux(PREEMPT_RT)内核编译，输入`5`,然后回车即开始编译，首次编译过程中会自动打上PREEMPT_RT补丁
+
+```shell
+buildroot-ext/configs//spacemit_k1_rt_defconfig
+Patching linux with PREEMPT_RT patch
+Applying rt-linux-support.patch using patch:
+...
+```
+
+编译完成，可以看到：
+```shell
+Images successfully packed into /home/username/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt.zip
+...
+Successfully generated at /home/username/work/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt-sdcard.img
+```
 
 ### 配置
 
