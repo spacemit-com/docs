@@ -162,7 +162,7 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/b
 
 固件默认用户名：`root`，密码：`bianbu`。
 
-### Bianbu PREEMPT_RT linux2.0首次完整编译
+### Bianbu PREEMPT_RT linux首次完整编译
 
 首次编译，建议使用`make envconfig`完整编译。
 
