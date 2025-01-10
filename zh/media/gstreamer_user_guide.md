@@ -58,7 +58,7 @@ gst-inspect-1.0 --version
 gst-inspect-1.0
 ```
 
-使用 gst-inspect-1.0 <插件名称>，可以输出对应插件的详细信息。
+在gst-inspect-1.0命令后加上插件名称，可以输出对应插件的详细信息。
 
 #### Video Decoder Plugins
 
