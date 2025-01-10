@@ -2,29 +2,53 @@
 sidebar_position: 1
 ---
 
-# Camera 开发指南
+# Camera Development Guide
 
 本篇主要介绍 Spacemit K1 平台 Camera 模块的快速上手开发。
 
 K1 仅支持 MIPI 类型接口，使用 Spacemit camera 驱动框架。
 
+## Revision History
+
+| Revision | Date      | Author | Description   |
+| ----------------- | ------------------ | --------------- | ---------------------- |
+| 1.0      | 2024-8-29 | lizhirong  | Initial draft |
+
 ## Camera 快速点亮导览
 
-点亮一款新的摄像头，通常仅需要调整 cam-test 应用层的代码即可快速支持上。
+* **点亮一款已支持的摄像头，只需两步：**
+1. 确定摄像头是接在开发板的哪个MIPI CSI接口上，假如是接在了MIPI CSI1硬件接口，则运行以下命令（假如是接在了MIPI CSI1硬件接口则使用csi1_camera_auto.json）
+```
+cam-test /usr/share/camera_json/csi1_camera_detect.json
+```
+运行结果如下，cam-test将会自动探测mipi csi1上已支持的摄像头id，如果成功探测到将生成可用的json文件到/usr/share/camera_json/目录。如果没有探测到，说明没有支持此摄像头，或者硬件有问题，此情况下建议请求进迭工程师提供支持。
+```
+......
+I: ./sensors/cam_sensors_module.c(235): "detect ov16a10_spm sensors in csi1: success, set 3840x2160 to 1920x1080"
+I: auto_detect_camera(1401): "auto detect sensor ===================== finish "
+I: update_json_file(672): "save json to /usr/share/camera_json/csi1_camera_auto.json success"
+```
+从上述运行log还可以得出，ov16a10 sensor生成的json默认使用模式0，sensor输出分辨率为3840x2160，isp输出分辨率为1920x1080。json配置文件的更多描述，请参阅下文的JSON 参数说明。
+2. 运行下列命令，启动摄像头出图500帧，并保存第250帧。正常运行的输出log请参阅 正常运行单路在线测试 log章节。如果运行失败，建议请求进迭工程师提供支持。
+```
+cam-test /usr/share/camera_json/csi1_camera_auto.json
+```
 
-点亮 sensor 所依赖的上下电 GPIO，MCLK 时钟，MIPI lane 配置等硬件功能配置，在方案对外发布前就已经由内部工程师提前开发验证完毕，极少数情况下需要修改配置 dts 和驱动。比如：由于外部不可抗拒原因，必须要对主板的 MIPI CSI 接口电路进行更改，上电 GPIOA 更改为 GPIOB，MCLKA 更改为 MCLKB 等，此情况下需要重新定制内核 dts 配置，详情参阅camera驱动框架下的bring up总结章节。
+* **点亮一款新的摄像头，通常仅需要调整 cam-test 应用层的代码即可快速支持上，所有camera相关的内核配置，dts不用修改。**
+
+因为点亮 sensor 所依赖的上下电 GPIO，MCLK 时钟，MIPI lane 配置等硬件功能配置，在方案对外发布前就已经由内部工程师提前开发验证完毕，极少数情况下需要修改配置 dts 和驱动。比如：由于外部不可抗拒原因，必须要对主板的 MIPI CSI 接口电路进行更改，上电 GPIOA 更改为 GPIOB，MCLKA 更改为 MCLKB 等，此情况下建议请求进迭工程师提供支持。
 
 如果不考虑特殊情况，点亮一款新摄像头，建议按照以下步骤展开：
 
-1. 根据当前摄像头型号，复用列表中已支持的相近型号的应用代码（主要是复用摄像头应用的代码结构排布，减少开发工作量），修改函数名称，结构体名称等为当前摄像头型号，详情参阅user层cam_sensors库的bring up总结章节。
-2. 阅读摄像头的数据手册，确定摄像头的寄存器位数，I2C 地址，上电流程，ID 寄存器以及 ID 值，并修改 sensor 应用代码，其中，上电流程可以参阅sensor驱动章节.
+1. 根据当前摄像头型号，复用列表中已支持的相近型号的应用代码（主要是复用摄像头应用的代码结构排布，减少开发工作量），修改函数名称，结构体名称等为当前摄像头型号，详情参阅 [4.4 bring up 章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#WyFfdSraRon43ox45NrcJNkLn0c)。
+2. 阅读摄像头的数据手册，确定摄像头的寄存器位数，I2C 地址，上电流程，ID 寄存器以及 ID 值，并修改 sensor 应用代码，其中，上电流程可以参阅 [3.4 sensor 驱动章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#FDqvd68hQo5zwZxTDVTclr26nTg).
 3. 配置摄像头的 setting tab 寄存器数组，并根据原厂提供的信息，或计算出来的数值，确定配置所使用的 lane 数/HTS/VTS/MCLK/FPS/PCLK/分辨率/data Lane 等信息，并完善函数内容（主要关注 xxx_spm_get_sensor_capbility 和 xxx_spm_get_sensor_work_info 函数）。
 4. 调整 xxx_sensor.c 源文件中使用到的曝光增益等寄存器地址。
 5. 尝试上电读 ID 测试，如果读 ID 失败，请重新检查步骤 1。
-6. 尝试出图测试，出图测试可以选用 single online test，详情参阅user层demo示例的场景介绍章节。如果出图失败，可以使用 only viisp case 再测试。如果仍旧失败，请认真检查步骤 3，步骤 4，或寻求工程师协助分析。
-7. Single online test 正常出图的 log，可以参阅实操log章节。
+6. 尝试出图测试，出图测试可以选用 single online test，详情参阅 [5.3 场景介绍章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#WP0wdBFKcomb5bxp5BkcLjbMndb)。如果出图失败，可以使用 only viisp case 再测试。如果仍旧失败，请认真检查步骤 3，步骤 4，或寻求工程师协助分析。
+7. Single online test 正常出图的 log，可以参阅 [6.2 章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#EtjKd2NkDofQOSxLWv8cX6KLngd)。
 
-备注：关于测试应用以及各个 test 的介绍，可以参阅user层demo示例章节内容。
+备注：关于测试应用以及各个 test 的介绍，可以参阅[第 5 章节](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#BaRbd8qCdoM9W2xMrUJcGGimnSh)内容。
 
 另外：
 关于camera模块的规格特性，请参考进迭时空开发者社区的 芯片规格说明书：https://developer.spacemit.com/documentation?token=BWbGwbx7liGW21kq9lucSA6Vnpb#part779
@@ -77,7 +101,7 @@ Spacemit camera 驱动框架是基于 linux 内核 v4l2 框架实现的，主要
 ### 源码结构
 
 ```
-~/k1x/linux-6.1/drivers/media/platform/spacemit/camera$ tree
+~/k1x/linux-6.6/drivers/media/platform/spacemit/camera$ tree
 .
 |-- built-in.a
 |-- cam_ccic
@@ -551,7 +575,6 @@ Flash（闪光灯），对应 flash 子目录。
 ### 源码结构
 
 ```bash
-//或~/k1x/humbird/package/cam-test
 lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
 .
 |-- CMakeLists.txt
@@ -943,7 +966,7 @@ make[1]: Leaving directory '/home/lizhirong/bianbu-linux/output/k1'
 
 **Table - case1 输入输出**
 | 模块    | 输入      | 输出               | note                    |
-|---------|-----------|--------------------|-------------------------|
+| ------- | --------- | ------------------ | ----------------------- |
 | senosor | NA        | 1920x1080          | NA                      |
 | ISP     | 1920x1080 | 1920x1080,NV12_DWT | CAM_ISP_CH_ID_PREVIEW   |
 | VI      | 1920x1080 | 1920x1080          | CAM_VI_WORK_MODE_ONLINE |
@@ -1231,16 +1254,21 @@ done
 
 ### 正常运行单路在线测试 log
 
-执行命令 cat /proc/sys/kernel/printk，得知当前内核的打印等级为：4       4       1       7，下列测试 log 是 auto_run 为 1 的情况下的测试输出。
+执行命令 cat /proc/sys/kernel/printk，得知当前内核的打印等级为：4       4       1       7，下列测试 log 是 auto_run 为 1 的情况下的测试输出。如果cam-test命令执行过程中有出现E:字样打印，请找进迭工程师确认是否正常。
 
 ```bash
-~ # cam-test camtest_sensor0_mode0.json
-I: getTestConfig(63): "get test_frame failed"
-I: getTestConfig(75): "cpp node num: 2"
-I: getTestConfig(171): "isp node num: 2"
+root@spacemit-k1-x-deb1-board:~# cam-test /usr/share/camera_json/csi1_camera_auto.json
+I: getTestConfig(438): "json size:1141"
+I: getCppNodeConfig(31): "cpp node num: 2"
+I: getIspNodeConfig(138): "isp node num: 2"
+I: getSensorNodeConfig(323): "no sensor_node, use default config"
 tuningServerScene: 1
 show_fps: 1
 auto_run: 1
+test_frame: 500                 //表示需要测试的帧数
+dump_one_frame: 250             //表示需要保存第几帧
+use_v4l: 0
+auto_detect: 0
 cpp0 enable: 1
 cpp0 src_path: /tmp/cpp_case_in_data/1920x1080/
 cpp0 size_width: 1920
@@ -1251,10 +1279,10 @@ cpp1 size_width: 0
 cpp1 size_height: 0
 isp0 enable: 1
 isp0 work_mode: 0
-isp0 format: NV12
-isp0 out_width: 1920
+isp0 format: NV12               //表示ISP输出的YUV格式
+isp0 out_width: 1920            //表示ISP输出的分辨率大小
 isp0 out_height: 1080
-isp0 sensor_name: imx135_spm
+isp0 sensor_name: ov16a10_spm   //表示该摄像头的类型
 isp0 sensor_id: 0
 isp0 sensor_work_mode: 0
 isp0 fps: 30
@@ -1275,32 +1303,18 @@ isp1 src_file:
 isp1 bit_depth: 0
 isp1 in_width: 0
 isp1 in_height: 0
-I: single_pipeline_online_test(1399): "test start"
-I: sensor/cam_sensor.c(28): "open device /dev/cam_sensor0"
-I: sensor/imx135_sensor.c(968): "detect sensor0 success"
-I: testSensorInit(57): "sensor config info number 3"
-I: testSensorInit(59): "sensor_config_info[0].width 4208"
-I: testSensorInit(60): "sensor_config_info[0].height 3120"
-I: testSensorInit(62): "sensor_config_info[0].bitDepth 10"
-I: testSensorInit(64): "sensor_config_info[0].fps 30.000000"
-I: testSensorInit(65): "sensor_config_info[0].image_mode 0"
-I: testSensorInit(67): "sensor_config_info[0].lane_num 4"
-I: testSensorInit(69): "sensor_config_info[0].work_mode 0"
-I: testSensorInit(59): "sensor_config_info[1].width 2104"
-I: testSensorInit(60): "sensor_config_info[1].height 1560"
-I: testSensorInit(62): "sensor_config_info[1].bitDepth 10"
-I: testSensorInit(64): "sensor_config_info[1].fps 30.000000"
-I: testSensorInit(65): "sensor_config_info[1].image_mode 0"
-I: testSensorInit(67): "sensor_config_info[1].lane_num 4"
-I: testSensorInit(69): "sensor_config_info[1].work_mode 1"
-I: testSensorInit(59): "sensor_config_info[2].width 2104"
-I: testSensorInit(60): "sensor_config_info[2].height 1184"
-I: testSensorInit(62): "sensor_config_info[2].bitDepth 10"
-I: testSensorInit(64): "sensor_config_info[2].fps 30.000000"
-I: testSensorInit(65): "sensor_config_info[2].image_mode 0"
-I: testSensorInit(67): "sensor_config_info[2].lane_num 4"
-I: testSensorInit(69): "sensor_config_info[2].work_mode 2"
-I: sensor/cam_sensor.c(28): "open device /dev/cam_sensor0"
+I: single_pipeline_online_test(1420): "test start"
+I: ./sensors/sensor/cam_sensor.c(28): "open device /dev/cam_sensor0"
+I: ./sensors/sensor/ov16a10_sensor.c(867): "detect sensor0 success"
+I: testSensorInit(75): "sensor config info number 1"
+I: testSensorInit(77): "sensor_config_info[0].width 3840"
+I: testSensorInit(78): "sensor_config_info[0].height 2160"
+I: testSensorInit(80): "sensor_config_info[0].bitDepth 10"
+I: testSensorInit(82): "sensor_config_info[0].fps 30.000000"
+I: testSensorInit(83): "sensor_config_info[0].image_mode 0"
+I: testSensorInit(85): "sensor_config_info[0].lane_num 4"
+I: testSensorInit(87): "sensor_config_info[0].work_mode 0"
+I: ./sensors/sensor/cam_sensor.c(28): "open device /dev/cam_sensor0"
 I: VI_ConfigDev(341): "map viDev(0) workMode(0) bindSensorIdx0(0) bindSensorIdx1(0) to topology:online_offline"
 I: VI_ConfigDev(344): "VI switch to topology:online_offline"
 I: VI_HAL_SmartSwitchTopologyWithoutApply(2053): "switch topology to online_offline"
@@ -1331,91 +1345,91 @@ I: SetupTopologyPipelineLinks(1402): "enable link(dwt1_layer2==>aout3)"
 I: SetupTopologyPipelineLinks(1402): "enable link(dwt1_layer3==>aout4)"
 I: SetupTopologyPipelineLinks(1402): "enable link(dwt1_layer4==>aout5)"
 I: VI_ConfigDev(361): "map viDev(0) workMode(0) to pipe:pipe0"
-I: VI_ConfigDev(362): "setup pipe(pipe0) input(mcode:12557 4208x3120)"
+I: VI_ConfigDev(362): "setup pipe(pipe0) input(mcode:12557 3840x2160)"
 I: VI_ConfigDev(372): "apply pipe(pipe0) input"
 I: ApplyTopologyPipelineInput(1701): "mipi_lane_num:4"
 I: VI_ConfigDev(379): "apply pipe(pipe0)"
-I: VI_OpenChnFds(506): "open video3"
-I: VI_OpenChnFds(506): "open video9"
-I: VI_OpenChnFds(506): "open video10"
-I: VI_OpenChnFds(506): "open video11"
+I: VI_OpenChnFds(506): "open video6"
+I: VI_OpenChnFds(506): "open video12"
+I: VI_OpenChnFds(506): "open video13"
 I: VI_OpenChnFds(506): "open video14"
+I: VI_OpenChnFds(506): "open video17"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x3231564e 1920x1080 planes:2) for viChn(0) viChnData(0)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x31313044 960x540 planes:2) for viChn(0) viChnData(1)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x32313044 480x270 planes:2) for viChn(0) viChnData(2)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x33313044 240x135 planes:2) for viChn(0) viChnData(3)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x34313044 120x68 planes:2) for viChn(0) viChnData(4)"
-I: CAM_ISP_FwCreate(23): "create isp firmware(version=9333)!"
+I: CAM_ISP_FwCreate(23): "create isp firmware(version=10326)!"
 open /dev/ion failed!
 Using DMA-BUF heap named: system
 I: CAM_ISP_FWGetStatsSize(48): "all stat size(ae:3864,awb:3456,ltm:6144,af:1300!"
 Using DMA-BUF heap named: linux,cma
-I: CAM_ISP_FwCreate(23): "create isp firmware(version=9333)!"
+I: CAM_ISP_FwCreate(23): "create isp firmware(version=10326)!"
 I: _ISP_PIPELINE_ConfigFwFromSensor(199): "isp pipeline0 use sensor scene0 setting."
-I: CAM_ISP_SensorGetExpoTimeByFps(412): "get fps(15.000000) exposure time from sensor return exp:67090!"
+I: CAM_ISP_SensorGetExpoTimeByFps(412): "get fps(25.000000) exposure time from sensor return exp:40014!"
 I: CAM_ISP_SensorSetFps(383): "set fps(30.000000) to sensor success!"
-I: _ISP_PIPELINE_LoadFwSettingFile(487): "no isp setting file, use settings from user or sensor!"
+I: _ISP_PIPELINE_LoadFwSettingFile(495): "no isp setting file, use settings from user or sensor!"
 I: CAM_ISP_DRV_OpenDev(31): "open /dev/mars11isp-pipe0 success, fd=59!"
-I: CAM_ISP_3A_InitAeParams(91): "isp use init ae from sensor default exp=31892,again=256,tgain=256,snsdgain=4096,!"
-I: _ISP_PIPELINE_InitChannel(625): "no af motor callback for isp init on pipeline0!"
-I: CAM_ISP_FwGetAeProcessMode(784): "isp fw ae process at eof with 1 frame!"
-I: CAM_ISP_SensorGetExpoTimeByFps(412): "get fps(15.000000) exposure time from sensor return exp:67090!"
-I: _ISP_PIPELINE_LoadFwSettingFile(487): "no isp setting file, use settings from user or sensor!"
+I: CAM_ISP_3A_InitAeParams(92): "isp use init ae from sensor default exp=33332,again=256,tgain=256,snsdgain=4096,!"
+I: _ISP_PIPELINE_InitChannel(633): "no af motor callback for isp init on pipeline0!"
+I: CAM_ISP_FwGetAeProcessMode(789): "isp fw ae process at eof with 1 frame!"
+I: CAM_ISP_SensorGetExpoTimeByFps(412): "get fps(25.000000) exposure time from sensor return exp:40014!"
+I: _ISP_PIPELINE_LoadFwSettingFile(495): "no isp setting file, use settings from user or sensor!"
 I: CAM_ISP_DRV_OpenDev(31): "open /dev/mars11isp-pipe0 success, fd=60!"
-I: CAM_ISP_SensorUpdateInitAeInfo(125): "isp update sensor init ae exp=20000,again=407,snsdgain=4096,sensor default is (31892-256-4096)!"
-I: _ISP_PIPELINE_SetCaptureSliceWidth(1714): "set isp slice width(1408), in_w=4208, sns_line_time=10.328000us"
+I: CAM_ISP_SensorUpdateInitAeInfo(125): "isp update sensor init ae exp=20000,again=426,snsdgain=4096,sensor default is (33332-256-4096)!"
+I: _ISP_PIPELINE_SetCaptureSliceWidth(1758): "set isp slice width(1728), pad(36), in_w=3840, sns_line_time=13.000000us"
 I: cpp_fw_inst_create(429): "Firmware Version: 9333"
 I: subdev_node_find_by_name(52): "mars-cpp device node found: /dev/v4l-subdev0"
 I: cpp_hardware_create(219): "Hardware Version: 0x00020001"
 I: cam_cpp_create_grp(440): "CPP0: cam_cpp_create_grp: X"
+I: cpp_init(28): "cpp attr.mode is 0\n"
 I: cam_cpp_set_grp_attr(721): "CPP0: cam_cpp_set_grp_attr: 1920x1080, format 1, workmode 0"
 I: cam_cpp_set_callback(623): "CPP0: cam_cpp_set_callback: X"
-I: buffer_pool_alloc(252): "pool(vi channel0 out buffer) buffer_size=4421120 buffer_count=4 block_size=0n"
-I: frameinfo_buffer_alloc(355): "malloc (2560+17444) for frameinfo buffer!n"
-I: frameinfo_buffer_alloc(355): "malloc (2560+17444) for frameinfo buffer!n"
-I: frameinfo_buffer_alloc(355): "malloc (2560+17444) for frameinfo buffer!n"
-I: frameinfo_buffer_alloc(355): "malloc (2560+17444) for frameinfo buffer!n"
-I: buffer_pool_alloc(252): "pool(cpp channel0 out buffer) buffer_size=4421120 buffer_count=4 block_size=0n"
-I: buffer_pool_alloc(252): "pool(vi rawdump channel0 out buffer) buffer_size=17521920 buffer_count=1 block_size=0n"
-I: single_pipeline_online_test(1466): "sensor config parse, testFrame:0, showFps:1"
+I: buffer_pool_continous_alloc(346): "pool(vi channel0 out buffer) buffer_size=4421120 buffer_count=4 block_size=0\n"
+I: buffer_pool_continous_alloc(346): "pool(cpp channel0 out buffer) buffer_size=4421120 buffer_count=4 block_size=0\n"
+I: buffer_pool_continous_alloc(346): "pool(vi rawdump channel0 out buffer) buffer_size=11059200 buffer_count=1 block_size=0\n"
+I: cam_cpp_load_settingfile(746): "CPP0: cam_cpp_load_settingfile: /usr/share/camera_json/sensor_rear_primary_cpp_preview_setting.data X"
+I: cpp_load_fw_settingfile(103): "cpp: load setting file OK\n"
 open /dev/ion failed!
 Using DMA-BUF heap named: linux,cma
 I: cam_cpp_start_grp(502): "CPP0: cam_cpp_start_grp 1920x1080, mctf"
 I: VI_EnableDev(467): "start pipe(pipe0)"
-I: VI_OpenChnFds(506): "open video3"
-I: VI_OpenChnFds(506): "open video9"
-I: VI_OpenChnFds(506): "open video10"
-I: VI_OpenChnFds(506): "open video11"
+I: VI_OpenChnFds(506): "open video6"
+I: VI_OpenChnFds(506): "open video12"
+I: VI_OpenChnFds(506): "open video13"
 I: VI_OpenChnFds(506): "open video14"
+I: VI_OpenChnFds(506): "open video17"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x3231564e 1920x1080 planes:2) for viChn(0) viChnData(0)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x31313044 960x540 planes:2) for viChn(0) viChnData(1)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x32313044 480x270 planes:2) for viChn(0) viChnData(2)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x33313044 240x135 planes:2) for viChn(0) viChnData(3)"
 I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x34313044 120x68 planes:2) for viChn(0) viChnData(4)"
-I: VI_NormalCaptureLoop(770): "VI_NormalCaptureLoop chnDataTypeCnt=5n"
-I: VI_OpenChnFds(506): "open video15"
-I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x41575270 4208x3120 planes:1) for viChn(2) viChnData(0)"
-I: VI_OpenChnFds(506): "open video15"
-I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x41575270 4208x3120 planes:1) for viChn(2) viChnData(0)"
-I: VI_NormalCaptureLoop(770): "VI_NormalCaptureLoop chnDataTypeCnt=1n"
-I: single_pipeline_online_test(1478): "sensor stream on"
+I: VI_NormalCaptureLoop(797): "VI_NormalCaptureLoop chnDataTypeCnt=5\n"
+I: VI_OpenChnFds(506): "open video18"
+I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x41575270 3840x2160 planes:1) for viChn(2) viChnData(0)"
+I: VI_OpenChnFds(506): "open video18"
+I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x41575270 3840x2160 planes:1) for viChn(2) viChnData(0)"
+I: VI_NormalCaptureLoop(797): "VI_NormalCaptureLoop chnDataTypeCnt=1\n"
+I: single_pipeline_online_test(1504): "sensor stream on"
+
+//开流后输出的帧率，以及保存帧数据的log
 I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 1, fps 0.0"
-I: vi_buffer_callback(507): "chn0 preview fps: 17.065632"
-I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 172, fps 17.0"
-I: vi_buffer_callback(498): "dump one raw frame"
-I: image_buffer_save(203): "save img fileName /tmp/cpp0_output_1920x1080_s1920.nv12"
-I: vi_rawdump_buffer_callback(903): "VI chn 2 rawdump buffer frameId 252, buffer 0x3f8e050000, closeDown: 0"
-I: raw_buffer_save(257): "save raw img fileName /tmp/raw_output0_4208x3120.raw"
-I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 342, fps 16.9"
+I: vi_buffer_callback(508): "chn0 preview fps: 29.961245"
+I: vi_buffer_callback(499): "dump one raw frame"
+I: image_buffer_save(204): "save img fileName /tmp/cpp0_output_1920x1080_s1920.nv12"
+I: vi_rawdump_buffer_callback(904): "VI chn 2 rawdump buffer frameId 252, buffer 0x3f96be0000, closeDown: 0"
+I: raw_buffer_save(258): "save raw img fileName /tmp/raw_output0_3840x2160.raw"
+I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 301, fps 29.9"
+
 I: VI_DisableDev(487): "stop pipe(pipe0)"
-I: _ISP_PIPELINE_DeinitThreads(1638): "start thread exit"
-I: _ISP_PIPELINE_DeinitThreads(1642): "end thread exit"
-I: _ISP_PIPELINE_DeinitThreads(1646): "af thread exit"
-I: _ISP_PIPELINE_DeinitThreads(1650): "capture thread exit"
+I: _ISP_PIPELINE_DeinitThreads(1672): "start thread exit"
+I: _ISP_PIPELINE_DeinitThreads(1676): "end thread exit"
+I: _ISP_PIPELINE_DeinitThreads(1680): "af thread exit"
+I: _ISP_PIPELINE_DeinitThreads(1684): "capture thread exit"
 I: cpp_client_fsm_fn_working(237): "wait for flush, event ident 0x00000000"
 I: cpp_client_fsm_fn_working(243): "flush complete"
 I: cam_cpp_stop_grp(527): "CPP0: cam_cpp_stop_grp X"
-I: single_pipeline_online_test(1487): "sensor stream off"
+I: single_pipeline_online_test(1513): "sensor stream off"
 I: VI_HAL_SmartSwitchTopologyWithoutApply(2069): "detach current topology(online_offline)"
 I: SetupTopologyPipelineLinks(1409): "disable link(sensor0==>csi0_main)"
 I: SetupTopologyPipelineLinks(1409): "disable link(csi0_main==>rawdump0)"
@@ -1444,6 +1458,7 @@ I: SetupTopologyPipelineLinks(1409): "disable link(dwt1_layer2==>aout3)"
 I: SetupTopologyPipelineLinks(1409): "disable link(dwt1_layer3==>aout4)"
 I: SetupTopologyPipelineLinks(1409): "disable link(dwt1_layer4==>aout5)"
 I: cam_cpp_destroy_grp(478): "CPP0: cam_cpp_destroy_grp: X"
-I: single_pipeline_online_test(1549): "test end"
+I: single_pipeline_online_test(1577): "test end"
+
 
 ```
