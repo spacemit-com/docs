@@ -29,10 +29,13 @@ I: auto_detect_camera(1401): "auto detect sensor ===================== finish "
 I: update_json_file(672): "save json to /usr/share/camera_json/csi1_camera_auto.json success"
 ```
 从上述运行log还可以得出，ov16a10 sensor生成的json默认使用模式0，sensor输出分辨率为3840x2160，isp输出分辨率为1920x1080。json配置文件的更多描述，请参阅下文的JSON 参数说明。
+
 2. 运行下列命令，启动摄像头出图500帧，并保存第250帧。正常运行的输出log请参阅 正常运行单路在线测试 log章节。如果运行失败，建议请求进迭工程师提供支持。
 ```
 cam-test /usr/share/camera_json/csi1_camera_auto.json
 ```
+3. 如果摄像头需要实现屏幕预览，可以参考gstreamer_user_guide文档里的摄像头应用章节里的MIPI摄像头说明。
+
 
 * **点亮一款新的摄像头，通常仅需要调整 cam-test 应用层的代码即可快速支持上，所有camera相关的内核配置，dts不用修改。**
 
