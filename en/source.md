@@ -63,14 +63,14 @@ CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-Download the latest 2.0 code:
+Download the latest 2.1 code:
 
 ```shell
-mkdir ~/bianbu-linux-2.0
-cd ~/bianbu-linux-2.0
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v2.0.y.xml
+mkdir ~/bianbu-linux-2.1
+cd ~/bianbu-linux-2.1
+repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.1.y.xml
 repo sync
-repo start bl-v2.0.y --all
+repo start k1-bl-v2.1.y --all
 ```
 
 It is recommended to download the third-party software packages required by buildroot in advance and distribute them within the team to avoid network congestion on the main server.

@@ -62,14 +62,14 @@ CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-3. 下载最新2.0代码：
+3. 下载最新2.1代码：
 
 ```shell
-mkdir ~/bianbu-linux-2.0
-cd ~/bianbu-linux-2.0
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m bl-v2.0.y.xml
+mkdir ~/bianbu-linux-2.1
+cd ~/bianbu-linux-2.1
+repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.1.y.xml
 repo sync
-repo start bl-v2.0.y --all
+repo start k1-bl-v2.1.y --all
 ```
 
 推荐提前下载buildroot依赖的第三方软件包，并在团队内部分发，避免主服务器网络拥塞。
