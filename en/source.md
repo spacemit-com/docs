@@ -38,11 +38,13 @@ sudo pip3 install pyyaml
 
 ## Download
 
-1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys，because of Bianbu Linux code is hosted on Gitee.
+### Preparation
 
-2. Use repo --version to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+Bianbu Linux code is hosted on Gitee and consists of several repositories managed by repo. Before downloading, you need to:
 
-If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
+
+2. Use `repo --version` to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
 
 ```shell
 repo --version
@@ -63,7 +65,21 @@ CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-Download the latest 2.1 code:
+If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+
+### Version Branches
+
+The main branch of the [manifests](https://gitee.com/bianbu-linux/manifests) repository defines the manifest.xml files for different versions. The xml files specify the paths and branches of each repository.
+
+| Version | manifest.xml | Branch |
+| ------- | ------------- | ------ |
+| v1.0    | bl-v1.0.y.xml | bl-v1.0.y |
+| v2.0    | bl-v2.0.y.xml | bl-v2.0.y |
+| v2.1    | k1-bl-v2.1.y.xml | k1-bl-v2.1.y |
+
+### Download Code
+
+For example, to download the code for version 2.1:
 
 ```shell
 mkdir ~/bianbu-linux-2.1
@@ -73,7 +89,9 @@ repo sync
 repo start k1-bl-v2.1.y --all
 ```
 
-It is recommended to download the third-party software packages required by buildroot in advance and distribute them within the team to avoid network congestion on the main server.
+To download other branches, specify a different manifest.xml using the `-m` option.
+
+After downloading the source code, It is recommended to download the third-party software packages required by buildroot in advance and distribute them within the team to avoid network congestion on the main server.
 
 ```shell
 wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl

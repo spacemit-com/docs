@@ -38,10 +38,13 @@ sudo pip3 install pyyaml
 
 ## 下载
 
-1. 下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys，因为Bianbu Linux代码托管在Gitee上。
+### 准备工作
 
-2. 使用repo --version确认版本和repo源，要求repo（版本 >= 2.41）和tsinghua源下载完整SDK，否则下载过程会异常。
-如果不满足版本要求或者非tsinghua源，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+Bianbu Linux代码托管在 Gitee 上，包含若干个仓库，使用 repo 管理，下载前需：
+
+1. 下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
+
+2. 使用 `repo --version` 确认版本和repo源，要求repo（版本 >= 2.41）和tsinghua源下载完整SDK，否则下载过程会异常。
 
 ```shell
 repo --version
@@ -62,7 +65,21 @@ CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-3. 下载最新2.1代码：
+如果不满足版本要求或者非tsinghua源，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+
+### 版本分支
+
+[manifests](https://gitee.com/bianbu-linux/manifests) 仓库的 main 分支定义了不同版本的 manifest.xml，xml 文件指定了各仓库的路径和分支。
+
+| 版本 | manifest.xml | 分支 |
+| ---- | ------------- | ------------ |
+| v1.0 | bl-v1.0.y.xml | bl-v1.0.y    |
+| v2.0 | bl-v2.0.y.xml | bl-v2.0.y    |
+| v2.1 | k1-bl-v2.1.y.xml | k1-bl-v2.1.y |
+
+### 下载代码
+
+例如下载 2.1 版本的代码：
 
 ```shell
 mkdir ~/bianbu-linux-2.1
@@ -72,7 +89,9 @@ repo sync
 repo start k1-bl-v2.1.y --all
 ```
 
-推荐提前下载buildroot依赖的第三方软件包，并在团队内部分发，避免主服务器网络拥塞。
+如需下载其他分支，通过 `-m` 指定不同的 manifest.xml 即可。
+
+下载完源码，推荐提前下载buildroot依赖的第三方软件包，并在团队内部分发，避免主服务器网络拥塞。
 
 ```shell
 wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
