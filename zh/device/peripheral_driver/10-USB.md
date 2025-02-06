@@ -249,7 +249,7 @@ USB2.0 OTG支持4种配置模式，通常情况下配置为**以Device Only模�
 
 USB2.0 OTG 控制器 device 模式对应的设备树节点为 `udc`，作为 device 模式工作时，需要配置 dts
 
-1. disable `ehci`节点。
+1. disable `ehci`节点，`otg`节点。
 2. enable `usbphy`节点。
 3. udc节点的 `spacemit,udc-mode` 属性为 `MV_USB_MODE_UDC` 来选择 device 模式。
 
@@ -266,13 +266,16 @@ USB2.0 OTG 控制器 device 模式对应的设备树节点为 `udc`，作为 dev
 &ehci { 
         status = "disabled";
 };
+&otg {
+        status = "disabled";
+};
 ```
 
 ##### 以Host Only模式工作
 
 USB2.0 OTG 控制器 host 模式对应的设备树节点为 `ehci`，作为 host 模式工作时，可以通过 dts 配置:
 
-1. disable `udc` 节点。
+1. disable `udc` 节点，`otg`节点。
 2. `ehci`节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
 3. 如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
 4. 可选属性`spacemit,reset-on-resume`，用于控制系统休眠唤醒后是否reset控制器。
@@ -288,6 +291,9 @@ USB2.0 OTG 控制器 host 模式对应的设备树节点为 `ehci`，作为 host
         spacemit,reset-on-resume;
         spacemit,udc-mode = <MV_USB_MODE_HOST>;
         status = "okay";
+};
+&otg {
+        status = "disabled";
 };
 ```
 
@@ -585,6 +591,29 @@ echo device > /sys/kernel/debug/usb/c0a00000.dwc3/mode
 以上是支持手动切换控制器角色的配置说明，如果需要支持自动检测 otg 的功能需要配置额外的检测芯片驱动，参考内核文档extcon、typec、usb-connector相关内容。
 
 如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
+
+对于 usb3.0 device 的使用场景，建议role-switch 上报源（如typec驱动）遵守检测到 device disconnect 时（通常为检测到 vbus 断开，typec则检测到detach）上报 `USB_ROLE_NONE` 状态，并且在设备树节点为 dwc3@c0a00000 启用 `monitor-vbus` 属性，
+配置后控制器将依赖 `USB_ROLE_NONE` 状态做断开检测进行软件重置，得到更好的兼容性，基于typec上报参考内核typec文档。
+基于GPIO上报的示例如下：
+
+```c
+&usbdrd3 {
+dwc3@c0a00000 {
+        dr_mode = "otg";
+        .... 其他参数省略，请参照上面的配置
+        monitor-vbus;
+        usb-role-switch;
+        role-switch-default-mode = "peripheral";
+        connector {
+                /* Report vbus connection state from MCU */
+                compatible = "gpio-usb-b-connector", "usb-b-connector";
+                type = "micro";
+                label = "Type-C";
+                vbus-gpios = <&gpio 78 GPIO_ACTIVE_HIGH>;
+        };
+};
+};
+```
 
 ##### USB休眠唤醒
 
