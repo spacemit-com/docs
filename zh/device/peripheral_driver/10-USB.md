@@ -615,6 +615,41 @@ dwc3@c0a00000 {
 };
 ```
 
+
+##### 以High-Speed Only模式工作/与PCIE0共同工作
+USB3.0 DRD控制器物理上有两个 Port，其中 USB2.0 Port记为USB2、SuperSpeed Port记为USB3。
+
+且SuperSpeed Port PHY与PCIE0共用，因此启用USB3.0 DRD且需要SuperSpeed 5Gbps支持时，无法使用PCIE0；仅支持 USB2 Port(480Mbps) 和 PCIE0 共用。
+
+对于方案设计需要拆开USB2硬件网络和USB3/PCIE0硬件网络,
+可以对dts做如下修改：
+
+删除usbdrd3节点的phys和phy-names属性，
+启用dwc3@c0a00000节点的maximum-speed属性并配置为high-speed，
+这样会限制USB3.0 DRD控制器只启用其USB2 Port。
+
+方案dts配置示例如下：
+```c
+&usbdrd3 {
+        status = "okay";
+        ......(其他配置见上文)
+        /* Do not init PIPE3 phy for PCIE0 */
+        /delete-property/ phys;
+        /delete-property/ phy-names;
+        dwc3@c0a00000 {
+                maximum-speed = "high-speed";  
+                ......（其他配置见上文）
+        };
+};
+
+&pcie0_rc {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_pcie0_2>;
+        status = "okay";
+};
+```
+
+
 ##### USB休眠唤醒
 
 K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
