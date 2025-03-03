@@ -44,52 +44,102 @@ drivers\net\ethernet\spacemit
 
 |  | 单网卡单工 | 单网卡双工 | 双网卡单工 | 双网卡双工 |
 | :---: | :---: | :---: | :---: | :---: |
-| TX速率 (MB/s) | 942 | 658 | 468 | 298 |
-| RX速率 (MB/s) | 941 | 661 | 464 | 326 |
+| TX速率 (MB/s) | 942 | 930 | 942 | 797 |
+| RX速率 (MB/s) | 941 | 940 | 941 | 881 |
+注：双工情形下测试带宽具有一定波动    
+
+### 性能测试
+测试物料：一块k1-deb1板；一台PC，型号：HP ProBook 450 15.6 inch G10 Notebook PC、系统：Ubuntu 22.04.4 LTS    
+
+网络拓扑：k1-deb1 eth0口与PC以太网口直连；k1-deb1 eth1口经2.5G usb转以太网连接器与PC直连  
+
+测试环境：直连网口IP设置在同一个网段，PC端开启两个iperf服务端
+```
+# Set IP for the PC
+ifconfig <ethernet-interface> 192.168.1.100 netmask 255.255.255.0
+ifconfig <usb-ethernet-interface> 192.168.2.100 netmask 255.255.255.0
+
+# Set IP for the k1-deb1 net device
+ifconfig eth0 192.168.1.200 netmask 255.255.255.0
+ifconfig eth1 192.168.2.200 netmask 255.255.255.0
+
+# Start iperf3 server on the PC
+iperf3 -s -B 192.168.1.100 -A 10 -D
+iperf3 -s -B 192.168.2.100 -A 11 -D
+```
+为达到最佳网络性能，对k1-deb1板双网口中断绑定至不同cpu核  
+ ```
+# Get interrupt information
+ # cat /proc/interrupts | grep eth*
+ 85:      11041    2332003          0          0          0          0          0          0  SiFive PLIC 131 Edge      eth0
+ 86:        234          0     409744          0          0          0          0          0  SiFive PLIC 133 Edge      eth1
+
+# Bind eth0 to CPU1, bind eth1 to CPU2 
+echo 02 > /proc/irq/85/smp_affinity
+echo 04 > /proc/irq/86/smp_affinity
+
+# RPS configuration, set CPU4 to handle eth0 packets
+echo 10 > /sys/devices/platform/soc/cac80000.ethernet/net/eth0/queues/rx-0/rps_cpus
+echo 4096 > /sys/devices/platform/soc/cac80000.ethernet/net/eth0/queues/rx-0/rps_flow_cnt
+
+# RPS configuration, set CPU5 to handle eth1 packets
+echo 20 > /sys/devices/platform/soc/cac81000.ethernet/net/eth1/queues/rx-0/rps_cpus
+echo 4096 > /sys/devices/platform/soc/cac81000.ethernet/net/eth1/queues/rx-0/rps_flow_cnt
+ ```
 
 #### 单网卡测试
 
-两块k1-deb1板子，记作机器A和机器B，其eth0口用网线直连，并将IP地址设置在同一网段，例如：
-
-```
-#机器A
-ifconfig eth0 192.168.0.1 netmask 255.255.255.0
-#机器B
-ifconfig eth1 192.168.0.2 netmask 255.255.255.0
-```
-
-确保互相能够ping通后方可进行下面的测试
-
 ##### 单工/TX
+使用eth0口进行单网卡测试
 
 ```
-#机器A
-iperf3 -s -A 1 -D -B 192.168.0.1 
-#机器B
-iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 
+iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 6
 ```
 
 ##### 单工/RX
 
 ```
-#机器A
-iperf3 -s -A 1 -D -B 192.168.0.1 
-#机器B
-iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 -R
+iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 6 -R
 ```
 
 ##### 双工
 
 ```
-#机器A
-iperf3 -s -A 1 -D -B 192.168.0.1 
-#机器B
-iperf3 -c 192.168.0.1 -A 2 -t 30 -B 192.168.0.2 --bidir
+iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 6 --bidir
 ```
 
 #### 双网卡测试
+##### 单工/TX
 
-两块k1-deb1板子eth0、eth1口均用网线直连，重复上述测试
+```
+# Bind CPU6 for the first test, bind CPU7 for the second test
+iperf3 -c 192.168.2.100 -B 192.168.2.200 -t 100 -A 6 > 1.txt &
+iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 7 > 2.txt &
+
+# View the test results
+cat 1.txt
+cat 2.txt
+```
+
+##### 单工/RX
+
+```
+iperf3 -c 192.168.2.100 -B 192.168.2.200 -t 100 -A 6 -R > 1.txt &
+iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 7 -R > 2.txt &
+
+cat 1.txt
+cat 2.txt
+```
+
+##### 双工
+
+```
+iperf3 -c 192.168.2.100 -B 192.168.2.200 -t 100 -A 6 --bidir > 1.txt &
+iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 7 --bidir > 2.txt &
+
+cat 1.txt
+cat 2.txt
+```
 
 ## 配置介绍
 
