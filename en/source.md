@@ -123,7 +123,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## Cross Compilation
 
-### Bianbu Linux 2.0 First Complete Compilation
+### Bianbu Linux 2.x First Complete Compilation
 
 For the first compilation, it is recommended to use `make envconfig` for a complete build.
 
@@ -135,19 +135,18 @@ In other cases, use `make` to compile.
 cd ~/bianbu-linux
 make envconfig
 Available configs in buildroot-ext/configs/:
-  1. spacemit_k1_defconfig
-  2. spacemit_k1_upstream_defconfig
-  3. spacemit_k1_minimal_defconfig
-  4. spacemit_k1_plt_defconfig
-  5. spacemit_k1_rt_defconfig
-  6. spacemit_k1_v2_defconfig
+  1. spacemit_k1_upstream_defconfig
+  2. spacemit_k1_minimal_defconfig
+  3. spacemit_k1_plt_defconfig
+  4. spacemit_k1_rt_defconfig
+  5. spacemit_k1_v2_defconfig
 
 
-your choice (1-6): 
+your choice (1-5): 
 
 ```
 
-To compile Bianbu Linux 2.0 version, enter `6` and press Enter to start compiling.
+To compile Bianbu Linux 2.x version, enter `5` and press Enter to start compiling.
 
 The compilation process may require downloading some third-party software packages, and the time required depends on the network environment. If you have downloaded the third-party software packages required by buildroot in advance, the recommended hardware configuration compilation time is about 1 hour.
 
