@@ -43,15 +43,15 @@ cam-test /usr/share/camera_json/csi1_camera_auto.json
 
 如果不考虑特殊情况，点亮一款新摄像头，建议按照以下步骤展开：
 
-1. 根据当前摄像头型号，复用列表中已支持的相近型号的应用代码（主要是复用摄像头应用的代码结构排布，减少开发工作量），修改函数名称，结构体名称等为当前摄像头型号，详情参阅 [4.4 bring up 章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#WyFfdSraRon43ox45NrcJNkLn0c)。
-2. 阅读摄像头的数据手册，确定摄像头的寄存器位数，I2C 地址，上电流程，ID 寄存器以及 ID 值，并修改 sensor 应用代码，其中，上电流程可以参阅 [3.4 sensor 驱动章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#FDqvd68hQo5zwZxTDVTclr26nTg).
+1. 根据当前摄像头型号，复用列表中已支持的相近型号的应用代码（主要是复用摄像头应用的代码结构排布，减少开发工作量），修改函数名称，结构体名称等为当前摄像头型号，详情参阅 **bring up 章节内容**。
+2. 阅读摄像头的数据手册，确定摄像头的寄存器位数，I2C 地址，上电流程，ID 寄存器以及 ID 值，并修改 sensor 应用代码，其中，上电流程可以参阅 **sensor 驱动章节内容**。
 3. 配置摄像头的 setting tab 寄存器数组，并根据原厂提供的信息，或计算出来的数值，确定配置所使用的 lane 数/HTS/VTS/MCLK/FPS/PCLK/分辨率/data Lane 等信息，并完善函数内容（主要关注 xxx_spm_get_sensor_capbility 和 xxx_spm_get_sensor_work_info 函数）。
 4. 调整 xxx_sensor.c 源文件中使用到的曝光增益等寄存器地址。
 5. 尝试上电读 ID 测试，如果读 ID 失败，请重新检查步骤 1。
-6. 尝试出图测试，出图测试可以选用 single online test，详情参阅 [5.3 场景介绍章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#WP0wdBFKcomb5bxp5BkcLjbMndb)。如果出图失败，可以使用 only viisp case 再测试。如果仍旧失败，请认真检查步骤 3，步骤 4，或寻求工程师协助分析。
-7. Single online test 正常出图的 log，可以参阅 [6.2 章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#EtjKd2NkDofQOSxLWv8cX6KLngd)。
+6. 尝试出图测试，出图测试可以选用 single online test，详情参阅 **场景介绍章节内容**。如果出图失败，可以使用 only viisp case 再测试。如果仍旧失败，请认真检查步骤 3，步骤 4，或寻求工程师协助分析。
+7. Single online test 正常出图的 log，可以参阅 **实操log章节内容**。
 
-备注：关于测试应用以及各个 test 的介绍，可以参阅[第 5 章节](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#BaRbd8qCdoM9W2xMrUJcGGimnSh)内容。
+备注：关于测试应用以及各个 test 的介绍，可以参阅 **场景介绍章节**内容。
 
 另外：
 关于camera模块的规格特性，请参考进迭时空开发者社区的 芯片规格说明书：https://developer.spacemit.com/documentation?token=BWbGwbx7liGW21kq9lucSA6Vnpb#part779
@@ -1067,7 +1067,7 @@ k1x-cam 的测试程序集中主要包含下面几个测试程序：
 命令：cam-test demo/cfgs/1/camtest_main_aux.json
 ```
 
-**JSON 参数说明，以 sdktest_main_aux.json 为例进行说明：**
+**JSON 参数说明，以 camtest_main_aux.json 为例进行说明：**
 
 ```bash
 {
