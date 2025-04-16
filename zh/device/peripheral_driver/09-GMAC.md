@@ -45,15 +45,16 @@ drivers\net\ethernet\spacemit
 |  | 单网卡单工 | 单网卡双工 | 双网卡单工 | 双网卡双工 |
 | :---: | :---: | :---: | :---: | :---: |
 | TX速率 (MB/s) | 942 | 930 | 942 | 797 |
-| RX速率 (MB/s) | 941 | 940 | 941 | 881 |
+| RX速率 (MB/s) | 941 | 940 | 941 | 881 |  
 注：双工情形下测试带宽具有一定波动    
 
 ### 性能测试
+#### 测试环境
 测试物料：一块k1-deb1板；一台PC，型号：HP ProBook 450 15.6 inch G10 Notebook PC、系统：Ubuntu 22.04.4 LTS    
 
 网络拓扑：k1-deb1 eth0口与PC以太网口直连；k1-deb1 eth1口经2.5G usb转以太网连接器与PC直连  
 
-测试环境：直连网口IP设置在同一个网段，PC端开启两个iperf服务端
+IP设置：直连网口IP设置在同一个网段，PC端开启两个iperf服务端
 ```
 # Set IP for the PC
 ifconfig <ethernet-interface> 192.168.1.100 netmask 255.255.255.0
@@ -67,30 +68,33 @@ ifconfig eth1 192.168.2.200 netmask 255.255.255.0
 iperf3 -s -B 192.168.1.100 -A 10 -D
 iperf3 -s -B 192.168.2.100 -A 11 -D
 ```
-为达到最佳网络性能，对k1-deb1板双网口中断绑定至不同cpu核  
+#### 性能优化
+为最大化网络吞吐量，在测试前先对k1-deb1板网口中断进行合理的CPU绑定和分配，以充分利用多核资源
+
+第一步：通过以下命令查看当前中断分配情况，确认两个网卡对应的中断号：
  ```
-# Get interrupt information
- # cat /proc/interrupts | grep eth*
+cat /proc/interrupts | grep eth*
  85:      11041    2332003          0          0          0          0          0          0  SiFive PLIC 131 Edge      eth0
  86:        234          0     409744          0          0          0          0          0  SiFive PLIC 133 Edge      eth1
-
-# Bind eth0 to CPU1, bind eth1 to CPU2 
+ ```
+第二步：将网口硬件中断绑定到不同CPU核，例如eth0绑定至CPU1、eth1绑定至CPU2
+```
 echo 02 > /proc/irq/85/smp_affinity
 echo 04 > /proc/irq/86/smp_affinity
-
-# RPS configuration, set CPU4 to handle eth0 packets
+```
+第三步：启用 RPS（Receive Packet Steering）进行接收端的软中断负载均衡。例如下面命令允许CPU4处理eth0上接收数据包、CPU5处理eth1接收数据包，充分利用多核优势。
+```
 echo 10 > /sys/devices/platform/soc/cac80000.ethernet/net/eth0/queues/rx-0/rps_cpus
 echo 4096 > /sys/devices/platform/soc/cac80000.ethernet/net/eth0/queues/rx-0/rps_flow_cnt
 
-# RPS configuration, set CPU5 to handle eth1 packets
 echo 20 > /sys/devices/platform/soc/cac81000.ethernet/net/eth1/queues/rx-0/rps_cpus
 echo 4096 > /sys/devices/platform/soc/cac81000.ethernet/net/eth1/queues/rx-0/rps_flow_cnt
  ```
 
 #### 单网卡测试
+使用eth0口进行单网卡测试，并将当前iperf3进程绑定到CPU6
 
 ##### 单工/TX
-使用eth0口进行单网卡测试
 
 ```
 iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 6
@@ -109,6 +113,7 @@ iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 6 --bidir
 ```
 
 #### 双网卡测试
+双网卡测试中将两个iperf3进程分别绑定到CPU6、CPU7
 ##### 单工/TX
 
 ```

@@ -49,7 +49,7 @@ spi 设备驱动
 
 #### 通信频率
 
-最高频率支持53MHz, 最低频率支持6.3kbps
+通讯频率只支持51.2M/25.6M/12.8M/6.4M/3.2M/1.6M/200k/1M
 
 #### 通信倍速
 
@@ -113,12 +113,12 @@ qspi 通信倍速支持 x1。
         pinctrl-0 = <&pinctrl_ssp3_0>;
         k1x,ssp-disable-dma;
         status = "okay";
-        k1x,ssp-clock-rate = <26000000>;
+        k1x,ssp-clock-rate = <25600000>;
 
         flash@0 {
                 compatible = "jedec,spi-nor";
                 reg = <0>;
-                spi-max-frequency = <26000000>;
+                spi-max-frequency = <25600000>;
                 m25p,fast-read;
                 broken-flash-reset;
                 status = "okay";
