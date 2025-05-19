@@ -104,13 +104,13 @@ dts完整配置，如下所示
 ```dts
 /*can0*/
 &flexcan0 {
- pinctrl-names = "default";
- pinctrl-0 = <&pinctrl_can_0>;
- clock-frequency = <80000000>;
- status = "okay";
+	 pinctrl-names = "default";
+	 pinctrl-0 = <&pinctrl_can_0>;
+	 clock-frequency = <80000000>;
+	 status = "okay";
 };
 
-/*can1*/
+/*rcan*/
 &r_flexcan {
        pinctrl-names = "default";
        clock-frequency = <80000000>;
@@ -144,15 +144,34 @@ can设备开始传输时调用
 
 ## Debug介绍
 
-测试方法详情见测试介绍章节
+
+1.查看can设备是否加载成功  
+ifconfig -a
+
+2.k1配置can的仲裁域和数据域波特率  
+ip link set can0 type can bitrate 125000 dbitrate 250000 berr-reporting on fd on  
+
+3.打开can设备(同时另一端准备接收)  
+ip link set can0 up  
+
+4.k1端发送报文  
+cansend格式：cansend can-dev id#data  
+eg：cansend can0 123##3.11223344556677881122334455667788aabbccdd  
+
+5.k1端接收报文(另一端发送)  
+candump can0
 
 ## 测试介绍
 
-基于k1平台可以外接can收发器进行测试，通讯的另一端一般选择USBCAN分析仪连接电脑模拟can设备，由于通信的另一端设备和用法不确定，这里主要介绍k1段的测试用法。以下将以MUSE Pi开发板为例，基于bianbu-linux系统做demo演示，dts配置请参考dts配置示例章节。
+基于k1平台可以外接can收发器进行测试，通讯的另一端一般选择USBCAN分析仪连接电脑模拟can设备，由于通信的另一端设备和用法不确定，这里主要介绍k1 的测试用法。以下将以MUSE Pi开发板为例，基于bianbu-linux系统做demo演示，dts配置请参考dts配置示例章节。
 
 - 基于MUSE Pi连接can设备
+
 ![alt text](static/can_image_1.png)
-pin脚方向如图所示，从上往下的绿色箭头，分别rcan tx(gpio75, 26 pin接口的23pin)、rcan rx(gpio 76,26 pin接口的24pin)。can0 tx(gpio47, 26 pin接口的8pin)、can0 rx(gpio48, 26 pin接口的10pin)
+
+pin脚方向如上图所示，从上往下的绿色箭头，分别为
+rcan tx(gpio47, 26 pin接口的8pin)、rcan rx(gpio48, 26 pin接口的10pin);
+can0 tx(gpio75, 26 pin接口的23pin)、can0 rx(gpio 76,26 pin接口的24pin)
 
 - pc端安装can软件，以及接入pc can(可以接入两个can外设相互收发)。本次使用的是PEAK的PC can，[PEAK官网](https://www.peak-system.com)
 下图所示为rcan的接线，can0的接线类似。

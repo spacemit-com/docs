@@ -1,10 +1,10 @@
 # EtherCAT
 
-介绍 EtherCAT 主站驱动的功能和使用方法。
+介绍 EtherCAT 主站功能和使用方法。
 
 ## 模块介绍
 
-EtherCAT 主站模块是一个高性能实时通信内核模块，支持总线自动扫描、分布式时钟同步和多从设备高效管理，适用于工业自动化领域。
+IGH EtherCAT 主站是一个用于高性能实时通信的内核模块，支持从站扫描、配置管理、分布式时钟同步等功能，能够高效调度和管理多个从站设备，广泛应用于工业自动化等对实时性与可靠性要求较高的应用场景。
 
 ### 功能介绍
 
@@ -22,50 +22,49 @@ EtherCAT主站驱动代码在drivers/net/ethercat目录下：
 
 ```c
 # 代码中出现大量配对的xxx.h + xxx.c文件，前者负责数据结构和接口定义，后者负责实现
-# 为了避免文件功能重复描述，我们仅对其中一者加以注释
-.
+
 ├── device                     # EtherCAT device driver
 │   ├── ecdev.h                
-│   ├── ec_generic.c           # 通用网络设备驱动实现
-│   ├── ec_k1x_emac.c          # 针对 K1 以太网控制器的专用驱动实现
+│   ├── ec_generic.c           # 通用网络设备驱动
+│   ├── ec_k1x_emac.c          # 针对 K1 以太网控制器的实时网卡驱动
 │   ├── ec_k1x_emac.h          
-│   ├── Kconfig                # 定义内核配置选项，下同                
-│   └── Makefile               # 管理本目录下编译规则，下同
+│   ├── Kconfig               
+│   └── Makefile
 ├── include                   
-│   ├── config.h               # 全局配置选项和编译宏定义
-│   ├── ecrt.h                 # 提供用户态和内核态之间交互的核心接口
+│   ├── config.h               # 全局配置项和宏定义
+│   ├── ecrt.h                 # 用户程序接口
 │   ├── ectty.h                
 │   └── globals.h              # 全局变量
 ├── Kconfig                  
 ├── Makefile                  
 └── master                
-    ├── cdev.c                 # 实现字符设备接口
+    ├── cdev.c                 # 提供EtherCAT字符设备初始化接口
     ├── cdev.h                 
-    ├── coe_emerg_ring.c       # 处理 CoE 紧急消息
+    ├── coe_emerg_ring.c       # 提供处理 CoE 紧急消息接口
     ├── coe_emerg_ring.h       
-    ├── datagram.c             # 实现操作 ECAT 数据报接口
+    ├── datagram.c             # 提供构造 ECAT 数据报接口
     ├── datagram.h             
-    ├── datagram_pair.c        # 提供操作 ECAT 数据报对的接口
+    ├── datagram_pair.c        # 提供构造 ECAT 数据报对的接口
     ├── datagram_pair.h        
-    ├── debug.c                # 提供调试信息的输出功能
+    ├── debug.c                # 提供调试接口
     ├── debug.h                
-    ├── device.c               # 为主站提供网卡设备抽象及管理设备的接口
+    ├── device.c               # 提供网卡设备抽象及管理设备的接口
     ├── device.h               
-    ├── domain.c               # 提供管理和操作 EtherCAT 域的接口
+    ├── domain.c               # 提供 EtherCAT domain 相关接口
     ├── domain.h               
-    ├── doxygen.c              # 生成 Doxygen 文档的辅助文件
-    ├── eoe_request.c          # 处理 EoE（Ethernet over EtherCAT）请求
+    ├── doxygen.c
+    ├── eoe_request.c
     ├── eoe_request.h          
-    ├── ethernet.c             # 以太网帧的管理与封装
+    ├── ethernet.c             # 实现EOE功能的核心文件
     ├── ethernet.h             
-    ├── flag.c                 # 管理和操作协议标志位
+    ├── flag.c
     ├── flag.h                 
-    ├── fmmu_config.c          # 提供配置 FMMU（场可编程映射单元）接口
+    ├── fmmu_config.c          # 提供构造 FMMU 配置报文接口
     ├── fmmu_config.h          
     ├── foe.h                  
-    ├── foe_request.c          # 实现 FoE 请求处理
+    ├── foe_request.c          # FoE 请求处理接口
     ├── foe_request.h          
-    ├── fsm_change.c           # 状态变更状态机实现
+    ├── fsm_change.c           # 状态切换状态机实现
     ├── fsm_change.h           
     ├── fsm_coe.c              # CoE 协议状态机实现
     ├── fsm_coe.h              
@@ -75,13 +74,13 @@ EtherCAT主站驱动代码在drivers/net/ethercat目录下：
     ├── fsm_foe.h              
     ├── fsm_master.c           # 主状态机实现
     ├── fsm_master.h           
-    ├── fsm_pdo.c              # PDO 读取状态机实现
-    ├── fsm_pdo_entry.c        # PDO 条目读取状态机实现
+    ├── fsm_pdo.c              # PDO 读写状态机实现
+    ├── fsm_pdo_entry.c        # PDO 条目读写状态机实现
     ├── fsm_pdo_entry.h        
     ├── fsm_pdo.h              
-    ├── fsm_sii.c              # 从站信息接口（SII）读写状态机实现
+    ├── fsm_sii.c              # 从站信息接口读写状态机实现
     ├── fsm_sii.h              
-    ├── fsm_slave.c            # 从站管理状态机实现
+    ├── fsm_slave.c            # 从状态机实现
     ├── fsm_slave_config.c     # 从站配置状态机实现
     ├── fsm_slave_config.h     
     ├── fsm_slave.h            
@@ -93,47 +92,45 @@ EtherCAT主站驱动代码在drivers/net/ethercat目录下：
     ├── ioctl.c                # 提供 IOCTL 接口以支持用户态交互
     ├── ioctl.h               
     ├── Kconfig                
-    ├── mailbox.c              # ECAT 邮箱管理
+    ├── mailbox.c              # ECAT 邮箱报文接口
     ├── mailbox.h              
     ├── Makefile               
-    ├── master.c               # master 模块核心逻辑
+    ├── master.c               # 主站模块核心逻辑
     ├── master.h               
-    ├── module.c               # master 模块的初始化和清理
-    ├── pdo.c                  # 提供 PDO 管理接口
-    ├── pdo_entry.c            # 提供 PDO 条目管理接口
+    ├── module.c               # 主站模块的初始化和清理
+    ├── pdo.c                  # PDO 管理接口
+    ├── pdo_entry.c            # PDO 条目管理接口
     ├── pdo_entry.h            
     ├── pdo.h                  
-    ├── pdo_list.c             # 提供 PDO 链表管理方法
+    ├── pdo_list.c             # PDO 链表管理接口
     ├── pdo_list.h             
-    ├── reg_request.c          # 实现寄存器请求处理
+    ├── reg_request.c          # 从站寄存器读写请求接口 
     ├── reg_request.h          
-    ├── rtdm.c                 # 实时驱动模型（RTDM）支持
+    ├── rtdm.c                 # RTDM 支持
     ├── rtdm_details.h         
     ├── rtdm.h                 
     ├── rtdm-ioctl.c           # RTDM IOCTL 接口实现
     ├── rtdm_xenomai_v3.c      # 支持 Xenomai v3 实时框架的接口
     ├── rt_locks.h             # 实时锁实现
-    ├── sdo.c                  # 服务数据对象（SDO）管理
+    ├── sdo.c                  # SDO 管理
     ├── sdo_entry.c            # SDO 条目管理
     ├── sdo_entry.h            
     ├── sdo.h                  
-    ├── sdo_request.c          # SDO 请求处理逻辑
+    ├── sdo_request.c          # SDO 请求
     ├── sdo_request.h          
     ├── slave.c                # 从站状态管理逻辑
-    ├── slave_config.c         # 从站配置实现
+    ├── slave_config.c         # 提供从站配置接口
     ├── slave_config.h         
     ├── slave.h                
-    ├── soe_errors.c           # 处理 SoE 错误
-    ├── soe_request.c          # SoE 请求处理
+    ├── soe_errors.c           # 定义 SoE 协议错误码
+    ├── soe_request.c          # SoE 请求相关接口
     ├── soe_request.h          
-    ├── sync.c                 # 分布式时钟（DC）功能实现
-    ├── sync_config.c          # 同步配置逻辑
+    ├── sync.c                 # 同步管理器相关接口
+    ├── sync_config.c          # 配置同步管理器接口
     ├── sync_config.h          
     ├── sync.h                 
-    ├── voe_handler.c          # 处理 VOE（Vendor-specific over EtherCAT）请求
+    ├── voe_handler.c          # VOE（Vendor-specific over EtherCAT）请求
     └── voe_handler.h          
-
-  
 ```
 
 ## 关键特性
@@ -195,7 +192,7 @@ config EC_K1X_EMAC
 
 ```
 
-注：上面两个配置选项选一个即可
+注：一般启用实时网卡驱动，性能更好
 
 ### dts配置
 
@@ -327,7 +324,7 @@ ec_slave_config_t *ecrt_master_slave_config(ec_master_t *master, uint16_t alias,
 
 ```
 
-为从站配置PDO映射
+配置从站PDO映射
 
 ```c
 int ecrt_slave_config_pdos(ec_slave_config_t *sc, uint16_t sync_index, const ec_sync_info_t *syncs);
@@ -391,5 +388,41 @@ EtherCAT主站信息
 [  966.756564] EtherCAT 0: Slave states on main device: PREOP.
 
 ```
-
+可采用官方给出的demo (源码目录：https://gitlab.com/etherlab.org/ethercat，demo路径：examples/) 对主站进行性能测试，这里以 examples/dc_user/main.c为模板，采用1m dc通讯周期，外接两个从站，开发用例，测试结果如下：
+```c
+period         995099 ...    1004890
+exec            14500 ...     106835
+latency          7227 ...      13169
+period         994556 ...    1005557
+exec            14625 ...     105543
+latency          7409 ...      13805
+period         995306 ...    1004974
+exec            14458 ...     105127
+latency          7269 ...      13205
+period         995390 ...    1004807
+exec            14583 ...     137586
+latency          7284 ...      13893
+period         995265 ...    1005516
+exec            14792 ...     108710
+latency          7460 ...      13658
+period         995598 ...    1004557
+exec            14458 ...     112502
+latency          7299 ...      12821
+period         994807 ...    1005056
+exec            14459 ...     105085
+latency          7428 ...      13340
+period         995390 ...    1005016
+exec            14792 ...     110502
+latency          7230 ...      13237
+period         994432 ...    1007265
+exec            14959 ...     110668
+latency          7199 ...      15479
+period         994848 ...    1004682
+exec            14709 ...     113544
+latency          7630 ...      13930
+```
+注：  
+period行给出的数值是每秒内通讯周期波动范围  
+exec行给出的数值是每秒内主站周期任务执行时间波动范围  
+latency行给出的数值是每秒内主站唤醒误差波动范围   
 ## FAQ
