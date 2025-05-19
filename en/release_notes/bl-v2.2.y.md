@@ -2,7 +2,21 @@
 sidebar_position: 3
 ---
 
-# Bianbu Linux 2.2rc4 Release Notes
+# Bianbu Linux 2.2 Release Notes
+
+## v2.2 release note
+
+Release date: 2025-4-23
+
+Compared to 2.1, 2.2 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+
+### Major Updates
+
+- Added support for printing esos version function
+- Added support for HIDRAW function
+- Fixed the issue of hub initialization timing errors when usb asynchronous stanby
+- Fixed the issue of occasional errors in USB flash
+- Fixed the issue of spi0/spi1 dma transfer erros
 
 ## v2.2rc4 release note
 
