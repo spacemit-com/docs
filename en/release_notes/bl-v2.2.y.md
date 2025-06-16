@@ -22,15 +22,15 @@ Compared to 2.2, 2.2.1 fixes several issues and provides a new kernel branch k1-
 
 ### Major Updates
 
-- Added support Realtek network phy status detection function 
+- Added support for Realtek network phy status detection function 
 - Added support for drm yuv444 format
-- Added support standard v4l2 via shared dmabuf 
+- Added support for standard v4l2 via shared dmabuf 
 - Added support for spi high frequency clock phase calibration 
-- Fix the out-of-bounds issue caused by v2d dmabuf memory exceeding 4GB
-- Fix the issue that the baud rate setting fails in some scenarios of UART 
-- Fix the issue of chromium crashing on the bianbu cloud platform 
-- Fix the issue that rtl8852bs wifi iperf scenario runs away
-- Fix the abnormal data transmission problem during the aic8800 wifi firmware download process
+- Fixed the out-of-bounds issue caused by v2d dmabuf memory exceeding 4GB
+- Fixed the issue that the baud rate setting fails in some scenarios of UART 
+- Fixed the issue of chromium crashing on the bianbu cloud platform 
+- Fixed the issue that rtl8852bs wifi iperf scenario runs away
+- Fixed the abnormal data transmission problem during the aic8800 wifi firmware download process
 
 ## v2.2 release note
 
