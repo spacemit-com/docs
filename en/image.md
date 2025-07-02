@@ -12,4 +12,4 @@ Image URL: [bianbu-linux](https://archive.spacemit.com/image/k1/version/bianbu-l
 
 ## Flashing
 
-Refer to the [Flashing Tool User Manual](https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d) for flashing via Titan Flasher.
+Refer to the [Flashing Tool User Manual](https://developer.spacemit.com/documentation?token=B9JCwRM7RiBapHku6NfcPCstnqh) for flashing via Titan Flasher.

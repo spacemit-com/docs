@@ -10,7 +10,7 @@ Audio模块包含2个I2S，1个HDMIAUDIO。
 
 ![](static/AUDIO.png)
 
-ALSA音频框架可以分为以下几个层次：  
+ALSA音频框架可以分为以下几个层次：
 
 - ALSA Library  
 对应用程序提供统一的API接口，各个APP应用程序只要调用 alsa-lib 提供的 API接口来实现放音、录音、控制。现在提供了两套基本的库，tinyalsa是一个简化的alsa-lib库，Android系统主要使用
@@ -368,7 +368,7 @@ Device Drivers
 
 可以通过/proc/asound/下的节点进行debug
 
-- 查看声卡设备
+### 查看声卡设备
 
 ```
 root:/# cat /proc/asound/pcm
@@ -377,8 +377,18 @@ root:/# cat /proc/asound/pcm
 root:/#
 ```
 
-- 查看声卡状态等信息
+### 查看声卡状态等信息
 
+- ClOSED，声卡处于关闭状态
+```
+root:/# cat /proc/asound/card1/pcm0p/sub0/status
+closed
+root:/# cat /proc/asound/card1/pcm0p/sub0/hw_params
+closed
+root:/#
+```
+
+- RUNNING，声卡处于播放或录制状态，可以查看声卡状态和参数
 ```
 root:/# cat /proc/asound/card1/pcm0p/sub0/status
 state: RUNNING
@@ -415,14 +425,15 @@ root:/#
 
 ## 测试介绍
 
-音频功能可以通过alsa-utils/tinyalsa工具完成功能测试，目前bianbu-linux上已集成alsa-utils工具。
+音频功能可以通过alsa-utils/tinyalsa工具完成功能测试，目前bianbu-linux已集成alsa-utils工具。
 
 ### 播放测试
 
-- 查看playback设备
+#### 查看playback设备
+
+aplay-l //查看播放设备
 
 ```
-//aplay-l查看播放设备，可以看到有两个播放设备
 root:/# aplay -l
 **** PLAYBACK 硬體裝置清單 ****
 card 0: sndhdmi [snd-hdmi], device 0: SSPA2-dummy_codec dummy_codec-0 []
@@ -432,27 +443,30 @@ card 1: sndes8326 [snd-es8326], device 0: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 []
   子设备: 1/1
   子设备 #0: subdevice #0
 root:/#
-//hdmiaudio播放设备，cardid为0，deviceid为0
-//I2S-Codec播放设备，cardid为1，deviceid为0
 ```
+可以看到有两个播放设备：
+hdmiaudio播放设备，cardid为0，deviceid为0
+I2S-Codec播放设备，cardid为1，deviceid为0
 
-- 播放测试  
+#### 播放
+
 选择设备进行播放，通过cardid和deviceid进行指定
 
+例：选择hdmiaudio声卡进行播放
 ```
-//选择hdmiaudio声卡进行播放
-aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.way
-//选择I2S-Codec声卡进行播放
-aplay -Dhw:1,0 -r 48000 -f S16_LE --periopd-size=1024 --buffer-size=4096 xxx.way
-
+aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.wav
+```
+例：选择I2S-Codec声卡进行播放
+```
+aplay -Dhw:1,0 -r 48000 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
 ```
 
 ### 录音测试
 
-- 查看capture设备
+#### 查看capture设备
 
+arecord -l //查看录制设备
 ```
-//arecord-l查看播放设备，可以看到有一个录制设备
 root@spacemit-k1-x-deb1-board:~# arecord -1
 ****
 CAPTURE硬體裝置清單
@@ -461,14 +475,16 @@ card 1: sndes8326 [snd-es8326], device 0: i2s-daai0-ES8326 HiFi ES8326 HiFi-@
 子设备:1/1
 子设备 #0: subdevice #0
 root@spacemit-k1-x-deb1-board:~#
-//I2S-Codec录制设备，cardid为1，deviceid为0
 ```
+可以看到有一个录制设备：
+I2S-Codec录制设备，cardid为1，deviceid为0
 
-- 录音测试  
+#### 录音
+
 选择设备进行录制，通过cardid和deviceid进行指定
 
+例：选择I2S-Codec声卡进行录制
 ```
-//选择I2S-Codec声卡进行录制
 arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
 ```
 

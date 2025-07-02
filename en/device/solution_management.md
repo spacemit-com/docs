@@ -47,7 +47,7 @@ Dracut configuration file, Dracut is a tool for creating initramfs images.
 
 **buildroot-ext/board/spacemit/k1/target_overlay**
 
-As the name suggests, this directory is an overlay for the target directory.
+This directory is an overlay for the target directory.
 
 **buildroot-ext/configs/spacemit_k1_defconfig**
 
@@ -97,7 +97,7 @@ eMMC GPP partition configuration is as follows:
 
 **Note**
 
-- If booting from eMMC, the Boot ROM loads fsbl from the boot0 partition of the eMMC, not the GPP partition. In this case, the fsbl in the GPP partition is invalid.
+- If booting from eMMC, the Boot ROM loads the FSBL from the boot0 partition rather than the GPP partition. The FSBL in the GPP partition is ignored in this case.
 
 ### sdcard Partition Configuration
 
@@ -116,7 +116,7 @@ Partition configuration is as follows:
 
 ### SPINOR + SSD Partition Configuration
 
-For SSD solutions, SPINOR is used for booting. Partitions before bootfs are stored in SPINOR, configured according to the `partitions` array in the `partition_<SPINOR size>.json` file.
+In SSD solutions, SPINOR is used for booting. All partitions before `bootfs` are stored in SPINOR, and configured according to the `partitions` array in the `partition_<SPINOR size>.json` file.
 
 SPINOR partition configuration is as follows:
 
@@ -129,7 +129,7 @@ SPINOR partition configuration is as follows:
 0K        80bytes   128K   384K  448K      640K    Capacity
 ```
 
-bootfs and rootfs are stored in SSD, configured according to the `partitions` array in the partition_universal.json file.
+bootfs and rootfs are stored in SSD, and configured according to the `partitions` array in the partition_universal.json file.
 
 ```
 ------------------------------------------------------------------------------------------

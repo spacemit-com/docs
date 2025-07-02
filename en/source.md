@@ -4,7 +4,7 @@ sidebar_position: 1.5
 
 # Source
 
-This document introduces the development environment, download, and compilation methods for the SDK source code.
+This document provides an overview of the development environment, as well as instructions for downloading and compiling the SDK source code.
 
 ## Development Environment
 
@@ -18,7 +18,7 @@ Recommended configuration:
 
 ### Operating System
 
-Recommended Ubuntu 20.04 or newer LTS version, other Linux distributions have not been tested.
+Ubuntu 20.04 LTS or newer is recommended. Other Linux distributions have not been tested.
 
 ### Install Dependencies
 
@@ -40,11 +40,11 @@ sudo pip3 install pyyaml
 
 ### Preparation
 
-Bianbu Linux code is hosted on Gitee and consists of several repositories managed by repo. Before downloading, you need to:
+The Bianbu Linux code is hosted on Gitee and consists of multiple repositories managed using `repo`. Before downloading, you need to:
 
 1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
 
-2. Use `repo --version` to confirm the version and the repo source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+2. Run `repo --version` to verify the installed version and its source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
 
 ```shell
 repo --version
@@ -65,11 +65,11 @@ CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-If the version requirement is not met or the source is not Tsinghua, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+If the version does not meet the requirement, or if the source is not the Tsinghua mirror, refer to [Git Repo Mirror Usage Help](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
 
 ### Version Branches
 
-The main branch of the [manifests](https://gitee.com/bianbu-linux/manifests) repository defines the manifest.xml files for different versions. The xml files specify the paths and branches of each repository.
+The main branch of the [manifests](https://gitee.com/bianbu-linux/manifests) repository defines the `manifest.xml` files for different versions. The xml files specify the paths and branches of each repository.
 
 | Version | manifest.xml | Branch |
 | ------- | ------------- | ------ |
@@ -90,9 +90,9 @@ repo sync
 repo start k1-bl-v2.2.y --all
 ```
 
-To download other branches, specify a different manifest.xml using the `-m` option.
+To download a different branch, specify another `manifest.xml` file using the `-m` option.
 
-After downloading the source code, It is recommended to download the third-party software packages required by buildroot in advance and distribute them within the team to avoid network congestion on the main server.
+After downloading the source code, it is recommended to download the third-party software packages required by buildroot in advance and distribute them within the team to avoid network congestion on the main server.
 
 ```shell
 wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
@@ -178,9 +178,10 @@ INFO: hdimage(sdcard.img): writing MBR
 Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
 ```
 
-Among them, `bianbu-linux-k1_v2.zip` is suitable for Titan Flasher, or you can unzip it and use fastboot to flash; `bianbu-linux-k1_v2-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
+- `bianbu-linux-k1_v2.zip` is suitable for use with Titan Flasher. Alternatively, you can unzip it and flash it using Fastboot.
+- `bianbu-linux-k1_v2-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
 
-> Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
+> Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/documentation?token=B9JCwRM7RiBapHku6NfcPCstnqh)
 
 The default username for the firmware is `root`, and the password is `bianbu`.
 
@@ -208,7 +209,7 @@ your choice (1-6):
 
 ```
 
-To compile Bianbu PREEMPT_RT Linux 2.0 version, enter `5` ,then press Enter to start compiling, the compile process will apply PREEMPT_RT patch
+To compile Bianbu PREEMPT_RT Linux 2.0 version, enter `5`, then press Enter to start compiling, the compile process will apply PREEMPT_RT patch
 
 ```shell
 buildroot-ext/configs//spacemit_k1_rt_defconfig

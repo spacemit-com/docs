@@ -4,6 +4,34 @@ sidebar_position: 3
 
 # Bianbu Linux 2.2 Release Notes
 
+## v2.2.2 release note
+
+Release date: 2025-5-23
+
+Compared to 2.1.1, 2.2.2 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+
+### Major Updates
+
+- Fixed the issue of the remote login interface crashes during remote access 
+
+## v2.2.1 release note
+
+Release date: 2025-5-15
+
+Compared to 2.2, 2.2.1 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+
+### Major Updates
+
+- Added support for Realtek network phy status detection function 
+- Added support for drm yuv444 format
+- Added support for standard v4l2 via shared dmabuf 
+- Added support for spi high frequency clock phase calibration 
+- Fixed the out-of-bounds issue caused by v2d dmabuf memory exceeding 4GB
+- Fixed the issue that the baud rate setting fails in some scenarios of UART 
+- Fixed the issue of chromium crashing on the bianbu cloud platform 
+- Fixed the issue that rtl8852bs wifi iperf scenario runs away
+- Fixed the abnormal data transmission problem during the aic8800 wifi firmware download process
+
 ## v2.2 release note
 
 Release date: 2025-4-23
