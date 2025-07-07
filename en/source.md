@@ -76,7 +76,7 @@ The main branch of the [manifests](https://gitee.com/bianbu-linux/manifests) rep
 | v1.0    | bl-v1.0.y.xml | bl-v1.0.y |
 | v2.0    | bl-v2.0.y.xml | bl-v2.0.y |
 | v2.1    | k1-bl-v2.1.y.xml | k1-bl-v2.1.y |
-| v2.2rc4    | k1-bl-v2.2.y.xml | k1-bl-v2.2.y |
+| v2.2.4    | k1-bl-v2.2.y.xml | k1-bl-v2.2.y |
 
 ### Download Code
 

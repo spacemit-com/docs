@@ -113,9 +113,11 @@ dts完整配置，如下所示
 /*rcan*/
 &r_flexcan {
        pinctrl-names = "default";
+       pinctrl-0 = <&pinctrl_r_can_0>;
        clock-frequency = <80000000>;
        status = "okay";
-       pinctrl-0 = <&pinctrl_r_can_0>;
+       mboxes = <&mailbox 2>;
+       mbox-names = "mcan0";
 };
 
 ```
