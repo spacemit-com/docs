@@ -8,7 +8,7 @@ sidebar_position: 3
 
 Release date: 2025-6-25
 
-Compared to 2.1.2, 2.2.4 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+Compared to 2.2.2, 2.2.4 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
 
 ### Major Updates
 
