@@ -4,6 +4,25 @@ sidebar_position: 3
 
 # Bianbu Linux 2.2 Release Notes
 
+## v2.2.4 release note
+
+Release date: 2025-6-25
+
+Compared to 2.1.2, 2.2.4 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+
+### Major Updates
+
+- Support MMC to adjust tx delaycode according to cpufreq to improve data transmission stability 
+- Supports the WOL wake-up function of the RTL8211F network interface card
+- Supports es8316/es8375 codec 
+- Supports i2s dsp_a/b format 
+- Supports MOTORCOMM PHY driver 
+- Fixed the issue that the rapid change of UART CTS state fails to generate an interrupt
+- Fixed the retransmission issue caused by the probabilistic failure of i2c transmission 
+- Fixed the system panic issue caused by global out-of-bounds / slab out-of-bounds memory access in rtl8852bs
+- Fixed the configuration length of GPU IO space 
+- Fixed the issue of random MAC addresses in some scenarios   
+
 ## v2.2.2 release note
 
 Release date: 2025-5-23
