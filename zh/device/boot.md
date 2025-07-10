@@ -4,72 +4,73 @@ sidebar_position: 3
 
 # 启动开发指南
 
-## 1. 概述
+## 概述
 
-### 1.1 编写目的
+### 编写目的
 
-主要介绍SpacemiT的刷机启动流程和自定义配置，以及uboot、opensbi相关的驱动开发，基本调试方法，方便开发者快速上手或者二次开发。
+本指南主要介绍 SpacemiT 的刷机启动流程、自定义配置方法，以及 U-Boot 和 OpenSBI 相关的驱动开发与调试技巧，旨在帮助开发者快速掌握设备的启动开发与二次开发流程。
 
-### 1.2 适用范围
+### 适用范围
 
 本文档适用于SpacemiT的K1系列SOC。
 
-### 1.3 相关人员
+### 相关人员
 
 - 刷机启动开发工程师
 - 内核开发工程师
 
-### 1.4 文档结构
+### 文档结构
 
-本文档先介绍刷机启动相关的流程和配置方式，然后再介绍uboot/opensbi的编译配置和驱动开发调试，最后记录一些常见的问题处理
+1. **刷机启动流程与配置**：介绍设备启动机制及自定义方法。
+2. **U-Boot/OpenSBI 开发调试**：涵盖编译配置、驱动开发与调试技巧。
+3. **常见问题处理**：提供开发过程中常见问题的解决方案。
 
-## 2. 刷机启动
+## 刷机启动
 
 本章节介绍刷机和启动相关的配置以及实现原理，并提供自定义刷机、启动的方式。
-注意，刷机与启动是相互关联的，如果需要对刷机做自定义配置，启动可能也需要做相关的调整，反之亦然。
+> **注意:** 刷机与启动是相互关联的，如果需要对刷机做自定义配置，启动可能也需要做相关的调整，反之亦然。
 
-### 2.1 固件布局
+### 固件布局
 
-K1系列SOC常见的固件布局有以下三种
+K1 系列 SOC 常见的固件布局有以下三种。以下是布局特点：
 
 ![alt text](static/image_play.png)
 
-- emmc
-1.如上图所示，emmc有boot0和user_data_area两个区域。这是它的存储特点决定的，不做多展开。
-2.bootinfo_emmc.bin和FSBL.bin存储在boot0区域。user_data_area区域用gpt管理分区表，user区域的fsbl分区里面实际上没有内容。brom启动后会从boot0区域加载bootinfo_emmc.bin和FSBL.bin。
+1. **eMMC**
+    - 包含 boot0（存储 bootinfo_emmc.bin 和 FSBL.bin）和 user_data_area（由 GPT 管理分区表）。
+    - bootinfo_emmc.bin 和 FSBL.bin 存储在 boot0 区域，user_data_area 区域的 fsbl 分区实际上没有内容。
+    - BROM 启动后会从 boot0 区域加载 bootinfo_emmc.bin 和 FSBL.bin。
 
-- sdcard
-1.类似emmc，但sdcard只有user_data_area区域。bootinfo_sd.bin占用前面80 byte，gpt表在1 blk位置。
+2. **SD 卡**
+    - 类似 eMMC，但 SD 卡只有 user_data_area 区域。
+    - bootinfo_sd.bin 占用前 80 字节，GPT 表位于 1 blk。
 
-- nor+ssd
+3. **NOR + SSD**
+    - 包含 NOR 上的固件（FSBL+OpenSBI+U-Boot）和 SSD 上的固件（bootfs+rootfs）。
+    - 支持 NOR+eMMC 等块设备，默认已适配。如果未插入 SSD，仅使用 NOR+eMMC，则拨码开关拨向 NOR 启动。
+    - 仅支持通过 PCIe0 接口插入的 SSD 作为刷机启动介质，如果 SSD 插入非 PCIe0 接口，则仅作为存储介质。
+    - 如果使用 TitanFlasher 工具刷机，SSD 上的分区表实际会包含 FSBL/uboot/OpenSBI，但分区内容不会生效。
 
-1.包含nor上固件（fsbl+opensbi+uboot），ssd上固件（bootfs+rootfs）
-2.也支持nor+emmc等blk设备，默认已适配。假如没有插入ssd，只有nor+emmc，拨码开关拨向nor启动，则刷机启动为nor+emmc
-3.仅支持pcie0接口插入的ssd作为刷机启动介质，如果ssd插入非pcie0接口，则仅作为存储介质。
-4.如果由taitanflaser工具刷机，ssd上的分区表实际会包含fsbl/ubot/opensbi，但分区内容没有产生作用。这个是由实际的分区表决定
+### 刷机流程和配置
 
-### 2.2 刷机流程和配置
+以下内容包含的**刷机**、**烧写**为同一个概念。**卡量产**本质上也是刷机，只是数据来源于SD卡。而卡量产和卡启动为两个不同的概念，**卡启动**是将镜像烧写到SD卡里面，从SD卡里面启动系统。
 
-以下内容包含的刷机、烧写为同一个概念。卡量产本质上也是刷机，只是数据来源于sd卡。
-卡量产和卡启动为两个不同的概念，卡启动是将镜像烧写到sdcard里面，从sd卡里面启动系统。
+#### 刷机流程
 
-#### 2.2.1 刷机流程
+刷机流程是通过 Fastboot 协议将 PC 端的镜像传输到设备，并通过 MMC/MTD/NVMe 等接口写入到对应的存储介质。完整的刷机流程包括进入 U-Boot Fastboot 模式、镜像传输、存储介质设备检测、创建 GPT 表、写入数据到存储介质等步骤。
 
-刷机流程实际上是通过fastboot协议，将PC端的镜像传输到机子，然后通过mmc/mtd/nvme等接口写入到对应的存储介质。
-完整的刷机流程包括进入uboot fastboot模式，镜像传输，存储介质设备检测，创建gpt表，写入数据到存储介质等内容。
+##### U-Boot Fastboot 模式
 
-##### 2.2.1.1 uboot fastboot模式
-
-本平台刷机通讯协议是基于fastboot协议，并做了一些自定义扩展，所有实际的刷机行为都是基于uboot fastboot模式下开展。
-进入uboot fastboot模式后，通过PC端执行fastboot devices能检测到设备（需要配置PC fastboot环境）
+本平台的刷机通讯协议基于 Fastboot 协议，并进行了自定义扩展。所有实际的刷机行为都在 U-Boot Fastboot 模式下进行。进入 U-Boot Fastboot 模式后，通过 PC 端执行 `fastboot devices` 可以检测到设备（需要配置 PC 的 Fastboot 环境）。
 
 ```sh
 ~$ fastboot devices
 c3bc939586f0         Android Fastboot
 ```
 
-以下介绍进入uboot fastboot模式的三种方法。
-1.通过板子上按键组合fel键+reset键进入brom-fastboot，然后在上位机（PC）执行以下命令，板子进入uboot刷机交互界面。brom-fastboot仅用于加载启动uboot fastboot
+以下介绍进入 U-Boot Fastboot 模式的三种方法：
+
+1. **通过按键组合进入**：按下板子上的 FEL 键和 RESET 键进入 BROM-Fastboot 模式，然后在上位机（PC）执行以下命令，使板子进入 U-Boot 刷机交互界面。BROM-Fastboot 仅用于加载启动 U-Boot Fastboot。
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -83,16 +84,26 @@ fastboot stage u-boot.itb
 fastboot continue
 ```
 
-2.对于设备已经启动到os，可通过上位机（PC）运行adb reboot bootloader，板子进入uboot刷机交互界面。（某些固件会去掉adb功能，该方式并不是通用的方式）
-3.板子启动时通过串口长按s键进入uboot shell，然后串口执行fastboot 0进入uboot刷机交互界面。
+2. **通过 ADB 命令进入**：对于已经启动到操作系统的设备，可以通过上位机（PC）运行以下命令
 
-以下介绍各种组合介质的刷机命令，其中brom可根据boot pin切换不同的启动介质(nor/nand/emmc)，这个依赖硬件设计，详情请查看硬件参考设计。
+```sh
+adb reboot bootloader
+```
 
-##### 2.2.1.2 emmc刷机
+使板子进入 U-Boot 刷机交互界面。（某些固件可能移除了 ADB 功能，因此该方法不通用。）
 
-- emmc刷机流程
+3. **通过串口进入**：在板子启动时，通过串口长按 S 键进入 U-Boot Shell，然后在串口执行以下命令进入 U-Boot 刷机交互界面：
 
-对于emmc的刷机流程如下，前面部分是从brom-fastboot启动到uboot-fastboot模式，下面其他的介质也一样
+```sh
+fastboot 0
+```
+
+以下介绍不同存储介质组合的刷机命令。BROM 可以根据 boot pin 切换不同的启动介质（NOR/NAND/eMMC），这取决于硬件设计，具体请参考硬件参考设计。
+
+##### eMMC 刷机
+
+- **eMMC 刷机流程**
+  对于 eMMC 的刷机流程如下，前面部分是从brom-fastboot启动到uboot-fastboot模式，下面其他的介质也一样
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -117,11 +128,10 @@ fastboot flash rootfs rootfs.ext4
 
 ```
 
-对于emmc，bootinfo_emmc.bin的内容固化在uboot代码里面，这是为了用同一份partition_universal.json分区表兼容卡启动的制作等。且bootinfo_emmc.bin和fsbl.bin实际上是写入到emmc的boot0分区
+对于 eMMC，`bootinfo_emmc.bin` 的内容固化在 U-Boot 代码里面，这是为了用同一份 `partition_universal.json` 分区表兼容卡启动的制作等。且 `bootinfo_emmc.bin` 和 `fsbl.bin` 实际上是写入到 eMMC 的 boot0 分区
 
-- emmc分区表配置
-
-分区表保存在buildroot-ext/board/spacemit/k1/partition_universal.json。其中bootinfo不作为一个显式的分区，用于保存启动介质相关的信息。
+- **eMMC 分区表配置**
+分区表保存在 `buildroot-ext/board/spacemit/k1/partition_universal.json`。其中，bootinfo 不作为一个显式的分区，用于保存启动介质相关信息。
 
 ```sh
 {
@@ -172,11 +182,10 @@ fastboot flash rootfs rootfs.ext4
 
 ```
 
-##### 2.2.1.3 nor+blk设备刷机
+##### NOR+BLK 设备刷机
 
-- nor+blk刷机流程
-
-k1支持nor+ssd/emmc等blk设备的组合刷机启动，且为自适应的方式，如果同时存在ssd和emmc，默认烧写到ssd
+- **NOR+BLK 刷机流程**
+K1 支持 NOR+SSD/eMMC 等 BLK 设备的组合刷机启动，且为自适应方式。如果同时存在 SSD 和 eMMC，默认烧写到 SSD。
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -204,16 +213,16 @@ fastboot flash bootfs bootfs.img
 fastboot flash rootfs rootfs.ext4
 ```
 
-- nor+blk分区表配置
+- **NOR+BLK 分区表配置**
+  - NOR 分区表位于 `buildroot-ext/board/spacemit/k1/partition_2M.json`。对于 NAND/NOR 设备，分区表以 `partition_xM.json` 命名，并需根据实际 Flash 容量重命名，否则会导致刷机时找不到对应的分区表。
+    - NOR/NAND 的分区表会向最小容量兼容，例如 NOR 的介质容量为 8MB，刷机包中只有 `partition_2M.json`，则会匹配到 `partition_2M.json` 的分区表。
+  - 对于分区表配置
+    - MTD 存储介质（NAND/NOR Flash）以 `partition_2M.json` 等容量形式表示。
+    - BLK 设备（包括 eMMC/SD/SSD 等）以 `partition_universal.json` 命名。
 
-nor分区表，如buildroot-ext/board/spacemit/k1/partition_2M.json。对于nand/nor设备，分区表都是以partiton_xM.json命名，且需要根据实际的flash容量重命名，否则会导致刷机时找不到对应的分区表。
-nor/nand的分区表会向最小容量兼容，比如nor的介质容量为8MB，刷机包里面只有partition_2M.json，则会匹配到partition_2M.json的分区表。
-
-对于分区表配置，mtd存储介质(nand/nor flash)会以partition_2M.json等容量的形式表示，blk设备(包括emmc/sd/ssd等)都以partition_universal.json命名。
-
-Nor flash分区表修改：
-1.分区起始地址和size默认以64KB对齐（对应erasesize 为64KB）。
-2.如果起始地址和size需要更改成4KB对齐，则要开启uboot的编译配置`CONFIG_SPI_FLASH_USE_4K_SECTORS`
+- **NOR Flash 分区表修改**：
+  1. 分区起始地址和 size 默认以 64KB 对齐（对应 erase size 为 64KB）。
+  2. 如果需要将起始地址和 size 更改为 4KB 对齐，则需开启 U-Boot 的编译配置 `CONFIG_SPI_FLASH_USE_4K_SECTORS`。
 
 ```sh
 //buildroot-ext/board/spacemit/k1/partition_2M.json
@@ -254,7 +263,9 @@ Nor flash分区表修改：
 }
 ```
 
-ssd分区表。对于blk设备的分区表，都是partition_universal.json。此时bootinfo、fsbl、env、opensbi、uboot等分区以及里面的数据不会影响到正常的启动。
+- **SSD 分区表说明**
+BLK 设备（SSD、eMMC 等）统一使用 `partition_universal.json`分区表。
+此时，`bootinfo`、`fsbl`、`env`、`opensbi`、`uboot` 等分区及其数据不会影响正常启动。
 
 ```sh
 //buildroot-ext/board/spacemit/k1/partition_universal.json
@@ -309,12 +320,11 @@ ssd分区表。对于blk设备的分区表，都是partition_universal.json。�
 }
 ```
 
-##### 2.2.1.4 nand 刷机启动
+##### NAND 刷机启动
 
-- nand刷机流程
-
-k1支持nand刷机启动。但由于nand与nor共用同一个spi接口，只能选择其中一个方案，默认支持nor启动。
-如需支持nand刷机启动，请参考刷机启动中的nand启动配置章节，配置nand启动。
+- **NAND 刷机流程**
+K1 支持使用 NAND 进行刷机启动。但由于 **NAND 和 NOR 共用同一个 SPI 接口**，两者只能选其一，系统默认使用 NOR 启动。
+如需启用 NAND 启动，请参考刷机启动章节中的 NAND 配置说明，完成相关配置。
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -338,7 +348,8 @@ fastboot flash user-bootfs bootfs.img
 fastboot flash user-rootfs rootfs.img
 ```
 
-nand上文件系统管理依赖ubifs，其中bootfs和rootfs分区制作方法如下，
+- **UBIFS 文件系统镜像制作说明**
+NAND 上的文件系统依赖于 UBIFS，需提前生成 `bootfs.img` 和 `rootfs.img`，制作方法如下：
 
 ```sh
 #制作bootfs.img
@@ -348,7 +359,7 @@ mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/bootfs.img -d input_bo
 mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/rootfs.img -d input_rootfs/
 
 #input_bootfs和input_rootfs应该存放bootfs和rootfs中的文件
-#例如对于bootfs,应该放入如下文件Image.itb、env_k1-x.txt、k1-x.bmp
+#例如对于bootfs,应该放入如下文件Image.itb、env_k1-x.txt、bianbu.bmp
 
 #不同的nand需要修改对应的参数，以下是一些参数说明，具体可查看mkfs.ubifs的用法
 -m 2048：设置最小输入/输出单元大小为 2048 字节（2 KiB），要与NAND Flash 的页大小相匹配。
@@ -359,11 +370,11 @@ mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/rootfs.img -d input_ro
 -d input/：指定源目录为 input/，mkfs.ubifs 将会把这个目录下的文件和文件结构创建成 UBIFS 文件系统镜像。
 ```
 
-同时，本平台也支持nand+blk设备启动方式，刷机命令可参考nor+blk设备刷机章节。
+- **NAND + BLK 组合启动**
+本平台也支持 NAND + BLK 设备组合启动方式，相关刷机流程可参考 **NOR+BLK 设备刷机** 章节。
 
-- nand分区表配置
-
-如256MB容量的nand，分区表为partition_256M.json
+- **NAND 分区表配置**
+以下示例为适用于 256MB 容量 NAND 的分区表：`partition_256M.json`
 
 ```sh
 //buildroot-ext/board/spacemit/k1/partition_64M.json
@@ -411,93 +422,116 @@ mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/rootfs.img -d input_ro
 }
 ```
 
-##### 2.2.1.5 卡启动
+##### 卡启动
 
-卡启动是指将镜像写入到sd卡中，设备插入该sd卡后，上电启动将从sd卡加载启动系统。
+卡启动是指将系统镜像写入到 **SD 卡** 中，当设备插入该 SD 卡后，**上电启动时会优先从卡中加载系统**。
 
-K1平台支持卡启动，且默认先try sd卡，启动失败后再从pin select选中的存储介质加载启动系统。
+K1 平台支持卡启动，并且在启动时会**优先尝试从 SD 卡启动**，如果启动失败，系统将退回到使用 **pin select** 选中的其他存储介质启动。
 
-本平台不支持通过fastboot协议把镜像烧写到sd卡上。需要通过TitanFlash工具或者dd命令制作卡启动。
+>**注：** 本平台 **不支持通过 fastboot 协议** 将镜像烧写到 SD 卡。
 
-以下介绍如何通过刷机工具制作卡启动镜像：
+制作卡启动镜像需使用 **TitanFlash 工具** 或 `dd` 命令完成。
 
-- 将tf卡插入读卡器并接入电脑usb口。
-- 电脑端打开titanflash刷机工具(安装方式请参考刷机工具使用章节），点击研发工具->卡启动，选择SD卡，刷机包。点击执行。
-- 烧写成功后，将tf卡插入设备，上电后设备从卡启动。
+**使用刷机工具制作卡启动镜像：**
 
+1. 将 TF 卡插入读卡器，并连接到电脑的 USB 接口。
+2. 打开电脑端的 **TitanFlash 刷机工具**（安装方式请参考 [TitanFlash 安装](https://developer.spacemit.com/documentation?token=EW5mwVyi8iGXjckrnU0ccQOhnGf)）。
+3. 点击顶部菜单栏中的 **研发工具 → 卡启动**。
+4. 点击对应的 **选择SD卡** 和 **选择刷机包**。
 ![alt text](static/flash_tool_1.png)
+5. 点击 **执行**，开始烧写镜像。
+6. 烧写成功后，将 TF 卡插入设备，上电后设备即可实现卡启动。
 
-##### 2.2.1.6 卡量产
+##### 卡量产
 
-卡量产是指sd卡中写入刷机相关的镜像文件，设备上电启动后先从卡启动，检测到时卡量产后，将sd卡中的镜像文件，按照分区表的位置写入到pin select选中的存储介质
+卡量产是指：将刷机相关的镜像文件写入 **SD 卡** 中，当设备上电启动后，**首先从 SD 卡启动**，并检测到处于量产模式时，**将卡内镜像文件按分区表配置写入到 pin select 选中的存储介质**（如 eMMC、NOR、NAND 等）。
 
-K1支持卡量产烧录。通过titanflash工具把sd卡制作成量产卡，将sd卡插入设备，上电启动后， 会将镜像烧写到emmc/nor/nand等存储介质中。
+K1 平台支持卡量产烧录。通过 **TitanFlash 工具** 可将 SD 卡制作成量产卡。将量产卡插入设备并上电后，系统会自动将镜像烧录到目标存储介质。
 
-卡量产的制作步骤如下：
+**卡量产制作步骤：**
 
-- 将tf卡插入读卡器并接入电脑usb口。
-- 打开titanflash工具，选择量产工具->制作量产卡，选择烧录量产卡，点击执行。
-- 完成量产卡制作后，将sd卡插入设备，上电启动后会自动进入卡烧录。
-- 完成烧录后需要拔下sd卡，设备端上电启动后能正常启动。（如果不拔下sd卡，重复上电会重复开始卡烧录）
-
+1. 将 TF 卡插入读卡器，并接入电脑 USB 接口。
+2. 打开 TitanFlash 工具，点击 **量产工具 → 制作量产卡**。
+3. 选择需要烧录的刷机包，点击 **执行** 开始制作。
 ![alt text](static/flash_tool_2.png)
+4. 制作完成后，将 SD 卡插入设备。
+5. 上电后设备会自动进入卡烧录流程，并将镜像写入目标存储介质。
+6. 烧录完成后，**务必拔出 SD 卡**，以避免再次上电重复烧录。
 
-#### 2.2.2 刷机工具
+#### 刷机工具
 
-本章节简单介绍刷机工具相关的内容
+本章节简要介绍刷机工具的使用方式和相关配套内容。
 
-##### 2.2.2.1 刷机工具使用
+##### 刷机工具使用
 
-对于镜像的烧写，可以选择安装titanflash工具，或者使用fastboot工具刷机。
-固件生成方式可参考文档[下载和编译](https://bianbu-linux.spacemit.com/source)。
+对于镜像的烧写，平台支持以下两种方式：
 
-- titanflash刷机工具针对完整刷机包，适用于一般的开发者。
-刷机工具安装及使用方式，可参考[这篇文档](https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
+- **TitanFlash 刷机工具**：
+  面向一般开发者，适用于完整刷机包的烧写，界面友好、功能完整。
+  工具的安装与使用说明详见官方文档：[TitanFlash 使用手册](https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
-- fastboot工具针对单个分区的镜像烧写，适用于具备一定能力的开发者，单分区的镜像烧写错误可能会导致系统启动异常，需要谨慎使用，烧写流程请参考刷机流程章节（fastboot环境安装可参考网上[链接](https://www.jb51.net/article/271550.htm)，或者[这篇](https://blog.csdn.net/qq_34459334/article/details/140128714)）。
+- **Fastboot 工具**：
+  面向具备一定开发能力的用户，适合进行单个分区的镜像烧写。
+  **注意：** 若分区镜像烧写错误，可能导致系统启动异常，请谨慎操作。
+  相关烧写流程详见本文的 **刷机流程** 章节，fastboot 环境安装可参考以下链接：
 
-##### 2.2.2.2 刷机介质选择
+  - [参考链接 1](https://www.jb51.net/article/271550.htm)
+  - [参考链接 2](https://blog.csdn.net/qq_34459334/article/details/140128714)
 
-- 硬件提供boot download sel switch拨盘切换，可参考如MUSE Pi用户使用指南文档中的[Boot Download Sel&JTAG Sel](https://developer.spacemit.com/documentation?token=ZugWwIVmkiGNAik55hzc4C3Ln6d)章节。
-- 其他方案，请参考该方案的硬件用户使用指南
-- 对于不同的启动介质，刷机方式已做成自动适配。
+> 固件镜像的生成方式，请参考文档：[下载和编译](https://bianbu-linux.spacemit.com/source)
 
-### 2.3 启动配置
+##### 刷机介质选择
 
-本章节介绍emmc, sd, nor, nand启动的配置，以及自定义启动配置相关的注意事项。
-刷机启动，需要配合正确的分区表等配置以及正确的启动配置。
+- 硬件平台支持通过 **Boot Download Sel Switch 拨码开关** 切换启动介质。
+  具体使用方法可参考 MUSE Pi 用户指南中的 [Boot Download Sel & JTAG Sel](https://developer.spacemit.com/documentation?token=ZugWwIVmkiGNAik55hzc4C3Ln6d) 章节。
 
-#### 2.3.1 启动流程
+- 其他平台或方案，请参考对应的硬件用户使用手册。
 
-本章节介绍平台芯片的启动流程，并且提供定制化启动的修改方。如下框图，
-启动流程主要分成brom->fsbl->opensbi->uboot->kernel等阶段。bootinfo提供fsbl所在偏移、大小、签名等信息
+- 对于不同的启动介质，刷机方式已做成**自动适配**。
+
+### 启动配置
+
+本章节介绍 eMMC、SD、NOR、NAND 启动的配置，以及自定义启动配置相关的注意事项。刷机启动需要配合正确的分区表等配置以及正确的启动配置。
+
+#### 启动流程
+
+本章节介绍平台芯片的启动流程，并且提供定制化启动的修改方。
+如下框图，启动流程主要包括以下阶段：
+**brom -> fsbl -> opensbi -> uboot -> kernel**
+其中，`bootinfo` 提供 fsbl 所在偏移、大小、签名等信息。
 
 ![alt text](static/boot_proc.png)
 
-根据硬件的boot pin select，软件上会从sd或者emmc或者nor等介质加载启动下一级镜像，对于不同的启动介质，启动流程都与上图的一样。具体的boot pin select在刷机配置中的刷机介质选择章节做介绍。
+根据硬件的 **Boot Pin Select 配置**，系统会从 SD 卡、eMMC、NOR 等介质中加载下一级启动镜像。
+**不同的启动介质，整体启动流程与上图一致。**
+Boot Pin Select 的详细介绍请参考 **刷机工具使用** 章节中的 **刷机介质选择** 。
 
-K1上电启动后，会先try boot from sd，启动失败后再根据boot pin select，从emmc或者nand或者nor等存储介质加载uboot和opensbi的镜像。
+在 K1 平台上，设备上电后将：
 
-以下小节将根据启动顺序，分别介绍bootinfo/fsbl/opensbi/uboot/kernel等启动配置
+1. **优先尝试从 SD 卡启动**；
+2. 若 SD 卡启动失败，则根据 Boot Pin Select 配置，依次尝试从 eMMC、NAND 或 NOR 加载 `OpenSBI` 和 `U-Boot` 镜像。
 
-##### 2.3.1.1 brom
+以下小节将根据启动顺序，分别介绍bootinfo、fsbl、opensbi、uboot 和 kernel 等启动配置
 
-brom是一段预编译好程序固化在SoC中，出厂即无法改变。芯片上电或复位会运行brom，通过不同的boot pin会指导brom从对应的存储介质加载bootinfo和fsbl。
-Boot pin请参考刷机介质选择章节，这里不做展开。
+##### BROM (Boot ROM)
 
-##### 2.3.1.2 bootinfo
+brom 是预置于 SoC 的启动代码，出厂即无法改变。芯片上电或复位后自动运行。它根据 Boot Pin 判断启动介质 (如 SD、eMMC、NOR)，并从中加载 `bootinfo` 和 `fsbl`。
+> Boot Pin 设置详见 **刷机工具使用** 章节中的 **刷机介质选择** 。
 
-brom启动后会从对应存储介质的物理0地址偏移获取booinfo信息（对于emmc会从boot0区域的0地址加载）。bootinfo包含fsbl、fsbl1的位置以及大小，crc值等信息。
-其中，bootinfo*描述文件在如下目录的*.json
+##### bootinfo
+
+brom 启动后会从对应存储介质的物理 0 地址偏移获取 bootinfo 信息（如，eMMC 会从 boot0 区域的 0 地址加载）。bootinfo 包含 fsbl、fsbl1 的位置、大小与校验 等信息。
+
+其中，bootinfo*描述文件在如下目录的* `.json`
 
 ```sh
 uboot-2022.10$ ls board/spacemit/k1-x/configs/
 bootinfo_emmc.json  bootinfo_sd.json  bootinfo_spinand.json  bootinfo_spinor.json
 ```
 
-json文件举例说明，如下记录了各种存储介质的默认的fsbl/fsbl1位置， fsbl1为备份数据。如需修改偏移地址，可修改bootinfo_*json文件再重新编译uboot。
+JSON 文件示例说明如下，记录了各种存储介质的默认 fsbl/fsbl1 位置。fsbl1 为备份数据。如果需要修改偏移地址，可以修改 `bootinfo_*json` 文件，然后重新编译 uboot。
 
-fsbl的位置尽量保持原厂设置，如果需要自定义，需要考虑不同存储介质的特性，如nand需要按sector对齐等。emmc的fsbl只支持在boot分区加载。
+fsbl 的位置尽量保持原厂设置。如果需要自定义，需要考虑不同存储介质的特性，例如 NAND 需要按 sector 对齐等。eMMC 的 fsbl 只支持在 boot 分区加载。
 
 ```sh
 emmc:boot0:0x200, boot1:0x0
@@ -506,7 +540,7 @@ nor:0x20000/0x70000
 nand:0x20000/0x80000
 ```
 
-编译uboot时在其根目录下生成对应的*.bin文件等bootinfo镜像文件，生成方式可参考uboot-2022.10/board/spacemit/k1-x/config.mk
+编译uboot时会在其根目录下生成对应的 `*.bin` 文件等 bootinfo 镜像文件，生成方式可参考 `uboot-2022.10/board/spacemit/k1-x/config.mk`
 
 ```sh
 uboot-2022.10$ ls -l
@@ -516,25 +550,31 @@ bootinfo_spinand.bin
 bootinfo_spinor.bin
 ```
 
-##### 2.3.1.3 fsbl
+##### FSBL (First Stage Boot Loader)
 
-brom获取bootinfo后，会从指定的offset加载fsbl。
-fsbl文件是由4K头信息+uboot-spl.bin组合而成，头信息会包含uboot-spl的一些必要信息，如crc校验值等
-fsbl启动后，会先初始化ddr，然后从分区表加载opensbi、uboot到内存的指定位置，再运行opensbi，接着opensbi会启动uboot。(fsbl如何初始化ddr的内容不在本文档的描述范围内)
+brom 获取 bootinfo 后，会从指定的 offset 加载 `fsbl` 。
 
-##### 2.3.1.4 opensbi和uboot加载启动
+`fsbl` 文件是由 4K 的头信息与 `uboot-spl.bin` 组合而成，头信息包含 uboot-spl 的一些必要信息，如 CRC 校验值等。
 
-不同存储介质对opensbi和uboot的加载方式是多样化的，以下按存储介质分类去描述spl加载启动uboot/opensbi的配置。
-k1平台支持加载独立分区的opensbi和uboot，也支持加载一个镜像(uboot-opensbi.itb)的方式。默认以分区名加载。
-加载启动一个镜像(uboot-opensbi.itb)的方式请参考FAQ部分。
+fsbl 启动后，会先 **初始化 DDR**，然后从分区表 **加载 opensbi 和 uboot 到内存的指定位置**，再 **运行 opensbi**，接着 **opensbi 会启动 uboot**。(fsbl 如何初始化 DDR 的内容不在本文档的描述范围内)
 
-###### 2.3.1.4.1 emmc和sdcard
+##### opensbi 和 uboot 加载启动
 
-emmc与sd都是用到mmc驱动，uboot的代码流程上会根据启动的boot pin select选择emmc或sd。两者的启动配置类似。
-opensbi和uboot有不同的image格式，根据存放的位置，可以分为裸分区、文件、fit格式等。
-K1平台默认都会先try boot from sd，失败后再try其他介质(emmc/nor/nand等其中一个)。
+不同存储介质对 opensbi 和 uboot 的加载方式是多样化的，以下按存储介质分类 (eMMC,、SD、NOR、NAND)去描述 SPL 加载启动 uboot/opensbi 的配置。
 
-spl-dts需要开启emmc/sd的配置
+K1 平台支持 **独立分区加载** (即，加载独立分区的 opensbi 和 uboot )，也支持**打包为单镜像** (即，加载一个镜像(uboot-opensbi.itb))的方式。**默认使用分区名加载**。
+
+加载启动一个镜像(uboot-opensbi.itb)的方式请参考本文里的FAQ部分（即，**uboot 和 opensbi 合并加载** ）。
+
+###### eMMC / SD 启动
+
+eMMC 与 SD 都是使用 **MMC 驱动**，uboot 的代码流程上会根据启动的 boot pin select 选择 eMMC 或 SD。两者的启动配置类似。
+
+opensbi 和 uboot 有不同的 image 格式，根据存放的位置，可以分为裸分区、文件、fit格式等。
+
+K1 平台默认都会先尝试从 SD 启动，失败后再尝试其他介质(eMMC/NOR/NAND等其中一个)。
+
+SPL-DTS 需要开启 eMMC/SD 的配置，配置示例如下：
 
 ```sh
 //uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
@@ -561,46 +601,54 @@ spl-dts需要开启emmc/sd的配置
       };
 ```
 
-以下针对emmc/sd的不同启动方式做介绍，默认以分区名加载。
+以下将介绍 eMMC / SD 的不同启动方式，**默认采用分区名加载镜像**。
 
-- 裸分区方式
+1. **裸分区方式**
+fsbl加载启动uboot/opensbi流程， 以 eMMC 为例（SD/NOR 等介质类似，本文不再赘述）：
+   - 执行 `make uboot_menuconfig`，进入 SPL 的配置界面（SPL 相关设置的入口）。
 
-1.fsbl加载启动uboot/opensbi流程(以emmc为例，对于sd/nor等介质类似，限于篇幅不做赘述)
+      ![alt text](static/spl-config_1.png)
 
-执行make uboot_menuconfig，进入spl的编译配置(所有spl相关的配置的入口，下面的不做赘述)
+   - 选择“分区表方式”加载。此模式默认支持将 `opensbi` 和 `uboot` 镜像分别存放于独立分区。
+    SPL 会优先查找名为 `opensbi` 和 `uboot` 的分区名；若找不到，则会依次尝试加载分区号为 1 和 2 的原始数据（raw images）。
 
-![alt text](static/spl-config_1.png)
+      ![alt text](static/spl-config_2.png)
 
-选中以分区表的方式加载，这里默认支持uboot/opensbi独立加载。spl会先找名称为opensbi、uboot的分区，如果找不到该分区名，则尝试分别以分区号1和2加载raw数据。
+      ![alt text](static/spl-config_3.png)
 
-![alt text](static/spl-config_2.png)
+   - SPL 成功加载 `opensbi` 和 `uboot` 后，会先启动 OpenSBI，并传入 U-Boot 的内存地址及 dtb 信息；OpenSBI 再根据这些信息启动 U-Boot。
 
-![alt text](static/spl-config_3.png)
+2. **绝对偏移方式**
 
-spl加载好opensbi和uboot后，会启动opensbi，并传入uboot的内存地址和dtb信息，opensbi根据地址和dtb启动uboot
+   该方式通过指定 eMMC 上的物理偏移地址直接加载镜像：
 
-- 绝对偏移
+   - 启用相关配置后，SPL 将按照设定的偏移地址，从 eMMC 中加载 `opensbi` 和 `uboot` 镜像。
+     > 注意：**该模式不支持分开加载**，必须将 `opensbi` 和 `uboot` 打包为一个完整镜像（fit 格式）。
 
-通过绝对偏移地址加载opensbi/uboot
-开启以下配置，指定emmc的偏移地址。这时候会按照emmc的绝对偏移地址加载uboot/opensbi镜像。
-该种方式不支持opensbi和uboot分开，也就是opensbi和uboot要打包成一个文件，即fit格式。
-若想要支持独立加载，可参考uboot-2022.10/common/spl/spl_mmc.c中的case MMCSD_MODE_RAW部分代码
+   - 若希望支持分开加载，可以参考源码 `uboot-2022.10/common/spl/spl_mmc.c` 中的 `MMCSD_MODE_RAW` 实现部分。
 
-![alt text](static/spl-config_4.png)
+     ![alt text](static/spl-config_4.png)
 
-- 文件系统方式
+3. **文件系统方式**
 
-更改spl通过文件系统加载opensbi/uboot
-uboot-spl支持通过文件系统的方式加载opensbi和uboot，该方式支持独立加载uboot、opensbi文件
-make menuconfig打开以下配置，如图选中fat文件系统，加载opensbi.itb、uboot.itb
+   此方式让 SPL 通过文件系统（如 FAT）加载启动镜像：
 
-![alt text](static/spl-config_5.png)
+   - uboot-spl 支持从文件系统中分别独立加载 OpenSBI 和 U-Boot 文件（例如：`opensbi.itb`、`uboot.itb`）。
 
-###### 2.3.1.4.2 nor
+   - 执行 `make menuconfig`，打开相关配置选项，并启用对 FAT 文件系统的支持。
 
-对于nor介质启动，k1会提供nor(u-boot-spl/uboot/opensbi)+ssd(bootfs/rootfs)或者nor(u-boot-spl/uboot/opensbi)+emmc(bootfs/rootfs)的启动方式，默认先try ssd，
+     ![alt text](static/spl-config_5.png)
 
-spl的dts配置如下
+###### NOR 启动
+
+K1 平台支持通过 NOR 介质启动，常见的启动组合包括：
+
+- NOR (u-boot-spl / uboot / opensbi) + SSD (bootfs / rootfs)
+- NOR (u-boot-spl / uboot / opensbi) + eMMC (bootfs / rootfs)
+
+系统默认会 **优先尝试从 SSD 启动**，若失败再尝试其他配置。
+
+SPL 的 DTS 配置如下：
 
 ```sh
 //uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
@@ -625,33 +673,56 @@ spl的dts配置如下
 
 ```
 
-spl支持nor加载启动，需要先开启以下配置，默认已开启
-1.执行make uboot_menuconfig，选择SPL configuration options
+启动配置步骤（SPL 加载 NOR）：
 
-![alt text](static/spl-config_6.png)
+**默认已启用以下配置，如需确认可通过 menuconfig 检查。**
 
-2.开启“Support MTD drivers”、“Support SPI DM drivers in SPL”、“Support SPI drivers”、“Support SPI flash drivers”、“Support for SPI flash MTD drivers in SPL”、“Support loading from mtd device”，
-“Partition name to use to load U-Boot from”与分区表中的分区名保持一致。
-![alt text](static/spl-config_7.png)
+1. **SPL 基本功能开启**
+   执行 `make uboot_menuconfig`，选择 `SPL configuration options`
+    ![alt text](static/spl-config_6.png)
 
-3.blk设备配置
-执行make uboot_menuconfig，选择Device Drivers --->Fastboot support
-选择Support blk device，这里支持是ssd/emmc等blk设备，如ssd对应的是nvme，emmc对应是mmc。
-![alt text](static/spl-config_8.png)
+2. **启用以下选项：**
 
-4.对于mtd设备，需要开启env，以确保spl启动后能从env获取mtd分区信息
-执行make uboot_menuconfig，选择Environment，选择开启spi的env加载。这里的env偏移地址需要与分区表的env分区保持一致，如0x80000。
-![alt text](static/spl-config_9.png)
+   - `Support MTD drivers`
+   - `Support SPI DM drivers in SPL`
+   - `Support SPI drivers`
+   - `Support SPI flash drivers`
+   - `Support for SPI flash MTD drivers in SPL`
+   - `Support loading from mtd device`
+   - 设置 `Partition name to use to load U-Boot from`，该值需与分区表中的实际名称一致。
 
-![alt text](static/spl-config_10.png)
+    ![alt text](static/spl-config_7.png)
 
-5.spi flash驱动需要适配硬件上的spi flash对应厂商的型号(下面的nand也同理)
-在menuconfig上选择对应的厂商manufactureID
-执行make uboot_menuconfig，选择Device Drivers--->MTD Support--->SPI Flash Support
-根据硬件的spi flash厂商，选择对应的驱动程序。
-![alt text](static/spl-config_11.png)
+3. **启用 BLK 设备支持**（如 SSD/eMMC）
+   进入 `Device Drivers -> Fastboot support`，勾选：
 
-如果驱动里面都没有，可以在代码上直接添加。flash_name可以自定义，一般为硬件flash名称，0x1f4501为该flash的jedecid，其他参数可以根据该硬件的flash添加。
+   - `Support blk device`
+   - SSD 对应 NVMe，eMMC 对应 MMC
+
+    ![alt text](static/spl-config_8.png)
+
+4. **启用 MTD 环境变量（env）支持**
+
+   SPL 启动后需从 env 获取 MTD 分区信息：
+
+   - 进入 `Environment` 配置页
+   - 启用 SPI env 加载
+   - 设置 env 的偏移地址，需与分区表一致（例如：`0x80000`）
+
+    ![alt text](static/spl-config_9.png)
+
+    ![alt text](static/spl-config_10.png)
+
+5. **适配 SPI Flash 驱动（根据硬件）**
+   若默认未包含目标芯片的驱动：
+
+   - 执行 `make uboot_menuconfig`
+   - 进入 `Device Drivers -> MTD Support -> SPI Flash Support`
+   - 根据硬件的 SPI Flash 厂商，勾选选择对应的驱动程序
+
+   ![alt text](static/spl-config_11.png)
+
+   如驱动列表中没有你的 Flash 型号，可以在代码上手动直接添加。`flash_name` 可以自定义，一般为硬件 FLASH 名称，`0x1f4501` 为该 FLASH 的 jedecid，其他参数可以根据该硬件的 FLASH 添加。
 
 ```sh
 //uboot-2022.10/drivers/mtd/spi/spi-nor-ids.c
@@ -659,25 +730,32 @@ const struct flash_info spi_nor_ids[] = {
      { INFO("flash_name",    0x1f4501, 0, 64 * 1024,  16, SECT_4K) },
 ```
 
-加载方式主要有两种，如下
+**支持的加载方式** 主要有两种，如下
 
-- 裸分区方式
+- **裸分区方式**
 
-对于nor设备，会根据mtd分区表获取uboot/opensbi。配置方式如下
-![alt text](static/spl-config_12.png)
+  对于 NOR 设备，会根据 mtd 分区表获取 `opensbi` 和 `uboot`。配置方式如下
+  ![alt text](static/spl-config_12.png)
 
-- 绝对偏移
+- **绝对偏移**
+  NOR 启动支持以存储介质的绝对偏移加载镜像启动。
+  > 注意：
+  > - **不支持 opensbi / uboot 分开加载**。
+  > - 需将两者打包为一个镜像（fit 格式）。
 
-nor启动支持以存储介质的绝对偏移加载启动，但不支持独立加载uboot、opensbi的方式，需把uboot和opensbi打包到一起，即fit格式。
-开启以下配置，输入存储介质的绝对偏移地址
+  开启以下配置，输入存储介质的绝对偏移地址。
+  ![alt text](static/spl-config_13.png)
 
-![alt text](static/spl-config_13.png)
+###### NAND 启动
 
-###### 2.3.1.4.3 nand
+K1 平台支持通过 NAND 启动，主要包括两种方式：
 
-对于nand介质启动，K1会提供nand(u-boot-spl/uboot/opensbi)+ssd(bootfs/rootfs)或者纯nand(u-boot-spl/uboot/opensbi/kernel)启动， 默认不开启nand启动。
+- **NAND（u-boot-spl / uboot / opensbi）+ SSD（bootfs / rootfs）**
+- **纯 NAND（u-boot-spl / uboot / opensbi / kernel）**
 
-spl-dts配置如下
+默认情况下，NAND 启动功能是关闭的。
+
+SPL DTS 配置如下
 
 ```sh
 //uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
@@ -701,27 +779,38 @@ spl-dts配置如下
         
 ```
 
-下面将介绍纯nand启动方案配置。
-执行make uboot_menuconfig，选择SPL configuration options
+下面将介绍 **纯 NAND 启动配置** 步骤。
 
-![alt text](static/spl-config_14.png)
+1. **配置 SPL 编译选项**
+   - 执行 `make uboot_menuconfig`，进入 `SPL configuration options`，启用以下选项：
 
-开启
-Support MTD drivers
-Support SPI DM drivers in SPL
-Support SPI drivers
-Use standard NAND driver
-Support simple NAND drivers in SPL
-Support loading from mtd device，
-Partition name to use to load U-Boot from与分区表中的分区名保持一致。
-如果开启opensbi/uboot独立镜像。则需要开启Second partition to use to load U-Boot from，且必须要保持opensbi/uboot的先后顺序。
+     ![alt text](static/spl-config_14.png)
 
-![alt text](static/spl-config_15.png)
+     - `Support MTD drivers`
+     - `Support SPI DM drivers in SPL`
+     - `Support SPI drivers`
+     - `Use standard NAND driver`
+     - `Support simple NAND drivers in SPL`
+     - `Support loading from mtd device`
+     - 设置 `Partition name to use to load U-Boot from`，需与分区表保持一致
 
-对于mtd设备，需要开启env，以确保spl启动后能从env获取mtd分区信息
-执行make uboot_menuconfig，选择Environment，选择开启spi的env加载。这里的env偏移地址需要与分区表的env分区保持一致，如0x80000。
+   - 如果开启了 **opensbi / uboot 分开加载**，还需启用：
 
-nand flash驱动需要适配硬件上的spi flash对应厂商的型号。目前已支持的nand flash如下驱动所示。如果没有对应的驱动，可以在other.c驱动中添加厂商的jedecid
+     - `Second partition to use to load U-Boot from`
+     - 并确保顺序为：先加载 opensbi，再加载 uboot
+
+     ![alt text](static/spl-config_15.png)
+
+2. **配置 env 支持**
+   对于 MTD 设备，需要开启 `env`，以确保 SPL 启动后能从 `env` 获取 MTD 分区信息
+   - 执行 `make uboot_menuconfig`
+   - 进入 `Environment` 配置页
+   - 启用 SPI 的 `env` 加载支持
+   - 设置偏移地址为 `0x80000`（需与分区表一致）
+
+3. **适配 NAND Flash 驱动**
+
+   - 驱动需匹配实际使用的 NAND 芯片厂商。目前已支持的 NAND FLASH 如下驱动所示。
 
 ```sh
 ~/uboot-2022.10$ ls drivers/mtd/nand/spi/*.c
@@ -732,8 +821,12 @@ uboot-2022.10/drivers/mtd/nand/spi/gigadevice.c
 uboot-2022.10/drivers/mtd/nand/spi/other.c
 uboot-2022.10/drivers/mtd/nand/spi/macronix.c
 uboot-2022.10/drivers/mtd/nand/spi/toshiba.c
+```
 
+- 如果未内置相关驱动，可以在 `other.c` 驱动中添加厂商的 **JEDEC ID**。
+     示例：添加 FORESEE 或 Dosilicon 芯片支持：
 
+```sh
 //uboot-2022.10/drivers/mtd/nand/spi/other.c
  static int other_spinand_detect(struct spinand_device *spinand)
  {
@@ -760,15 +853,29 @@ uboot-2022.10/drivers/mtd/nand/spi/toshiba.c
  }
 ```
 
-##### 2.3.1.5 启动kernel
+##### 启动 Kernel
 
-uboot的env定义了多种启动组合，开发者可以根据需要自行定制。其中方案自带的k1-x_env.txt优先级更高，会覆盖env.bin相同的变量。
-fsbl加载启动opensbi->uboot后，uboot通过文件系统load命令从fat或ext4文件系统里面加载kernel、dtb等镜像文件到内存，然后执行bootm命令启动kernel。
- 具体加载启动kernel的流程可以参考uboot-2022.10/board/spacemit/k1-x/k1-x.env，里面已包含emmc/sd/nor+blk等启动方案，且能自动适配对应的启动介质。
+系统启动进入 **U-Boot** 后，会根据 `env` 中的配置自动加载并启动 Kernel。开发者可以按需定制启动方式。
 
-- mmc启动
+> 注意：`k1-x_env.txt` 的优先级高于 `env.bin`，会覆盖其中的同名变量。
 
-对于sd/emmc，都属于mmc_boot
+**Kernel 启动流程说明**
+
+在 `fsbl` 启动 `opensbi → uboot` 后，U-Boot 会根据设定的启动命令，从 FAT 或 EXT4 文件系统中加载 kernel、dtb 等镜像至内存，最终执行 `bootm` 命令启动内核。
+
+相关配置可参考：
+
+```sh
+uboot-2022.10/board/spacemit/k1-x/k1-x.env
+```
+
+文件中已集成多种启动方案（如 eMMC/SD/NOR+BLK），并能根据实际启动介质自动适配。
+
+**启动方式示例**
+
+1. **MMC 启动**（适用于 SD / eMMC）
+
+   对于 SD/eMMC，都属于 `mmc_boot`
 
 ```sh
 //uboot-2022.10/board/spacemit/k1-x/k1-x.env
@@ -785,14 +892,14 @@ mmc_boot=echo "Try to boot from ${bootfs_devname}${boot_devnum} ..."; \
           bootm ${kernel_addr_r} ${ramdisk_combo} ${dtb_addr};
 ```
 
-rootfs由uboot传递的bootargs到kernel，由kernel或者init脚本解析并挂载rootfs
-如下字段root=/dev/mmcblk2p6即为rootfs分区
+启动时，rootfs 由 U-Boot 传递 `bootargs` 给 Kernel，Kernel 或其 `init` 脚本解析并挂载 rootfs 。
+如下字段 `root=/dev/mmcblk2p6`即为 rootfs 分区。
 
 ```sh
 bootargs=earlycon=sbi earlyprintk console=tty1 console=ttyS0,115200 loglevel=8 clk_ignore_unused swiotlb=65536 rdinit=/init root=/dev/mmcblk2p6 rootwait rootfstype=ext4
 ```
 
-- nor+blk启动
+- **NOR + blk 启动**（如 NOR + SSD）
 
 ```sh
 //uboot-2022.10/board/spacemit/k1-x/k1-x.env
@@ -809,7 +916,7 @@ nor_boot=echo "Try to boot from ${bootfs_devname}${boot_devnum} ..."; \
          bootm ${kernel_addr_r} ${ramdisk_combo} ${dtb_addr};
 ```
 
-- nand启动
+- **NAND 启动**
 
 ```sh
 //uboot-2022.10/board/spacemit/k1-x/k1-x.env
@@ -818,30 +925,30 @@ run nand_boot;
 //待适配
 ```
 
-### 2.4 安全启动
+### 安全启动
 
-安全启动基于fit image格式实现：
+安全启动基于 **FIT image** 格式实现，主要流程如下：
 
-1. opensbi、uboot.itb、kernel打包成fit image
+1. 将 OpenSBI、`u-boot.itb` 和 Kernel 打包为一个 FIT 镜像；
 2. 打开代码中安全启动配置；
-3. 使用私钥对fit image做签名，并导出公钥到dtb中；
+3. 使用私钥对 FIT 镜像签名，同时将公钥信息嵌入到 DTS/DTB 中，供上一级引导程序验签使用。
 
-#### 2.4.1 验签流程
+#### 验签流程
 
 启动验签流程如下图所示：
 
 ![alt text](static/secure_boot.png)
 
-签名过程：
+签名过程描述：
 
-1. Boot ROM做为信任根，不可更改；
-2. Hash of ROTPK烧录到芯片内部Efuse，只能烧录一次；
-3. 哈希算法为SHA256；
-4. 签名算法使用SHA256+RSA2048；
+- BootROM 作为信任根，固化在芯片中，不可更改；
+- Hash of ROTPK 需烧录进芯片内部Efuse，只能烧录一次；
+- 哈希算法：`SHA256`；
+- 签名算法：`SHA256 + RSA2048`；
 
-#### 2.4.2 配置
+#### 配置
 
-- uboot编译配置
+- **U-Boot 编译配置：**
 
 ```sh
 CONFIG_FIT_SIGNATURE=y
@@ -856,21 +963,21 @@ CONFIG_SPL_RSA_VERIFY=y
 CONFIG_RSA_VERIFY=y
 ```
 
-- opensbi编译配置
+- **OpenSBI 编译配置：**
 
 ```sh
 CONFIG_FIT_SIGNATURE=y
 ```
 
-- kernel编译配置
+- **Kernel 编译配置：**
 
 ```sh
 CONFIG_FIT_SIGNATURE=y
 ```
 
-#### 2.4.3 公私钥
+#### 公私钥生成
 
-使用openssl生成私钥与证书，保护好私钥，发布证书。
+使用 `openssl` 生成私钥和证书（私钥需妥善保管，仅证书公开）：
 
 ```sh
 # build private key without password
@@ -889,9 +996,9 @@ openssl rsa -in prv-rsa.key -pubout -out pub-rsa.key
 openssl rsa -in pub-rsa.key -pubin -noout -text
 ```
 
-#### 2.4.4 镜像签名
+#### 镜像签名
 
-- 修改its文件，打开hash与签名配置
+1. 修改 ITS 脚本，启用 hash 和签名配置：
 
 ```sh
 /dts-v1/;
@@ -932,7 +1039,7 @@ openssl rsa -in pub-rsa.key -pubin -noout -text
 };
 ```
 
-- 使用私钥和证书，对fit image文件签名
+2. 使用私钥和证书，对 FIT image 文件进行签名
 
 ```sh
 # build empty dtb file, for next stage public key file output
@@ -948,9 +1055,9 @@ mkimage -f uboot_fdt_sign.its -K pubkey.dtb -k key -r u-boot.itb
 fdtdump -s pubkey.dtb
 ```
 
-- 更新public key info到上一级引导代码
+3. 更新公钥信息到上一级引导代码
 
-  - 如更新uboot签名所用私钥对应的公钥信息到FSBL dts中去
+  示例：更新 uboot 签名所用私钥对应的公钥信息到 FSBL 设备树中
 
 ```sh
 / {
@@ -970,84 +1077,86 @@ fdtdump -s pubkey.dtb
 
 ```
 
-## 3. uboot功能与配置
+## U-Boot 功能与配置
 
-本章节主要介绍uboot的功能以及常用的配置方法。
+本章节主要介绍 U-Boot 的功能以及常用的配置方法。
 
-### 3.1 功能介绍
+### 功能介绍
 
-uboot的主要功能有以下几点：
+U-Boot 的主要功能有以下几点：
 
-- 加载启动内核
+- **加载启动内核**
 
-uboot从存储介质(emmc/sd/nand/nor/ssd等)，加载内核镜像到内存指定位置，并启动内核。
+  U-Boot 从存储介质（eMMC / SD / NAND / NOR / SSD 等），加载内核镜像到内存指定位置，并启动内核。
 
-- fastboot刷机功能
+- **fastboot 刷机功能**
+  通过 fastboot 工具，烧写镜像到指定的分区位置。
 
-通过fastboot工具，烧写镜像到指定的分区位置。
+- **开机 logo**
+  U-Boot 启动阶段显示启动 logo 以及 boot menu 。
 
-- 开机logo
+- **驱动调试**
+  基于 U-Boot 调试设备驱动，如 MMC / SPI / NAND / NOR / NVME 等驱动，U-Boot 提供 shell 命令行对各个驱动进行功能调试。
+  所有 U-Boot 驱动在 `drivers/` 目录下。
 
-uboot启动阶段显示启动logo以及boot menu。
+### 编译
 
-- 驱动调试
+本章节介绍基于 U-Boot 代码环境，编译生成 U-Boot 的镜像文件。
 
-基于uboot调试设备驱动，如mmc/spi/nand/nor/nvme等驱动。uboot提供shell命令行对各个驱动进行功能调试。
-uboot驱动在drivers/目录下。
+- **编译配置**
+  首次编译或更换方案前，请选择对应的编译配置（以 k1 为例）：
 
-### 3.2 编译
+  ```shell
+  cd ~/uboot-2022.10
+  make ARCH=riscv k1_defconfig -C ~/uboot-2022.10/
+  ```
 
-本章节介绍基于uboot代码环境，编译生成uboot的镜像文件。
+  可视化更改编译配置：
 
-- 编译配置
+  ```shell
+  make ARCH=riscv menuconfig
+  ```
 
-首次编译，或者需要重新选择其他方案，则需要先选择编译配置，这里以k1为例：
+  ![a](static/OLIdbiLK4onXqyxOOj8cyBDCn3b.png)
 
-```shell
-cd ~/uboot-2022.10
-make ARCH=riscv k1_defconfig -C ~/uboot-2022.10/
-```
+  通过键盘 "Y"/"N" 以 开启/关闭 相关的功能配置。保存后会更新到 U-Boot 根目录的 `.config` 文件。
 
-可视化更改编译配置：
+- **编译 U-Boot**
+  
+  ```shell
+  cd ~/uboot-2022.10
+  GCC_PREFIX=riscv64-unknown-linux-gnu-
+  make ARCH=riscv CROSS_COMPILE=${GCC_PREFIX} -C ~/uboot-2022.10 -j4
+  ```
 
-```shell
-make ARCH=riscv menuconfig
-```
-
-![a](static/OLIdbiLK4onXqyxOOj8cyBDCn3b.png)
-
-通过键盘"Y"/"N"以开启/关闭相关的功能配置。保存后会更新到 uboot 根目录的.config 文件。
-
-- 编译 uboot
-
-```shell
-cd ~/uboot-2022.10
-GCC_PREFIX=riscv64-unknown-linux-gnu-
-make ARCH=riscv CROSS_COMPILE=${GCC_PREFIX} -C ~/uboot-2022.10 -j4
-```
-
-- 编译产物
+- **编译产物说明**
 
 ```shell
 ~/uboot-2022.10$ ls u-boot* -l
 u-boot
 u-boot.bin           # uboot镜像
-u-boot.dtb           # dtb文件
-u-boot-dtb.bin       # 带dtb的uboot镜像
-u-boot.itb           # 将u-boot-nodtb.bin和dtb打包成fit格式
+u-boot.dtb           # 设备树文件
+u-boot-dtb.bin       # 包含设备树的完整 U-Boot 镜像
+u-boot.itb           # FIT 格式镜像（含 U-Boot 和 设备树）
 u-boot-nodtb.bin
-bootinfo_emmc.bin    # 用于emmc启动时记录spl位置的信息
+bootinfo_emmc.bin    # 用于 eMMC 启动时记录 SPL 位置的信息
 bootinfo_sd.bin
 bootinfo_spinand.bin
 bootinfo_spinor.bin
-FSBL.bin             # u-boot-spl.bin加上头信息。由brom加载启动
-k1-x_deb1.dtb        # 方案deb1的dtb文件
-k1-x_spl.dtb         # spl的dtb文件
+FSBL.bin             # u-boot-spl.bin 加上头信息, 由 brom 加载启动
+k1-x_deb1.dtb        # 方案 deb1 的设备树
+k1-x_spl.dtb         # SPL 的设备树
 ```
 
-### 3.3 dts配置
+### DTS 配置说明
 
-uboot dts 配置在目录 uboot-2022.10/arch/riscv/dts/，根据不同的方案修改该方案的 dts，如 deb1 方案。
+U-Boot 的设备树文件位于：
+
+```shell
+~/uboot-2022.10/arch/riscv/dts/
+```
+
+根据所使用的方案（如 deb1）修改对应的 DTS 文件：
 
 ```shell
 ~/uboot-2022.10$ ls arch/riscv/dts/k1*.dts -l
@@ -1060,49 +1169,95 @@ arch/riscv/dts/k1-x_fpga.dts
 arch/riscv/dts/k1-x_spl.dts
 ```
 
-## 4. uboot驱动开发调试
+## U-Boot 驱动开发调试
 
-本章节主要介绍 uboot 的驱动使用和调试方法，默认情况下所有的驱动都已经做好配置。
+本章节主要介绍 U-Boot 的驱动使用和调试方法。
+默认情况下，所有驱动已在构建配置中启用，无需手动启用。
 
-### 4.1 boot kernel
+### 启动 Linux 内核（Boot Kernel）
 
-本小节介绍 uboot 启动 kernel，以及分区的自定义配置和启动。
+本节介绍如何通过 U-Boot 启动 Linux 内核，包括分区的自定义配置和启动过程。
 
-- 开发板上电启动后，立即按下键盘上的"s"键，进入 uboot shell
-- 可通过执行 fastboot 0 进入 fastboot mode，通过电脑端的 fastboot stage Image 发送镜像到开发板。(或者其他下载镜像的方式，如 fatload 等命令)
-- 执行 booti 启动 kernel(或者 bootm 启动 fit 格式镜像)
+**步骤 1：进入 U-Boot Shell**  
+开发板上电启动后，立即按下键盘上的 `s` 键，进入 U-Boot Shell。
+
+**步骤 2：进入 Fastboot 模式**  
+在 U-Boot Shell 中，执行以下命令进入 Fastboot 模式：
 
 ```shell
-#下载kernel镜像
+=> fastboot 0
+```
+
+设备进入 Fastboot 模式，等待接收文件。
+
+**步骤 3：下载 Kernel 镜像**  
+在 **PC 端**，执行以下命令将 Kernel 镜像发送到开发板：
+
+```shell
+C:\Users>fastboot stage Z:\k1\output\Image
+```
+
+在 **开发板** 的 U-Boot Shell 中，执行以下命令接收镜像：
+
+```shell
 => fastboot -l 0x40000000 0
+```
+
+**预期输出**：  
+
+```shell
 Starting download of 50687488 bytes
 ...
 downloading/uploading of 50687488 bytes finished
+```
 
-#电脑端执行命令
-C:\Users>fastboot stage Z:\k1\output\Image
+PC 端输出：  
+
+```shell
 Sending 'Z:\k1\output\Image' (49499 KB)           OKAY [  1.934s]
 Finished. Total time: 3.358s
+```
 
-#下载完成后，在uboot shell中，通过键盘输入CTRL+C退出fastboot mode。
+**步骤 4：下载 DTB 文件**  
+在 **PC 端**，执行以下命令将 DTB 文件发送到开发板：
 
-
-#下载dtb
-=> fastboot -l 0x50000000 0
-Starting download of 33261 bytes
-
-downloading/uploading of 33261 bytes finished
-
-#电脑端执行命令
+```shell
 C:\Users>fastboot stage Z:\k1\output\k1-x_deb1.dtb
+```
+
+在 **开发板** 的 U-Boot Shell 中，执行以下命令接收 DTB 文件：
+
+```shell
+=> fastboot -l 0x50000000 0
+```
+
+**预期输出**：  
+
+```shell
+Starting download of 33261 bytes
+downloading/uploading of 33261 bytes finished
+```
+
+PC 端输出：  
+
+```shell
 Sending 'Z:\k1\output\k1-x_deb1.dtb' (32 KB)      OKAY [  0.004s]
 Finished. Total time: 0.054s
 ```
 
-执行启动命令
+**步骤 5：退出 Fastboot 模式**  
+下载完成后，在 U-Boot Shell 中，通过键盘输入 `CTRL+C` 退出 Fastboot 模式。
+
+**步骤 6：启动 Kernel**  
+执行 `booti` 启动 kernel：
 
 ```shell
 => booti 0x40000000 - 0x50000000
+```
+
+**预期输出**：  
+
+```shell
 Moving Image from 0x40000000 to 0x200000, end=3d4f000
 ## Flattened Device Tree blob at 50000000
    Booting using the fdt blob at 0x50000000
@@ -1110,28 +1265,55 @@ Moving Image from 0x40000000 to 0x200000, end=3d4f000
 
 Starting kernel ...
 
-[    0.000000] Linux version 6.1.15+ ... ...
+[    0.000000] Linux version 6.1.15+ ...
 [    0.000000] OF: fdt: Ignoring memory range 0x0 - 0x200000
 [    0.000000] Machine model: spacemit k1-x deb1 board
 [    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
 [    0.000000] printk: bootconsole [sbi0] enabled
 ```
 
-- 通过 bootm 命令启动 fit 格式镜像
+### 通过 `bootm` 命令启动 FIT 格式镜像
 
-假设 emmc 中分区 5 为 fat32 文件系统。且里面保存 uImage.itb 文件，通过以下命令加载启动 kernel。
+**步骤 1：检查存储介质中的文件**  
+假设 eMMC 中分区 5 为 FAT32 文件系统，且里面保存 `uImage.itb` 文件。在 U-Boot Shell 中，执行以下命令列出文件：
 
 ```shell
 => fatls mmc 2:5
+```
+
+**预期输出**：  
+
+```shell
 sdh@d4281000: 74 clk wait timeout(100)
  50896911   uImage.itb
      4671   env_k1-x.txt
 
 2 file(s), 0 dir(s)
+```
 
+**步骤 2：加载 FIT 格式镜像**  
+执行以下命令加载 FIT 格式镜像：
+
+```shell
 => fatload mmc 2:5 0x40000000 uImage.itb
+```
+
+**预期输出**：  
+
+```shell
 50896911 bytes read in 339 ms (143.2 MiB/s)
+```
+
+**步骤 3：启动 Kernel**  
+执行 `bootm` 启动 FIT 格式镜像：
+
+```shell
 => bootm 0x40000000
+```
+
+**预期输出**：  
+
+```shell
 ## Loading kernel from FIT Image at 40000000 ...
 Boot from fit configuration k1_deb1
    Using 'conf_2' configuration
@@ -1164,43 +1346,75 @@ Boot from fit configuration k1_deb1
 
 Starting kernel ...
 
-[    0.000000] Linux version 6.1.15+ ... ...
+[    0.000000] Linux version 6.1.15+ ...
 [    0.000000] OF: fdt: Ignoring memory range 0x0 - 0x1400000
 [    0.000000] Machine model: spacemit k1-x deb1 board
 [    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
 [    0.000000] printk: bootconsole [sbi0] enabled
 ```
 
-### 4.2 env
+### 配置启动环境变量`env`
 
-本章节介绍如何配置在 uboot 启动阶段，从指定存储介质加载 env。
+本章节介绍如何在 U-Boot 启动阶段，从指定存储介质加载环境变量 `env`。
 
-- 执行 make menuconfig，进入 Environment，
+1. **进入 `make menuconfig`**  
+   在构建 U-Boot 时，执行以下命令进入配置菜单：
 
-![alt text](static/CgrNbzNbkot1tvxOXIhcGMrRnvc.png)
+   ```shell
+   make menuconfig
+   ```
 
-![atl text](static/Od7AbhfLSoHWY9xN8uIcwlAhnhb.png)
+2. **进入 Environment 配置**  
+   在 `make menuconfig` 菜单中，选择 **Environment** 选项，进入环境变量配置界面。
+   ![alt text](static/CgrNbzNbkot1tvxOXIhcGMrRnvc.png)
 
-目前支持可选的介质为 mmc，mtd 设备(其中 mtd 设备包括 spinor，spinand)。
+   ![atl text](static/Od7AbhfLSoHWY9xN8uIcwlAhnhb.png)
 
-env 的偏移地址需要根据分区表的配置来确定，具体可以参考刷机启动设置章节的分区表配置，默认是 0x80000。
+   **支持的存储介质**：  
+   目前支持的存储介质包括：
+   - **MMC 设备**（如 SD 卡或 eMMC）
+   - **MTD 设备**（包括 SPI NOR 和 SPI NAND）
 
-```shell
-(0x80000) Environment address       #spinor的env偏移地址
-(0x80000) Environment offset        #mmc设备的env偏移地址
-```
+3. **配置环境变量的偏移地址**  
+   环境变量的偏移地址需要根据分区表的配置来确定。默认偏移地址为 **`0x80000`**。具体配置如下：
 
-### 4.3 mmc
+   - **对于 SPI NOR 设备**：
 
-emmc 和 sd 卡都是使用到 mmc 驱动，dev number 分别为 2、0。
+     ```shell
+     (0x80000) Environment address       # SPI NOR 的 env 偏移地址
+     ```
 
-- config 配置
+   - **对于 MMC 设备**：
 
-执行 make menuconfig，进入 Device Drivers--->MMC Host controller Support，开启以下配置
+     ```shell
+     (0x80000) Environment offset        # MMC 设备的 env 偏移地址
+     ```
 
-![alt text](static/YnF5beU32ojicYx6xbkcM2pGn2b.png)
+### MMC 驱动配置与调试
 
-- dts 配置
+本章节介绍如何配置和调试 U-Boot 中的 MMC 驱动，包括 eMMC 和 SD 卡的配置。
+
+eMMC 和 SD 卡都使用 MMC 驱动，设备编号分别为：
+
+- **eMMC**: dev number = 2
+- **SD 卡**: dev number = 0
+
+1. **config 配置**
+   - **进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
+
+     ```shell
+     make menuconfig
+     ```
+
+   - **进入 MMC Host controller Support**  
+   在 `make menuconfig` 菜单中，选择 **Device Drivers** -> **MMC Host controller Support**，开启以下配置：
+
+      ![alt text](static/YnF5beU32ojicYx6xbkcM2pGn2b.png)
+
+2. **dts 配置**
+在 U-Boot 的设备树配置中，需要为 eMMC 和 SD 卡配置设备树节点。
+**示例配置**：
 
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x.dtsi
@@ -1255,9 +1469,8 @@ emmc 和 sd 卡都是使用到 mmc 驱动，dev number 分别为 2、0。
 };
 ```
 
-- 调试验证
-
-uboot shell 提供命令行调试 mmc 驱动，需要开启编译配置项 CONFIG_CMD_MMC
+3. **调试验证**
+U-Boot Shell 提供了命令行工具用于调试 MMC 驱动。需要开启编译配置项 `CONFIG_CMD_MMC`。
 
 ```shell
 => mmc list
@@ -1280,23 +1493,31 @@ MMC write: dev # 2, block # 0, count 4096 ... 4096 blocks written: OK
 #其他用法可参考mmc -h
 ```
 
-- 常用接口
+4. **常用接口**
+参考 `cmd/mmc.c` 中的接口实现，了解更多信息。
 
-参考 cmd/mmc.c 中的接口
+### NVMe 驱动配置与调试
 
-### 4.4 nvme
+NVMe 驱动主要用于调试 SSD 硬盘。以下内容将介绍如何配置和调试 NVMe 驱动。
 
-nvme 驱动主要用于调试 ssd 硬盘。
+1. **config 配置**
+   **进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
 
-- config 配置
+   ```shell
+   make menuconfig
+   ```
 
-执行 make menuconfig，进入 Device Driver，开启以下配置，
+   **进入 Device Drivers**  
+   在 `make menuconfig` 菜单中，进入 **Device Drivers**，开启以下配置：
 
-![a](static/OLktbqlRLoreIPxlZ9TcGtwOnff.png)
+   ![a](static/OLktbqlRLoreIPxlZ9TcGtwOnff.png)
 
-![a](static/UrVybSqdFo0iTnxZ8QAcKoWAnqc.png)
+   ![a](static/UrVybSqdFo0iTnxZ8QAcKoWAnqc.png)
 
-- dts 配置
+2. **dts 配置**
+在 U-Boot 的设备树配置中，需要为 NVMe 驱动配置设备树节点。
+**示例配置**：
 
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x.dtsi
@@ -1351,7 +1572,6 @@ nvme 驱动主要用于调试 ssd 硬盘。
              };
          };
 
-
 //uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
  &pcie1_rc {
      pinctrl-names = "default";
@@ -1360,9 +1580,8 @@ nvme 驱动主要用于调试 ssd 硬盘。
  };
 ```
 
-- 调试验证
-
-需要开启编译配置 CONFIG_CMD_NVME，调试方法如下：
+3. **调试验证**
+需要开启编译配置 `CONFIG_CMD_NVME`，调试方法如下：
 
 ```shell
 => nvme scan
@@ -1399,21 +1618,32 @@ Blk device 0: Metadata capabilities:
 => nvme read/write addr blk_off blk_cnt
 ```
 
-- 常用接口
+4. **常用接口**
+参考 `cmd/nvme.c` 中的代码接口，了解更多信息。
 
-参考 cmd/nvme.c 中的代码接口
+### 网络配置（Net）
 
-### 4.5 net
+本节介绍如何配置和调试 U-Boot 中的网络功能，包括以太网接口的配置和调试。
 
-- config 配置
+1. **config 配置**
 
-执行 make menuconfig，开启以下配置，
+   **进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
 
-![a](static/RCZdbLULLo7I0axEo3rc71BdnZg.png)
+   ```shell
+   make menuconfig
+   ```
 
-![a](static/K5s8bumbzofb0txqmiXc43BCnRg.png)
+   **开启网络相关配置**  
+   在 `make menuconfig` 菜单中，进入 **Device Drivers**，开启以下配置：
 
-- dts 配置
+   ![a](static/RCZdbLULLo7I0axEo3rc71BdnZg.png)
+
+   ![a](static/K5s8bumbzofb0txqmiXc43BCnRg.png)
+
+2. **dts 配置**
+在 U-Boot 的设备树配置中，需要为以太网接口配置设备树节点。
+**示例配置**：
 
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x.dtsi
@@ -1460,9 +1690,9 @@ Blk device 0: Metadata capabilities:
  };
 ```
 
-- 调试验证
-
-需要先开启编译配置 CONFIG_CMD_NET，网线接上开发板的网口，且已经准备好 tftp 服务器(tftp 服务器的搭建方法可搜索网上资料，这里不做介绍)
+3. **调试验证**
+需要先开启编译配置 `CONFIG_CMD_NET`，并确保网线已连接到开发板的网口，且已经准备好 TFTP 服务器（TFTP 服务器的搭建方法可参考网上资料，这里不做介绍）。
+**调试命令示例**：
 
 ```shell
 => dhcp #执行dhcp后，如果返回地址，表示与网络服务器联通。其他情况为连接失败
@@ -1495,23 +1725,33 @@ Bytes transferred = 66900963 (3fcd3e3 hex)
 =>bootm 0x40000000 
 ```
 
-- 常用接口
+4. **常用接口**
 
-参考 cmd/net.c 中的代码接口
+参考 `cmd/net.c` 中的代码接口，了解更多信息。
 
-### 4.6 spi
+### SPI 配置与调试
 
-spi 只引出一个硬件接口，所以只支持 nand 或者 nor flash。
+SPI（Serial Peripheral Interface）是一种常用的串行通信协议，用于连接微控制器和各种外围设备。在 U-Boot 中，SPI 驱动用于支持 NAND 或 NOR Flash。
 
-- config 配置
+1. **config 配置**
+**进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
 
-执行 make menuconfig，进入 Device Drivers，开启以下配置
+   ```shell
+   make menuconfig
+   ```
 
-![a](static/DdHBbRJQpoIoopxMuO8cS3GBnXg.png)
+   **进入 Device Drivers**  
+   在 `make menuconfig` 菜单中，进入 **Device Drivers**，开启以下配置：
 
-![a](static/AH6bbloZ9omZNux2ZCxcXblVnvc.png)
+   ![a](static/DdHBbRJQpoIoopxMuO8cS3GBnXg.png)
 
-- dts 配置
+   ![a](static/AH6bbloZ9omZNux2ZCxcXblVnvc.png)
+
+2. **dts 配置**
+   在 U-Boot 的设备树配置中，需要为 SPI 接口配置设备树节点。
+
+   **示例配置**：
 
 ```c
 //k1-x.dtsi
@@ -1561,11 +1801,11 @@ spi 只引出一个硬件接口，所以只支持 nand 或者 nor flash。
 };
 ```
 
-- 调试验证
+3. **调试验证**
 
-开启 uboot shell 命令 sspi 的配置，CONFIG_CMD_SPI，
+   需要开启 U-Boot Shell 中的 `sspi` 命令配置 `CONFIG_CMD_SPI`。
 
-调试命令：
+   **调试命令：**
 
 ```c
 sspi -h
@@ -1581,21 +1821,29 @@ sspi -h
 
 ```
 
-- 常用接口
+4. **常用接口**
 
-参考 cmd/spi.c 里面的接口
+   参考 `cmd/spi.c` 中的代码接口，了解更多信息。
 
-### 4.7 nand
+### NAND 配置与调试
 
-nand 驱动是基于 spi，所以需要先开启 spi 驱动功能。
+NAND 驱动基于 SPI 接口实现，因此需要先开启 SPI 驱动功能。以下内容将介绍如何配置和调试 NAND 驱动。
 
-- config 配置
+1. **config 配置**
+  执行以下命令进入配置菜单：
 
-执行 make menuconfig，进入 Device Drivers --->MTD Support
+   ```shell
+   make menuconfig
+   ```
 
-![a](static/Pmlobv86koO6qpxDohMcycGVn4e.png)
+   **进入 Device Drivers -> MTD Support**  
+   在 `make menuconfig` 菜单中，进入 **Device Drivers** -> **MTD Support**，开启以下配置：
 
-若需要新增一个 nand flash，可以根据已支持的厂商驱动，添加该 nand flash 的 jedec id。
+   ![a](static/Pmlobv86koO6qpxDohMcycGVn4e.png)
+
+   若需要新增一个 NAND Flash，可以根据已支持的厂商驱动，添加该 NAND Flash 的 JEDEC ID。
+
+   **示例**：
 
 ```shell
 ~/uboot-2022.10$ ls drivers/mtd/nand/spi/*.c -l
@@ -1608,7 +1856,7 @@ drivers/mtd/nand/spi/toshiba.c
 drivers/mtd/nand/spi/winbond.c
 ```
 
-如在 gigadevice 添加新的 flash
+如在 `gigadevice` 添加新的 Flash:
 
 ```c
 //uboot-2022.10/drivers/mtd/nand/spi/gigadevice.c
@@ -1634,11 +1882,13 @@ drivers/mtd/nand/spi/winbond.c
  };
 ```
 
-如果为其他品牌的 nand flash，可参考 gigadevice 的驱动重新实现。
+**说明**：如果是其他品牌的 NAND Flash，可以参考 `gigadevice` 的驱动代码实现。
 
-- dts 配置
+2. **dts 配置**
 
-nand 驱动是挂在 spi 驱动下，所以 dts 需要配置在 spi 节点下面。
+   NAND 驱动挂在 SPI 驱动下，因此需要在 SPI 节点下配置。
+
+   **示例配置**：
 
 ```c
  &qspi {
@@ -1658,9 +1908,9 @@ nand 驱动是挂在 spi 驱动下，所以 dts 需要配置在 spi 节点下面
  };
 ```
 
-- 调试验证
-
-nand 驱动可以基于 mtd 命令调试
+3. **调试验证**
+NAND 驱动可以基于 MTD 命令进行调试。需要开启 U-Boot Shell 中的 `CONFIG_CMD_MTD` 配置。
+**调试命令**：
 
 ```shell
 => mtd
@@ -1715,29 +1965,38 @@ List of MTD devices:
 => mtd read/write partname addr off size
 ```
 
-- 常用接口
+4. 常用接口
+参考 `cmd/mtd.c` 中的代码接口，了解更多信息。
 
-参考 cmd/mtd.c 的代码接口
+### NOR 配置与调试
 
-### 4.8 nor
+NOR 驱动基于 SPI 接口实现，因此需要先开启 SPI 驱动功能。以下内容将介绍如何配置和调试 NOR 驱动。
 
-nor 驱动是基于 spi 驱动下，所以需要先开启 spi 驱动功能。
+1. **config 配置**
 
-- config 配置
+   **进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
 
-执行 make menuconfig，进入 Device Drivers --->MTD Support --->SPI Flash Support，将以下配置打开(默认情况下已开启)。示例以开启 winbond 的 nor flash 为例。
+   ```shell
+   make menuconfig
+   ```
+
+   **进入 Device Drivers -> MTD Support -> SPI Flash Support**  
+   在 `make menuconfig` 菜单中，进入 **Device Drivers** -> **MTD Support** -> **SPI Flash Support**，开启以下配置：
 
 ![a](static/WkhTbAHpFot5raxYWMWckwBwnsh.png)
 
 ![a](static/VTT0bxjO1oobWYxPeficMzw4nfl.png)
 
-添加一个新的 spi nor flash:
+**添加一个新的  SPI NOR Flash**
 
-- 对于上图已支持的厂商 nor flash，可以直接开启对应的编译配置，如 gigadevice 厂商的 flash。
-- spi flash 的 jedec id 列表在 uboot-2022.10/drivers/mtd/spi/spi-nor-ids.c 里面维护。如果列表里面没有特定的 nor flash jedec id，则可以自行添加 jedec id 到列表中（jedec id 为 spi flash 对应的厂商代号，可根据 nor flash 的 datasheet 查找 manufac 关键字，如 winbond 为 0xfe）
-- dts 配置
+- 对于已支持的厂商 NOR Flash，可以直接开启对应的编译配置。例如，对于 GigaDevice 厂商的 Flash，可以开启对应的配置。
+- **检查 JEDEC ID 列表**：SPI Flash 的 JEDEC ID 列表在 `uboot-2022.10/drivers/mtd/spi/spi-nor-ids.c` 文件中维护。如果列表中没有特定的 NOR Flash JEDEC ID，可以自行添加。（JEDEC ID 为 SPI Flash 对应的厂商代号，可根据 NOR Flash 的 数据手册 中查找 `manufac` 关键字，如 winbond 为 `0xfe`）
 
-nor 驱动依赖 spi 驱动接口，spi 驱动请参考 spi 子章节。需要添加 dts 节点，如下：
+2. **dts 配置**
+   NOR 驱动依赖 SPI 驱动接口，因此需要在 SPI 节点下添加 NOR Flash 的设备树节点。
+
+   **示例配置**：
 
 ```c
 //k1/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
@@ -1757,11 +2016,10 @@ nor 驱动依赖 spi 驱动接口，spi 驱动请参考 spi 子章节。需要�
  };
 ```
 
-- 调试验证
+3. **调试验证**
+   NOR 驱动可以通过 U-Boot 命令行的 `mtd` 和 `sf` 命令进行调试。需要确保编译配置中开启了 `CONFIG_CMD_MTD=y` 和 `CONFIG_CMD_SF`。
 
-可基于 uboot 命令行的 mtd/sf 命令调试。编译配置需要开启 CONFIG_CMD_MTD=y，CONFIG_CMD_SF
-
-基于 mtd 命令读写 nor flash：
+   基于 `mtd` 命令读写 NOR Flash
 
 ```shell
 => mtd list
@@ -1817,7 +2075,7 @@ Dump 16 data bytes from 0x0:
 =>
 ```
 
-基于 sf 命令读写 nor flash
+基于 `sf` 命令读写 NOR Flash
 
 ```shell
 => sf
@@ -1848,7 +2106,7 @@ SF: 16 bytes @ 0x0 Read: OK
 =>
 ```
 
-- 常用接口
+4. **常用接口**
 
 ```c
 include <spi.h>
@@ -1865,13 +2123,21 @@ flash = spi_flash_probe(bus, cs, speed, mode);
 ret = spi_flash_read(flash, offset, len, buf);
 ```
 
-### 4.9 hdmi
+### HDMI 配置与调试
 
-本小节主要介绍如何开启 hdmi 驱动。
+本小节主要介绍如何开启 HDMI 驱动。
 
-- config 配置
+1. **config 配置**
 
-执行 make uboot_menuconfig，即进入 Device Drivers -> Graphics support，将以下配置打开(默认情况下已开启)。
+   **进入 `make uboot_menuconfig`**  
+   执行以下命令进入配置菜单：
+
+   ```shell
+   make uboot_menuconfig
+   ```
+
+   **进入 Device Drivers -> Graphics support**  
+   在 `make uboot_menuconfig` 菜单中，进入 **Device Drivers** -> **Graphics support**，开启以下配置(默认情况下已开启)。
 
 ![a](static/GeszbbETBojI9KxyCWBcPM7fnHe.png)
 
@@ -1883,7 +2149,11 @@ ret = spi_flash_read(flash, offset, len, buf);
 
 ![a](static/NuSSbshdfon2mWxWZU6cEipvnwf.png)
 
-- dts 配置
+2. **dts 配置**
+
+   在设备树配置中，需要为 HDMI 驱动配置设备树节点。
+
+   **示例配置**：
 
 ```c
 &dpu {
@@ -1897,22 +2167,30 @@ ret = spi_flash_read(flash, offset, len, buf);
 };
 ```
 
-### 4.10 boot logo
+### Boot Logo 配置与显示
 
-本小节主要介绍如何在 uboot 启动阶段显示 bootlogo。
+本小节主要介绍如何在 U-Boot 启动阶段显示 Boot Logo。
 
-- config 配置
+1. **config 配置**
 
-执行 make menuconfig，将以下配置打开。
+   - **开启 HDMI 支持**: 首先，确保 U-Boot 已开启 HDMI 支持。具体步骤可以参考 **HDMI 配置与调试** 小节。
 
-1. 首先打开 uboot 下 hdmi 支持，参考 hdmi小节。
-2. 再打开 uboot 下 bootlogo 支持，进入 Device Drivers -> Graphics support，开启以下选项。
+   - **开启 Boot Logo 支持**  
+   执行以下命令进入配置菜单：
 
-![a](static/FfzObuq4poT5ZYxU17scAzZRnyf.png)
+     ```shell
+     make menuconfig
+     ```
 
-- env 配置
+     在 `make menuconfig` 菜单中，进入 **Device Drivers** -> **Graphics support**，开启以下选项：
 
-在 uboot-2022.10\include\configs 目录下的 k1-x.h 增加 bootlogo 所需的 3 个 env 变量：splashimage、splashpos、splashfile。
+     ![a](static/FfzObuq4poT5ZYxU17scAzZRnyf.png)
+
+2. **env 配置**
+
+   在 U-Boot 的配置文件中，需要添加 Boot Logo 所需的环境变量。这些变量包括 `splashimage`、`splashpos` 和 `splashfile`。
+
+   **示例配置**：在 uboot-2022.10\include\configs 目录下的 `k1-x.h` 增加 Boot Logo 所需的 3 个 env 变量：`splashimage`、`splashpos` 和 `splashfile`。
 
 ```c
 //uboot-2022.10/include/configs/k1-x.h
@@ -1923,7 +2201,7 @@ ret = spi_flash_read(flash, offset, len, buf);
         ... ...
      "splashimage=" __stringify(CONFIG_FASTBOOT_BUF_ADDR) "\0" \
      "splashpos=m,m\0" \
-     "splashfile=k1-x.bmp\0" \
+     "splashfile=bianbu.bmp\0" \
 
         ... ...
         ... ...
@@ -1933,19 +2211,24 @@ ret = spi_flash_read(flash, offset, len, buf);
  #endif /* __CONFIG_H */
 ```
 
-其中 splashimage 代表 bootlogo 图片加载到内存的地址;
+**说明**：
 
-splashpos 代表图片显示的位置，“m,m”代表图片显示在屏幕正中间;
+- `splashimage`：Boot Logo 图片加载到内存的地址。
+- `splashpos`：图片显示的位置。`"m,m"` 表示图片显示在屏幕正中间。
+- `splashfile`：将要显示的 BMP 文件名。该文件需要放在 bootfs 所在的分区。
 
-splashfile 指将要显示的 bmp 文件名，这个图片需要放在在 bootfs 所在的分区。
+3. **打包 BMP 图片进 BootFS**
 
-- 打包.bmp 图片进 bootfs
+   将 Boot Logo 的 BMP 图片打包进 BootFS：
 
-将要显示的 bmp 图片打包进 bootfs：
+   - **准备图片文件**  
+   将 `bianbu.bmp` 文件放在 `./buildroot-ext/board/spacemit/k1` 目录下。文件名需要与 `buildroot-ext/board/spacemit/k1/prepare_img.sh` 中的 `UBOOT_LOGO_FILE` 和环境变量 `splashfile` 保持一致。
 
-将 k1-x.bmp 文件放在./buildroot-ext/board/spacemit/k1 目录下，文件名要和 buildroot-ext/board/spacemit/k1/prepare_img.sh 中的 UBOOT_LOGO_FILE 和以及环境变量 splashfile 保持一致，如 k1-x.bmp。
+   - **修改打包脚本**  
+   确保 `prepare_img.sh` 脚本中正确引用了 `bianbu.bmp` 文件：
 
-在编译打包后，bmp 图片将被打包进 bootfs。
+   - **编译打包**  
+   在编译打包后，BMP 图片将被打包进 BootFS。
 
 ```shell
 //buildroot-ext/board/spacemit/k1/prepare_img.sh
@@ -1960,31 +2243,41 @@ DEVICE_DIR=$(dirname $0)
 
 ... ...
 
-UBOOT_LOGO_FILE="$DEVICE_DIR/k1-x.bmp"
+UBOOT_LOGO_FILE="$DEVICE_DIR/bianbu.bmp"
 
 ```
 
-- 如何修改 bootlogo
+4. 修改 Boot Logo
 
-1. 直接替换 buildroot-ext/board/spacemit/k1/目录中的 k1-x.bmp，或根据上述描述新增图片
+   如果需要修改 Boot Logo, 直接替换 `buildroot-ext/board/spacemit/k1/` 目录中的 `bianbu.bmp` 文件。
 
-### 4.11 boot menu
+### Boot Menu 配置与使用
 
-本小节主要介绍开启 uboot 的 bootmenu 功能。
+本小节主要介绍如何开启 U-Boot 的 Boot Menu 功能。
 
-- config 配置
+1. **config 配置**
 
-执行 make menuconfig，进入 Command line interface > Boot commands，将以下配置打开
+   - **进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
 
-![a](static/BmycbCac2oCtuGxjjpvcUlHunug.png)
+     ```shell
+     make menuconfig
+     ```
 
-再进入 Boot options > Autoboot options 开启以下选项
+   - **进入 Command line interface -> Boot commands**  
+   在 `make menuconfig` 菜单中，进入 **Command line interface** -> **Boot commands**，开启以下配置：
 
-![a](static/UEhPbxaIgoXpv8xBh52cn7Vdndb.png)
+     ![a](static/BmycbCac2oCtuGxjjpvcUlHunug.png)
 
-- env 配置
+   - **进入 Boot options -> Autoboot options**  
+   再进入 **Boot options** -> **Autoboot options**，开启以下选项：
+     ![a](static/UEhPbxaIgoXpv8xBh52cn7Vdndb.png)
 
-buildroot-ext/board/spacemit/k1/env_k1-x.txt 中需要添加 bootdelay 和 bootmenu_delay，例如 bootdelay=5，bootmenu_delay=5,其中 5 代表 bootmenu 的等待时间，单位为秒。
+2. **env 配置**
+在 `buildroot-ext/board/spacemit/k1/env_k1-x.txt` 文件中，需要添加 `bootdelay` 和 `bootmenu_delay` 环境变量。
+例如：
+   - `bootmenu_delay=5` 表示系统会在启动菜单界面等待 5 秒，用户可以选择启动选项。
+   - `bootdelay=5` 表示选择启动方式后，系统在真正启动前再等待 5 秒。
 
 ```c
 //buildroot-ext/board/spacemit/k1/env_k1-x.txt
@@ -2012,35 +2305,55 @@ bootmenu_8="recovery from mmc"=run spacemit_flashing_mmc
 bootmenu_9="recovery from net"=run spacemit_flashing_net
 ```
 
-- 进入 bootmenu
+3. **进入 Boot Menu**
+   开发板上电启动后，立即按住键盘上的 `Esc` 键，进入 Boot Menu。
 
-上电后按住键盘 Esc 键进入 bootmenu
+### Fastboot Command 配置与使用
 
-### 4.12 fastboot command
+本小节主要介绍 K1-DEB1 方案支持的 Fastboot 命令。
 
-本小节主要介绍 k1-deb1 方案支持的 fastboot command。
+#### 编译配置
+开启 Fastboot 支持如下步骤：
+- **进入 `make menuconfig`**  
+   执行以下命令进入配置菜单：
 
-- 编译配置
+     ```shell
+     make menuconfig
+     ```
 
-执行 make menuconfig，进入 Device Drivers --->Fastboot support，开启以下编译配置
+- **进入 Device Drivers -> Fastboot support**  
+   在 `make menuconfig` 菜单中，进入 **Device Drivers** -> **Fastboot support**，开启以下编译配置：
 
-![a](static/LrxMbKM9Eoioc9xJo9bcUrA2nnb.png)
+     ![a](static/LrxMbKM9Eoioc9xJo9bcUrA2nnb.png)
 
-fastboot 依赖 usb 驱动，需要开启 usb 的配置的 USB support。
+- **开启 USB 支持**  
+   Fastboot 依赖 USB 驱动，需要开启 USB 的配置 **USB support**：
 
-![a](static/DmeEbYiPqoUuW9xa8u8cw9hlnPg.png)
+     ![a](static/DmeEbYiPqoUuW9xa8u8cw9hlnPg.png)
 
-![a](static/MuMabzRykoQeWHxZk1UcNDZVnDg.png)
+     ![a](static/MuMabzRykoQeWHxZk1UcNDZVnDg.png)
 
-- 进入 fastboot mode
+#### 进入 Fastboot 模式
 
-1.可以通过系统启动后按"s"键进入 uboot shell，执行 fastboot 0 进入 fastboot 模式。
+**方法 1**： 通过 U-Boot Shell 进入 Fastboot 模式
 
-系统默认的 fastboot buffer addr/size 为宏定义 CONFIG_FASTBOOT_BUF_ADDR/CONFIG_FASTBOOT_BUF_SIZE
+- **进入 U-Boot Shell**  
+     系统启动后，按 `s` 键进入 U-Boot Shell。
+
+- **执行 Fastboot 命令**  
+     执行以下命令进入 Fastboot 模式：
+
+       ```shell
+       => fastboot 0
+       ```
+  系统默认的 Fastboot 缓冲区地址和大小由宏定义 `CONFIG_FASTBOOT_BUF_ADDR` 和 `CONFIG_FASTBOOT_BUF_SIZE` 指定。
 
 ```shell
-#或者fastboot -l 0x30000000 -s 0x10000000 0，指定buff addr/size
-=> fastboot 0
+# => fastboot -l 0x30000000 -s 0x10000000 0，指定缓冲区地址和大小
+
+=> fastboot 0 # 进入 Fastboot 模式
+
+# 预期输出：
 k1xci_udc: phy_init
 k1xci_udc probe
 k1xci_udc: pullup 1
@@ -2051,11 +2364,18 @@ handle setup GET_DESCRIPTOR, 0x80, 0x6 index 0x0 value 0x100 length 0x12
 ..
 ```
 
-2.设备启动到 bianbu os 后，发送 adb reboot bootloader 命令，系统将重启进入 fastboot 模式(某些方案可能不支持)
+**方法 2**：**通过 Bianbu OS 进入 Fastboot 模式**
+ 设备启动到 Bianbu OS 后，发送以下命令使系统重启进入 Fastboot 模式：
 
-- 支持的 fastboot command
+   ```shell
+   adb reboot bootloader
+   ```
 
-电脑端的 fastboot 环境配置，请参考电脑环境安装章节。
+   **注**：某些方案可能不支持此功能。
+
+#### 支持的 Fastboot 命令
+
+电脑端的 Fastboot 环境配置，请参考 **电脑环境安装** 章节。
 
 ```shell
 #fastboot原生协议命令
@@ -2072,9 +2392,9 @@ fastboot oem read part              #读取part中的数据到buff addr
 fastboot get_staged file       #上传数据并命名为file。依赖oem read part命令
 ```
 
-### 4.13 文件系统
+### 文件系统操作
 
-- fat
+- **FAT**
 
 ```shell
 => fat
@@ -2090,9 +2410,8 @@ fastboot get_staged file       #上传数据并命名为file。依赖oem read pa
 =>
 ```
 
-- ext4
-
-类似 fat 指令
+- **EXT4**
+类似 `fat` 指令
 
 ```shell
 => ext4
@@ -2107,9 +2426,11 @@ ext4load <interface> [<dev[:part]> [addr [filename [bytes [pos]]]]]
 =>
 ```
 
-### 4.14 常用uboot命令
+### 常用 U-Boot 命令
 
-常用命令/工具
+本小节主要介绍 U-Boot 中的一些常用命令。
+
+1. **常用命令**
 
 ```shell
 printenv  - print environment variables
@@ -2122,9 +2443,9 @@ fdt       - flattened device tree utility commands
 help      - print command description/usage
 ```
 
-- fdt
+2. **fdt 命令**
 
-fdt 命令主要用于打印 dts 内容，如 uboot 启动后所加载的 dtb 文件
+`fdt` 命令主要用于操作和打印设备树（Device Tree）的内容，例如 U-Boot 启动后加载的 DTB 文件。
 
 ```shell
 => fdt
@@ -2157,8 +2478,9 @@ fdt chosen [<start> <size>]         - Add/update the /chosen branch in the tree
 NOTE: Dereference aliases by omitting the leading '/', e.g. fdt print ethernet0.
 =>
 
-=> fdt addr $fdtcontroladdr
-=> fdt print
+# 示例操作：
+=> fdt addr $fdtcontroladdr # 设置控制设备树的地址
+=> fdt print                # 打印整个设备树内容
 / {
         compatible = "spacemit,k1x", "riscv";
         #address-cells = <0x00000002>;
@@ -2175,7 +2497,7 @@ NOTE: Dereference aliases by omitting the leading '/', e.g. fdt print ethernet0.
         };
 };
 
-=> fdt print /chosen
+=> fdt print /chosen # 打印特定路径的内容
 chosen {
         bootargs = "earlycon=sbi console=ttyS0,115200 debug loglevel=8,initcall_debug=1 rdinit=/init.tmp";
         stdout-path = "serial0:115200n8";
@@ -2183,9 +2505,8 @@ chosen {
 =>
 ```
 
-- shell 命令
-
-uboot 支持 shell 风格的命令，如 if/fi，echo 等。
+3. **Shell 命令**
+U-Boot 支持 Shell 风格的命令，如 `if/fi` 和 `echo` 等。
 
 ```shell
 => if test ${boot_device} = nand; then echo "nand boot"; else echo "not nand boot";fi
@@ -2197,17 +2518,18 @@ nor boot
 =>
 ```
 
-## 5. opensbi功能与配置
+## OpenSBI 功能与配置
 
-本章节介绍opensbi的编译配置
+本章节介绍 OpenSBI 的编译配置
 
-### 5.1 opensbi编译
+### OpenSBI 编译
 
 ```shell
-cd ~/opensbi/
+cd ~/opensbi/ # 进入 OpenSBI 目录
 
-#注意，这里的编译工具链需要为spacemit提供，非spacemit提供的可能会引起编译异常
-GCC_PREFIX=riscv64-unknown-linux-gnu-
+# 注意：确保使用正确的编译工具链。这里使用的工具链需要由 SpacemiT 提供，否则可能会引起编译异常
+
+GCC_PREFIX=riscv64-unknown-linux-gnu- # 设置编译工具链
 
 CROSS_COMPILE=${GCC_PREFIX} PLATFORM=generic \
 PLATFORM_DEFCONFIG=k1-x_deb1_defconfig \
@@ -2216,7 +2538,9 @@ FW_TEXT_START=0x0  \
 make
 ```
 
-### 5.2 生成的编译文件
+### 生成的编译文件
+
+编译完成后，生成的文件位于 `build/platform/generic/firmware/` 目录下：
 
 ```shell
 ~/opensbi$ ls build/platform/generic/firmware/ -l
@@ -2230,46 +2554,57 @@ fw_jump.bin       #jump镜像仅做跳转
 fw_payload.bin    #payload镜像会包含uboot镜像
 ```
 
-### 5.3 opensbi功能配置
+### OpenSBI 功能配置
 
-可以通过执行 menuconfig，开启或关闭某些功能
+可以通过执行 `menuconfig`，开启或关闭某些功能
 
 ```shell
 make PLATFORM=generic PLATFORM_DEFCONFIG=k1-x_deb1_defconfig menuconfig
 ```
 
+示例配置：
 ![a](static/JdMVb4GyioYNhMxUOhHc8R3enEd.png)
 
-## 6. FAQ
+## FAQ
 
-本章节介绍常见问题以及解决方式，或者常用的调试手段以及容易出错的问题记录
+本章节介绍常见问题以及解决方式，或者常用的调试手段以及容易出错的问题记录。
 
-### 6.1 用titanflash烧写固件时，没有检测到设备
+### 用 TitanFlash 烧写固件时，没有检测到设备
 
-确保usb线已接入电脑，且串口打印如下所示：
-![alt text](static/flash_tool_3.png)
+- **检查 USB 连接**  
+   确保 USB 线已接入电脑，且串口打印正常, 如下所示：
+   ![alt text](static/flash_tool_3.png)
 
-如果还是没有检测到设备，检查设备管理器是否存在adb设备，如果没有则参考电脑环境安装的fastboot环境安装章节
+如果串口打印显示设备已连接，但 TitanFlash 仍然无法检测到设备，请检查以下内容：
+
+- **检查设备管理器**  
+  在 Windows 设备管理器中，检查是否存在 ADB 设备。如果没有，则需要安装相应的驱动程序。
+
 ![alt text](static/flash_tool_4.png)
 
-### 6.2 更新代码后有涉及到def_config的改动，编译的时候没有生效
+- **参考安装指南**  
+  如果设备管理器中没有显示 ADB 设备，请参考 **电脑环境安装章节** 中的 Fastboot 环境安装部分。
 
-需要执行make menuconfig更新到.config，编译才生效。
+### 更新代码后有涉及到def_config的改动，编译的时候没有生效
 
-### 6.3 uboot和opensbi合并加载
+需要执行 `make menuconfig` 更新到 `.config`，编译才生效。
 
-SDK设计把uboot和opensbi分开加载，开发者也可以根据需求把两者合并。需要以下几个步骤。
+### U-Boot 和 OpenSBI 合并加载
 
-- spl启动配置
+SDK 设计将 U-Boot 和 OpenSBI 分开加载，但开发者也可以根据需求将两者合并。以下是合并加载的步骤：
 
-1.uboot取消second分区的配置，取消选中"Second partition to use to load U-Boot from"
-2.更改分区名为opensbi-uboot，重新编译uboot（注意，分区名为opensbi-uboot）
+**步骤一： SPL 启动配置**
 
+- **取消 U-Boot 的 Second 分区配置**
+  在 U-Boot 的配置中，取消选中 **Second partition to use to load U-Boot from**。
+
+- **更改分区名为 `opensbi-uboot`**  
+  将分区名改为 `opensbi-uboot`，并重新编译 U-Boot。
 ![alt text](static/spl-config_16.png)
 
-- 生成uboot-opensbi.itb
+**步骤二： 生成 `uboot-opensbi.itb`**
 
-创建uboot-opensbi.its文件，内容如下
+- 创建 `uboot-opensbi.its` 文件，内容如下
 
 ```dts
 /dts-v1/;
@@ -2320,19 +2655,22 @@ SDK设计把uboot和opensbi分开加载，开发者也可以根据需求把两�
 };
 ```
 
-- mkimage生成itb文件
+- **生成 `uboot-opensbi.itb` 文件**  
+   将以下文件放在同一目录下：
+  - `uboot-opensbi.its`
+  - `u-boot-nodtb.bin`
+  - `fw_dynamic.bin`
+  - `k1-x_MUSE-Card.dtb`（根据实际方案名修改）
 
-把如下文件放在同一目录，
-```uboot-opensbi.its```
-```u-boot-nodtb.bin```
-`fw_dynamic.bin`
-`k1-x_MUSE-Card.dtb`（此为方案设备树，应根据实际方案名修改）
-执行以下命令，可生成`uboot-opensbi.itb`文件
-`uboot-2022.10/tools/mkimage -f uboot-opensbi.its -r u-boot-opensbi.itb`
+   执行以下命令生成 `uboot-opensbi.itb` 文件：
 
-- 更改分区表
+   ```shell
+   uboot-2022.10/tools/mkimage -f uboot-opensbi.its -r u-boot-opensbi.itb
+   ```
 
-以partition_universal.json为例子，删掉uboot分区，修改opensbi分区名为opensbi-uboot，分区size最好为两者的合集，如下
+**步骤三：更改分区表**
+
+以 `partition_universal.json` 为例，删除 `uboot` 分区，将 `opensbi` 分区名改为 `opensbi-uboot`，分区大小最好为两者的合集，如下：
 
 ```sh
 ~$ cat partition_universal.json 
@@ -2379,9 +2717,9 @@ SDK设计把uboot和opensbi分开加载，开发者也可以根据需求把两�
 
 ```
 
-- 更新刷机命令
+**步骤四： 更新刷机命令**
 
-以emmc为例子
+以 eMMC 为例：
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -2395,7 +2733,7 @@ fastboot stage u-boot-opensbi.itb
 fastboot continue
 
 fastboot flash gpt partition_universal.json
-#bootinfo_emmc.bin内容无作用，请参考3.1.3章节。但刷写步骤还需执行
+#bootinfo_emmc.bin内容无作用。但刷写步骤还需执行
 fastboot flash bootinfo factory/bootinfo_emmc.bin
 fastboot flash fsbl factory/FSBL.bin
 fastboot flash env env.bin
@@ -2404,13 +2742,18 @@ fastboot flash bootfs bootfs.img
 fastboot flash rootfs rootfs.ext4
 ```
 
-如果使用spacemit提供的titanflasher工具，则需将刷机包中的fastboot.yaml文件中的u-boot.itb名称为**u-boot-opensbi.itb**。
+**使用 TitanFlasher**
 
-### 6.4 emmc启动定义fsbl的位置
+如果使用 SpacemiT 提供的 TitanFlasher 工具，则需将刷机包中的 `fastboot.yaml` 文件中的 `u-boot.itb` 名称改为 **`u-boot-opensbi.itb`**。
 
-只有emmc会有boot0、user区域的区别，nor、nand、sd卡等启动介质只有一个存储区域。硬件设定从boot区域加载bootinfo、fsbl，所以bootinfo/fsbl不能放到user区域
-刷机时，emmc的bootinfo信息是固定在uboot代码里面的fastboot_oem_flash_bootinfo函数。目的是为了同一份partition_universal.json分区表可以用于制作卡启动等作用。
-如果需要修改emmc的fsbl加载偏移，可直接修改以下代码：
+### eMMC 启动定义 FSBL 的位置
+
+只有 eMMC 会有 boot0 和 user 区域的区别，而 NOR、NAND、SD 卡等启动介质只有一个存储区域。硬件设定从 boot 区域加载 `bootinfo` 和 `fsbl`，因此 `bootinfo` 和 `fsbl` 不能放到 user 区域。
+
+刷机时，eMMC 的 `bootinfo` 信息是固定在 U-Boot 代码里面的 `fastboot_oem_flash_bootinfo` 函数中。目的是为了同一份 `partition_universal.json` 分区表可以用于制作卡启动等作用。
+
+**如何修改 FSBL 的加载偏移**
+如果需要修改 eMMC 的 FSBL 加载偏移，可以直接修改以下代码：
 
 ```sh
 //uboot-2022.10/drivers/fastboot/fb_mmc.c
@@ -2451,7 +2794,7 @@ fastboot flash rootfs rootfs.ext4
 
 ```
 
-对于emmc的boot0，fastboot刷机服务会对bootinfo/fsbl分区做特殊处理，将镜像文件写到boot0区域。具体可参考`uboot-2022.10/drivers/fastboot/fb_mmc.c::fastboot_mmc_flash_write`函数中的`if (strcmp(cmd, "bootinfo") == 0)`和`if (strcmp(cmd, CONFIG_FASTBOOT_MMC_BOOT1_NAME) == 0)`分支
+对于 eMMC 的 boot0，Fastboot 刷机服务会对 `bootinfo` 和 `fsbl` 分区做特殊处理，将镜像文件写到 boot0 区域。具体可以参考 `uboot-2022.10/drivers/fastboot/fb_mmc.c::fastboot_mmc_flash_write` 中的 `if (strcmp(cmd, "bootinfo") == 0)` 和 `if (strcmp(cmd, CONFIG_FASTBOOT_MMC_BOOT1_NAME) == 0)` 分支。
 
 ```sh
 //uboot-2022.10/drivers/fastboot/fb_mmc.c
@@ -2483,18 +2826,19 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
 577     }
 ```
 
-### 6.5 sdcard上的bootinfo在0地址是否会与gpt表冲突
+### SD 卡上的 `bootinfo` 在 0 地址是否会与 GPT 表冲突
 
-bootinfo_sd.bin是放在sd卡的0地址，不会与GPT表冲突（GPT表实际放在0地址偏移0x100之后），也不作为一个分区来识别
+`bootinfo_sd.bin` 放在 SD 卡的 0 地址，不会与 GPT 表冲突（GPT 表实际放在 0 地址偏移 0x100 之后），也不作为一个分区来识别。
 
-### 6.6 如何设置隐藏分区
+### 如何设置隐藏分区
 
-分区表partition_universal.json支持隐藏分区的功能，hidden标签用来标注隐藏分区，刷机启动后隐藏分区不存在gpt表中。
-存在隐藏分区的分区表，需要用titanflaser工具烧写镜像，或者执行fastboot flash gpt partition_universal.json后，才能使用fastboot命令烧写隐藏分区的镜像。
-目前仅支持blk设备的隐藏分区功能，如emmc、ssd等。
-bootinfo分区仅支持隐藏分区。
+分区表 `partition_universal.json` 支持隐藏分区的功能，`hidden` 标签用来标注隐藏分区。刷机启动后，隐藏分区不会出现在 GPT 表中。
 
-带隐藏分区的分区表参考如下：不添加hidden标签默认为显示分区。
+存在隐藏分区的分区表，需要用 TitanFlasher 工具烧写镜像，或者执行 `fastboot flash gpt partition_universal.json` 后，才能使用 Fastboot 命令烧写隐藏分区的镜像。
+
+目前仅支持 blk 设备的隐藏分区功能，如 eMMC、SSD 等。`bootinfo` 分区仅支持隐藏分区。
+
+带隐藏分区的分区表参考如下：不添加 `hidden` 标签默认为显示分区。
 `cat k1/common/flash_config/partition_universal.json`
 
 ```sh
@@ -2550,10 +2894,13 @@ bootinfo分区仅支持隐藏分区。
 }
 ```
 
-v1.0.9版本之前的uboot仓库需要合入补丁，保存如下补丁文件，进入uboot仓库，打入补丁，重新编译
-`cat support-hidden-partition.patch`
+**注意**：V1.0.9 版本之前的 U-Boot 仓库需要合入补丁。保存以下补丁文件，进入 U-Boot 仓库，打入补丁，重新编译。
 
 ```sh
+cat support-hidden-partition.patch
+```
+
+```diff
 From 504a003ad33b2dc90749632b4abe05a8fc3a2f21 Mon Sep 17 00:00:00 2001
 From: chris <chris.huang@spacemit.com>
 Date: Tue, 23 Jul 2024 20:32:54 +0800
@@ -2793,11 +3140,11 @@ index 801895d7d4..3f633d30a1 100644
 2.25.1
 ```
 
-### 6.7 不支持烧写gzip格式镜像文件
+### 不支持烧写 gzip 格式镜像文件
 
-spacemit刷机机制会将大文件镜像压缩成gzip，以解决usb传输大文件数据慢的问题。刷机服务会默认检测数据为gzip格式，则做解压的处理。如果需要烧写gzip镜像到到自定义分区，可以做以下修改
+SpacemiT 刷机机制会将大文件镜像压缩成 gzip 格式，以解决 USB 传输大文件数据慢的问题。刷机服务会默认检测数据是否为 gzip 格式，并进行解压处理。如果需要烧写 gzip 格式的镜像到自定义分区，可以采用以下方法：
 
-- 方式一，对指定的分区不做gzip检查，如分区usbfs
+- 方式一：对指定的分区不做gzip检查，如分区usbfs
 
 ```c
 diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
@@ -2817,7 +3164,7 @@ index 88d8778376..a37cbde596 100644
 
 ```
 
-- 方式二，关掉压缩镜像刷机功能(***不推荐，导致刷机时间更长***)
+- 方式二：关闭压缩镜像刷机功能(***不推荐，导致刷机时间更长***)
 
 ```c
 //关闭刷机服务压缩镜像的检查

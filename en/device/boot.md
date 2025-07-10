@@ -4,71 +4,82 @@ sidebar_position: 3
 
 # Boot Development Guide
 
-## 1. Overview
+## Overview
 
-### 1.1 Purpose of the Document
+### Purpose
 
-This document primarily introduces the firmware flashing and boot process for SpacemiT, along with custom configuration options. It also covers driver development related to U-Boot and OpenSBI, basic debugging methods, aiming to facilitate quick start or secondary development for developers.
+This guide provides a comprehensive introduction to the boot and flashing process for SpacemiT platforms, including methods for custom configuration, as well as techniques for driver development and debugging within U-Boot and OpenSBI. It is designed to help developers quickly master the system boot process and streamline secondary development.
 
-### 1.2 Scope of Application
+### Scope
 
 This document is applicable to the K1 series SoC (System on Chip) of SpacemiT.
 
-### 1.3 Relevant Personnel
+### Relevant Personnel
 
 - Firmware flashing and boot development engineers
 - Kernel development engineers
 
-### 1.4 Document Structure
+### Document Structure
 
-The document starts by detailing the firmware flashing and boot process and configuration methods, followed by compilation configuration and driver development debugging for U-Boot/OpenSBI. Finally, it records common troubleshooting tips.
+1. **Boot Process and Configuration** – Describes the system boot mechanism and customization options.
+2. **U-Boot / OpenSBI Development & Debugging** – Covers build configurations, driver development, and debugging techniques.
+3. **Troubleshooting Guide** – Offers solutions to common issues encountered during development.
 
-## 2. Firmware Flashing and Boot Process
+## Firmware Flashing and Boot Process
 
-This chapter describes the configuration and implementation principles related to brushing and startup, and provides custom brushing and startup methods.
-Note that brushing and startup are related, and if you need to customize the brushing machine, startup may also need to make relevant adjustments, and vice versa.
+This section introduces configurations and implementation principles related to firmware flashing and booting, along with methods for custom flashing and booting setups.
+
+> **Note:** Flashing and booting are closely connected. Customizing the flashing process may require adjusting the boot settings, and vice versa.
 
 ### 2.1 Firmware Layout
 
-Common firmware layouts for the K1 series SoC include three types:
+The K1 series SoC commonly supports the following **three** firmware layout schemes. Their key characteristics are described below:
 
 ![a](static/image_play.png)
 
-- eMMC
+1. **eMMC**
 
-i. As shown in the diagram, eMMC has two areas: boot0 and user_data_area. This storage feature is inherent and will not be elaborated further.
+   - Consists of a `boot0` area (used to store `bootinfo_emmc.bin` and `FSBL.bin`) and a `user_data_area` managed by a GPT partition table.
+   - `bootinfo_emmc.bin` and `FSBL.bin` are stored in the `boot0` area. The `fsbl` partition in the `user_data_area` typically contains no actual data.
+   - After power-on, BROM loads `bootinfo_emmc.bin` and `FSBL.bin` from the `boot0` area.
 
-ii. `bootinfo_emmc.bin` and `FSBL.bin` are stored in the boot0 area. The user_data_area's fsbl partition does not contain actual content. After brom boots, it loads `bootinfo_emmc.bin` and `FSBL.bin` from the boot0 area.
+2. **SD Card**
 
-- SD Card
+   - Similar to the eMMC layout, but only includes a `user_data_area`.
+   - `bootinfo_sd.bin` occupies the first 80 bytes, and the GPT table begins at block 1.
 
-i. Similar to eMMC but only includes the user_data_area. `bootinfo_sd.bin`occupies the first 80 bytes, with the GPT table located at 1 blk position.
+3. **NOR + SSD**
 
-- NOR + SSD
+   - Firmware on NOR includes `FSBL`, `OpenSBI`, and `U-Boot`, while, the SSD holds `bootfs` and `rootfs`.
+   - Supports combinations like NOR + eMMC by default. If no SSD is inserted, NOR + eMMC can be used by setting the DIP switch to boot from NOR.
+   - Only SSDs connected to the PCIe0 interface can be used to boot during flashing. If the SSD is connected to a different PCIe port, it will only work as a storage device, not for booting.
+   - When flashing with the **TitanFlasher** tool, the SSD’s partition table may include `FSBL`, `U-Boot`, and `OpenSBI` entries, but these contents will not be used during boot.
 
-i. Includes NOR firmware (fsbl + opensbi + uboot) and SSD firmware (bootfs + rootfs).
+### Firmware Flashing Process and Configuration
 
-ii. Also supports combinations like NOR + eMMC, defaulting to NOR + eMMC if no SSD is inserted and the switch is set to NOR boot.
+In this guide,
 
-iii. Only supports SSD as a firmware flashing medium when inserted into pcie0 interface. If an SSD is inserted into a non-pcie0 interface, it functions solely as storage.
+- **Flashing** and **Burning** mean the same thing — writing a system image to storage.
+- **Mass production** is just another way of flashing — except the source image lives on an SD card, and the tool copies it to your device’s internal storage.
+- **Card booting** is different: the device actually boots straight from the SD card image instead of copying it anywhere.
 
-iv. When using TitanFlash tool for firmware flashing, the SSD's partition table includes fsbl/ubot/opensbi, but these partitions do not take effect. The actual functionality is determined by the actual partition table.
+#### Firmware Flashing Process
 
-### 2.2 Firmware Flashing Process and Configuration
+Flashing uses the **Fastboot** protocol to send image files from your PC to the device.
+These files are written to the corresponding storage like **MMC**, **MTD**, or **NVMe**.
+The full process includes:
 
-Firmware flashing and writing refer to the same concept. Mass production of cards is essentially firmware flashing, with data sourced from SD cards.
+- Entering **Fastboot mode** in U-Boot
+- Sending image files
+- Detecting the storage device
+- Creating a **GPT partition table**
+- Writing the image data to storage
 
-Card Production and Card Boot are distinct concepts. Card Boot involves burning the image onto the SD card and booting the system from the SD card.
+##### U-Boot Fastboot Mode
 
-#### 2.2.1 Firmware Flashing Process
+In this platform, the firmware flashing communication protocol is based on the fastboot protocol with some custom extensions. Actual firmware flashing operations occur within the **U-Boot's Fastboot mode**.
 
-The firmware flashing process utilizes the fastboot protocol to transmit images from a PC to the device, then writes them to the corresponding storage medium via interfaces such as mmc/mtd/nvme. A complete firmware flashing process includes entering U-Boot fastboot mode, image transmission, detection of storage media, creation of the GPT table, and writing data to the storage medium.
-
-##### 2.2.1.1 U-Boot Fastboot Mode
-
-In this platform, the firmware flashing communication protocol is based on the fastboot protocol with some custom extensions. Actual firmware flashing operations occur within the U-Boot fastboot mode.
-
-After entering U-Boot fastboot mode, executing fastboot devices on the PC detects the device (PC fastboot environment needs to be configured).
+Once the device enters this mode, you can run `fastboot devices` on your PC to check if the device is detected (make sure Fastboot is set up on your PC):
 
 ```sh
 ~$ fastboot devices
@@ -77,31 +88,49 @@ c3bc939586f0         Android Fastboot
 
 Below are three methods to enter U-Boot fastboot mode:
 
-1.By pressing the combination of FEL and RESET buttons on the board to enter brom-fastboot, then executing the following commands on the host machine (PC), the board enters U-Boot flashing interaction interface. Brom-fastboot is used only for loading and booting U-Boot fastboot.
+**1. Using Buttons on the Board**
+
+- Hold the **FEL** button and press the **RESET** button.
+- This puts the board into **BROM-Fastboot mode**, which is only used to load U-Boot.
+- On the PC, run the following commands to load U-Boot Fastboot:
 
 ```sh
 fastboot stage factory/FSBL.bin
 fastboot continue
 #sleep wait for uboot ready
-#linux环境下
+#On Linux
 sleep 1
-#windows环境下                
+#On Windows                
 #timeout /t 1 >null     
 fastboot stage u-boot.itb
 fastboot continue
 ```
 
-2.For devices already booted into OS, run adb reboot bootloader on the host machine (PC) to enter U-Boot flashing interaction interface. (Some firmware versions might remove adb functionality, making this method non-universal.)
+**2. Using ADB Command**
+If the system is already running, use this command on the PC to reboot into U-Boot Fastboot:
 
-3.During boot, hold the 's' key via serial port to enter U-Boot shell, then execute fastboot 0 to enter U-Boot flashing interaction interface.
+```sh
+adb reboot bootloader
+```
 
-Below are various combinations of media for firmware flashing commands, where brom can switch between different boot media (NOR/NAND/eMMC) based on boot pins, depending on hardware design. Please refer to the hardware reference design for more details.
+> Note: Some firmware may not include ADB, so this method won't always work.
 
-##### 2.2.1.2 EMMC Flashing
+**3. Using the Serial Port**
+During startup, hold the **S key** via serial connection to enter the **U-Boot shell**, then run:
 
-- EMMC Flashing Process
+```sh
+fastboot 0
+```
 
-The process for flashing the EMMC is outlined below. The initial part covers the transition from BROM-Fastboot to U-Boot Fastboot mode, which is similar for other media as well.
+The following subsections introduce the different storage setups which may require different flashing commands.
+The **BROM** will boot from the selected storage based on **boot pin settings** (e.g., NOR/NAND/eMMC).
+Check your hardware reference design for the exact configuration.
+
+##### eMMC Flashing
+
+- **eMMC Flashing Process**
+Flashing eMMC follows this basic flow. The first steps are the same as other storage types:
+you enter **U-Boot Fastboot mode** via BROM-Fastboot and then begin flashing.
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -117,6 +146,7 @@ fastboot stage u-boot.itb
 fastboot continue
 
 fastboot flash gpt partition_universal.json
+# This step is still needed, even though bootinfo_emmc.bin content is not used. See FAQ below.
 fastboot flash bootinfo factory/bootinfo_emmc.bin
 fastboot flash fsbl factory/FSBL.bin
 fastboot flash env env.bin
@@ -125,8 +155,6 @@ fastboot flash uboot u-boot.itb
 fastboot flash bootfs bootfs.img
 fastboot flash rootfs rootfs.ext4
 ```
-
-The content of `bootinfo_emmc.bin` has no practical effect; please refer to FAQ section 6.4. However, the flashing step still needs to be executed.
 
 For EMMC, the content of `bootinfo_emmc.bin` is embedded within the U-Boot code. This is done to ensure compatibility with using the same `partition_universal.json` table for SD card booting, among others. Both `bootinfo_emmc.bin` and `FSBL.bin` are actually written to the EMMC's Boot0 partition.
 
@@ -181,13 +209,10 @@ The partition table is stored in `buildroot-ext/board/spacemit/k1/partition_univ
 }
 ```
 
-##### 2.2.1.3 NOR+BLK device Flashing
+##### NOR+BLK Device Flashing
 
-- NOR+BLK device Flashing process
-
-The K1 supports a combination of NOR + SSD/EMMC for flashing and booting, and it does so in an adaptive manner. If both SSD and EMMC are present, the default flashing target is the SSD.
-
-The firmware tool will write the image based on the actual partition table. Therefore, for NOR + BLK configurations, the partitions such as FSBL (First Stage Boot Loader) and U-Boot on the BLK device do not serve any practical purpose.
+- **NOR+BLK device Flashing process**
+The K1 supports flashing and booting from a combination of **NOR Flash** and **block devices** (like SSD or eMMC). It works in an **adaptive** way — if both SSD and eMMC are connected, **SSD will be used as the default flashing target**.
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -214,18 +239,23 @@ fastboot flash bootfs bootfs.img
 fastboot flash rootfs rootfs.ext4
 ```
 
-- NOR + BLK Partition Table Configuration
-The NOR partition table, for example, `buildroot-ext/board/spacemit/k1/partition_2M.json`. For NAND/NOR devices, the partition tables are named partition_xM.json, and they need to be renamed according to the actual Flash capacity; otherwise, the corresponding partition table will not be found during the flashing process.
+- **NOR + BLK Partition Table Configuration**
+  - **NOR Flash Partition Table**
 
-The NOR/NAND partition tables will be compatible with the minimum capacity. For instance, if the NOR medium capacity is 8 MB and the flashing package only contains `partition_2M.json`, then it will match the `partition_2M.json` partition table.
+    - The NOR partition table is located at:
+  `buildroot-ext/board/spacemit/k1/partition_2M.json`
 
-For partition table configuration, MTD storage media (NAND/NOR Flash) are represented in terms of capacity such as `partition_2M.json`, while BLK devices (including eMMC/SD/SSD, etc.) are all named `partition_universal.json`.
+    - For NAND/NOR devices, the partition table is nameed like `partition_xM.json`. Make sure the filename matches your actual flash size, or the system won’t find the correct table.
+    - Partition tables are compatible downward — e.g., if NOR is 8MB and only `partition_2M.json` is available, it will be used.
 
-Modifications to the NOR Flash Partition Table:
+  - **Partition Naming Convention**
+    - MTD devices (e.g., NAND/NOR) use names like `partition_2M.json`.
+    - BLK devices (eMMC/SD/SSD) all use `partition_universal.json`.
 
-1. The starting address and size of partitions are aligned by default to 64 KB (corresponding to an erase size of 64 KB).
+- **Modifying NOR Flash Partition Tables**
+  1. Partition offsets and sizes are aligned to 64KB by default (ecorresponding to an erase size of 64 KB)
 
-2. If the starting address and size need to be changed to align with 4 KB, the U-Boot compilation configuration `CONFIG_SPI_FLASH_USE_4K_SECTORS` must be enabled.
+  2. If the soffset and size need to align with 4 KB, the U-Boot compilation configuration `CONFIG_SPI_FLASH_USE_4K_SECTORS` must be enabled.
 
 ```sh
 //buildroot-ext/board/spacemit/k1/partition_2M.json
@@ -266,7 +296,8 @@ Modifications to the NOR Flash Partition Table:
 }
 ```
 
-SSD Partition Table. For the partition table of BLK devices, it is always `partition_universal.json`. In this case, partitions such as bootinfo, fsbl, env, opensbi, uboot, and the data within them, will not affect normal boot processes.
+- **SSD Partition Table**
+All block devices (like SSDs and eMMCs) use the same partition table file `partition_universal.json`. In this case, partitions such as `bootinfo`, `fsbl`, `env`, `opensbi`, `uboot`, and the data within them, will not affect normal boot processes.
 
 ```sh
 //buildroot-ext/board/spacemit/k1/partition_universal.json
@@ -321,13 +352,12 @@ SSD Partition Table. For the partition table of BLK devices, it is always `parti
 }
 ```
 
-##### 2.2.1.4 nand Flashing
+##### NAND Flashing
 
-- NAND Flash Programming Process
+- **NAND Flashing Process**
+The K1 supports NAND flash booting. However, since **NAND and NOR share the same SPI interface**, only one of these schemes can be selected, with the default support being for NOR booting.
 
-The K1 supports NAND flash booting. However, since the NAND and NOR share the same SPI interface, only one of these schemes can be selected, with the default support being for NOR booting.
-
-If you need to support NAND flash booting, please refer to the NAND boot configuration section in the programming boot process to configure NAND booting
+For NAND flash booting, please refer to the NAND boot configuration section in the programming boot process to configure NAND booting
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -351,7 +381,8 @@ fastboot flash user-bootfs bootfs.img
 fastboot flash user-rootfs rootfs.img
 ```
 
-File system management on the NAND relies on UBIFS. The methods for creating the bootfs and rootfs partitions are as follows:
+- **UBIFS Image Creation**
+File system management on the NAND relies on UBIFS. The methods for creating the **bootfs** and **rootfs** partitions are as follows:
 
 ```sh
 #Creating bootfs.img
@@ -360,8 +391,8 @@ mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/bootfs.img -d input_bo
 #Creating rootfs.img
 mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/rootfs.img -d input_rootfs/
 
-#input_bootfs和input_rootfs应该存放bootfs和rootfs中的文件
-# For example, for bootfs, include the following files: Image.itb, env_k1-x.txt, k1-x.bmp
+#input_bootfs and input_rootfs should contain the files to be included in the bootfs and rootfs partitions, respectively.
+# For example, for bootfs, include the following files: Image.itb, env_k1-x.txt, bianbu.bmp
 
 #Different NANDs require modification of the corresponding parameters; here are some parameter descriptions:
 -m 2048：Sets the minimum input/output unit size to 2048 bytes (2 KiB), which should match the page size of the NAND Flash.
@@ -372,11 +403,11 @@ mkfs.ubifs -F -m 2048 -e 124KiB -c 8124 -x zlib -o output/rootfs.img -d input_ro
 -d input/: Specifies the source directory as input/, where mkfs.ubifs will create a UBIFS filesystem image from the files and directory structure in this directory.
 ```
 
-Additionally, this platform also supports the NAND + BLK device boot method. The flashing commands can be referenced from the NOR + BLK device flashing section.
+- **NAND + Block Device Boot**
+K1 also supports booting with a combination of **NAND and a block device** (e.g., SSD or eMMC). The flashing process is similar to the **NOR+BLK configuration**.
 
-- NAND Partition Table Configuration
-
-For a 256MB capacity NAND, the partition table is partition_256M.json.
+- **NAND Partition Table Example**
+Below is an example of a 64MB partition layout for NAND (`partition_64M.json`):
 
 ```sh
 //buildroot-ext/board/spacemit/k1/partition_64M.json
@@ -424,91 +455,144 @@ For a 256MB capacity NAND, the partition table is partition_256M.json.
 }
 ```
 
-##### 2.2.1.5 Card Booting
+##### Card Booting
 
-Card booting refers to writing the image to an SD card. When the device is powered on with this SD card inserted, the system will boot from the SD card.
+Card booting refers to writing the image to an **SD card**. When the device is powered on with the SD card inserted, the system will **attempts to boot from the card first**.
 
-The K1 platform supports card booting and defaults to first attempting to boot from the SD card; if that fails, it will then boot from the storage medium selected by pin selection.
+The K1 platform supports card booting and defaults to first attempting to boot from the SD card. If SD boot fails, the system will fall back to another boot source as selected by the **boot pin** configuration.
 
-This platform does not support using the fastboot protocol to flash images onto the SD card. Instead, you need to use TitanFlash tool or the `dd` command to create a card bootable image.
+> **Note:** The platform **does not support flashing SD cards via the Fastboot protocol**.
 
-Below is a description of how to create a card bootable image using the flashing tool:
+To prepare an SD card for booting, use the **TitanFlash** tool or the `dd` command.
 
-- i. Insert the TF card into a card reader and connect it to the computer's USB port.
+**How to Create a Bootable SD Card (with TitanFlash)**
 
-- ii. On the computer, open the TitanFlash flashing tool (installation instructions can be found in the flashing tool usage section). Click on Development Tools -> Card Booting, select the SD card and the firmware package. Then click Execute.
+1. Insert a TF (microSD) card into a card reader and connect it to your PC.
+2. Open the **TitanFlash** utility on your computer (installation guide: [TitanFlash Installation](https://developer.spacemit.com/documentation?token=P9EKwYIkti4EOOkvsgTcb9W3nUb)).
+3. In the top menu, go to **Dev Tools → SDCard Boot Disk**.
+4. Choose the **Boot Card** and select the **flashing package**.
+   ![TitanFlash Card Boot Tool](static/flash_tool_1.png)
+5. Click **Start** to begin flashing.
+6. Once done, insert the SD card into your device. Power it on to boot from the card.
 
-- iii. After the flashing is successful, insert the TF card into the device. Upon powering on, the device will boot from the card.
+##### Card Mass Production
 
-![alt text](static/flash_tool_1.png)
+**Card Mass Production** refers to preparing an **SD card with flashing images**, so that when the device powers on:
 
-##### 2.2.1.6 Card Flashing
+- It **boots from the SD card** first.
+- If **mass production mode** is detected, the system will **automatically write the images from the card to the selected onboard storage** (eMMC, NOR, NAND, etc.), based on the partition table.
 
-Card Flashing refers to the process of writing firmware-related image files to the SD card. When the device is powered on and boots from the SD card, it detects the Card Flashing mode and writes the image files stored on the SD card to the storage medium selected via pin configuration according to the partition table.
+The **K1 supports this process**. Using the **TitanFlash tool**, you can create a mass production SD card. Once the card is inserted and the device is powered on, the system will detect it and **automatically flash the internal storage** without user interaction.
 
-The K1 supports mass production flashing. By using the TitanFlash tool, you can turn an SD card into a mass production card. Once this SD card is inserted into the device and the device is powered on, the image will be flashed onto the eMMC, NOR, NAND, or other storage media.
+**How to Create a Mass Production SD Card**
 
-The steps for creating a mass production card are as follows:
+1. Insert the TF card into a card reader and connect it to the computer's USB port.
+2. Open the TitanFlash tool, and navigate to **Factory Tools → MP SDcard Programming**
+3. Select the desired flashing package, then click **Start** to write it.
+   ![TitanFlash Mass Production Tool](static/flash_tool_2.png)
+4. After the mass production card has been created, insert the SD card into the device.
+5. Power on the device. It will automatically boot from the SD card and flash the internal storage according to the partition table.
+6. After flashing is complete, **remove the SD card** to prevent re-flashing on the next power-up.
 
-- Insert the TF card into a card reader and connect it to the computer's USB port.
-- Open the TitanFlash tool, select 'Mass Production Tool' -> 'Create Mass Production Card', choose the image for mass production, and click 'Execute'.
-- After the mass production card has been created, insert the SD card into the device. Upon powering on, the device will automatically enter the flash mode.
-- After the flashing is completed, remove the SD card. The device should then power on and start up normally. (If the SD card is not removed, powering on again will restart the mass production process.)
+#### Flashing Tools
 
-![alt text](static/flash_tool_2.png)
+This section gives a brief introduction to the available flashing tools and how to use them.
 
-#### 2.2.2 Flashing Tools
+##### Usage of Flashing Tools
 
-This section provides a brief introduction to the flashing tools used in the firmware update process.
+The platform supports **two main methods** for flashing firmware images:
 
-##### 2.2.2.1 Usage of Flashing Tools
+- **TitanFlash Tool**
+  Designed for general developers, TitanFlash offers a **full-featured, user-friendly GUI** for flashing complete image packages.
+  For installation and usage, refer to the official documentation:
+  [TitanFlash User Guide](https://developer.spacemit.com/documentation?token=B9JCwRM7RiBapHku6NfcPCstnqh)
 
-For firmware flashing, you can choose to install the TitanFlash tool or use the Fastboot tool. For generating firmware, refer to the document titled "Download and Build" at this link [Download and Build](https://bianbu-linux.spacemit.com/en/download_and_build/).
+- **Fastboot Tool**
+  Intended for advanced users who are comfortable with command-line tools.
+  It’s best for flashing individual image partitions.
+  **Note:** Incorrect usage (e.g. flashing the wrong partition) may cause boot failures. Proceed with caution.
+  Flashing steps are covered in the **Flashing Process** section of this document.
+  Fastboot installation guides:
+  - [Guide 1](https://www.jb51.net/article/271550.htm)
+  - [Guide 2](https://blog.csdn.net/qq_34459334/article/details/140128714)
 
-- TitanFlash Tool
- This tool is designed for full firmware packages and is suitable for general developers. Installation and usage instructions for the TitanFlash tool can be found at [this](https://developer.spacemit.com/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
+> For information on how to build the firmware image, see: [Download and Build](https://bianbu-linux.spacemit.com/en/source)
 
-- Fastboot Tool
-This tool is used for flashing individual partition images and is suitable for developers with a certain level of expertise. Incorrect flashing of single partitions may lead to system boot issues, so caution is advised. The flashing procedure is detailed in the flashing process chapter. Instructions for setting up a Fastboot environment can be found at [link](https://doc.e.foundation/pages/install-adb-windows) or [link](https://www.linuxbabe.com/ubuntu/how-to-install-adb-fastboot-ubuntu).
+##### Boot Media Selection
 
-##### 2.2.2.2 Selection of Flashing Media
+- The hardware platform supports boot media selection via the **Boot Download Sel Switch** (DIP switch).
+  For how to use this switch, refer to the [Boot Download Sel & JTAG Sel](https://developer.spacemit.com/documentation?token=HeDkwc7vhifW9UkyDMdc86iwnbb#4.3.2-boot-download-selection-configuration-circuit) section in the MUSE Pi user guide.
 
-- The hardware provides a boot download selection switch (Boot Download Sel switch). Refer to the Boot Download Sel & JTAG Sel section in the [MUSE Pi User Guide](https://developer.spacemit.com/documentation?token=ZugWwIVmkiGNAik55hzc4C3Ln6d)
-- Other Solutions: Refer to the hardware user guide for specific solutions.
-- The flashing process is designed to adapt automatically to different boot media.
+- For other boards or custom solutions, please refer to their respective hardware manuals.
 
-### 2.3 Boot Configuration
+- The flashing process supports **auto-detection and adapts to the selected boot media**.
 
-This section describes the boot configurations for eMMC, SD, NOR, and NAND, along with important considerations for custom boot configurations. Successful firmware flashing requires correct partition tables and boot configurations.
+### Boot Configuration
 
-#### 2.3.1 Boot Process
+This section explains how to configure booting from different storage devices such as **eMMC, SD, NOR, and NAND**, and highlights important considerations when customizing boot settings.
+To successfully boot the system, both the **flashing process** and the **boot configuration** (like partition tables and image offsets) must be correctly set.
 
-This section outlines the boot process for the platform chip and provides methods for customizing the boot process. The boot process consists of several stages: brom -> fsbl -> opensbi -> U-Boot -> kernel. The bootinfo provides information about the offset, size, and signature of the fsbl.
+#### Boot Process
+
+This section outlines the platform’s boot process which follows a multi-stage sequence:
+
+**BROM → FSBL → OpenSBI → U-Boot → Kernel**
+
+The `bootinfo` data provides key details for the FSBL, such as its offset, size, and signature.
 
 ![alt text](static/boot_proc.png)
 
-Based on the boot pin selection, the software loads the next-level image from the SD, eMMC, or NOR storage medium. The boot process is consistent across different boot media, as shown in the diagram above. Specific boot pin selections are described in the section on selection of flashing media.
+At power-on, the system uses the **Boot Pin Select configuration** to decide which storage device (e.g., SD card, eMMC, NOR) to boot from.
 
-Upon power-on, the K1 first attempts to boot from the SD card; if this fails, it then proceeds based on the boot pin selection to load the U-Boot and OpenSBI images from the eMMC, NAND, or NOR storage media.
+> **Note:** The overall boot sequence remains the same regardless of the boot medium.
 
-Subsequent sections will detail the boot configurations for bootinfo, fsbl, OpenSBI, U-Boot, and the kernel, in order of the boot sequence.
+For more about the boot pin settings, refer to the **Boot Media Selection** section under **Flashing Tools**.
 
-##### 2.3.1.1 brom
+Upon power-on K1, the boot priority is as follows:
 
-Brom is a pre-compiled program embedded within the SoC that cannot be changed once the device is manufactured. Upon power-up or reset, the chip runs the brom, which, depending on the boot pin configuration, instructs the brom to load the bootinfo and fsbl from the corresponding storage medium. For details on boot pins, please refer to the section on selection of flashing media.
+1. **Try to boot from the SD card first.**
+2. If SD boot fails, the system will fall back to other boot media (eMMC, NAND, or NOR), according to the Boot Pin Select settings. It will attempt to load `OpenSBI` and `U-Boot` from the selected device.
+
+The following subsections will explain the configuration details for each boot stage component:
+
+- `bootinfo`
+- `fsbl`
+- `opensbi`
+- `uboot`
+- `kernel`
+
+##### BROM (Boot ROM)
+
+BROM is the boot code built into the SoC at the factory — it cannot be changed.
+It runs automatically when the chip powers up or resets.
+
+Based on the **Boot Pin** settings, BROM detects the selected boot device (e.g., SD, eMMC, NOR) and loads the `bootinfo` and `fsbl` from that storage.
+
+> For details on how to set Boot Pins, see **Boot Media Selection** in the **Flashing Tools** section.
 
 ##### 2.3.1.2 bootinfo
 
-After the brom initializes, it retrieves bootinfo from the physical address offset 0 of the corresponding storage medium (for eMMC, this would be from the boot0 region's address 0). The bootinfo contains information such as the location and size of fsbl and fsbl1, along with their CRC values. The bootinfo* descriptor files are located in the following directory:
+After BROM starts, it reads `bootinfo` from offset **0 of the selected storage device**.
+For example, on eMMC, it reads from the start of the **boot0 partition**.
+
+`bootinfo` contains metadata about the **FSBL** and **FSBL1** — including their offsets, sizes, and checksums.
+
+The FSBL locations for each storage type are defined in JSON files:
 
 ```sh
 uboot-2022.10$ ls board/spacemit/k1-x/configs/
 bootinfo_emmc.json  bootinfo_sd.json  bootinfo_spinand.json  bootinfo_spinor.json
 ```
 
-Here is an example of what these JSON files contain, showing the default locations of fsbl and fsbl1 for various storage media. Fsbl1 serves as a backup. If you need to change the offset addresses, you can modify the `bootinfo_* JSON` files and recompile U-Boot.
+Each file specifies the default locations of `fsbl` and `fsbl1` (a backup copy).
+You can adjust the offsets by editing these `.json` files and recompiling U-Boot.
+> If you're customizing FSBL positions, ensure they align with the requirements of the storage type.
+> For example:
+>
+> - NAND needs sector alignment
+> - eMMC only supports FSBL loading from the **boot partition**
 
-The location of fsbl should generally remain as the original factory settings. If customization is required, consider the characteristics of different storage media, such as the need for sector alignment in NAND. For eMMC, fsbl can only be loaded from the boot partition.
+**Default Offset Examples**
 
 ```sh
 emmc:boot0:0x200, boot1:0x0
@@ -517,7 +601,8 @@ nor:0x20000/0x70000
 nand:0x20000/0x80000
 ```
 
-When compiling U-Boot, the corresponding `*.bin` files and bootinfo image files are generated in the root directory. The generation method can be referenced in `uboot-2022.10/board/spacemit/k1-x/config.mk`.
+**bootinfo Output Files**
+When compiling U-Boot, the corresponding bootinfo image files (i.e. `*.bin` files) are generated in the root directory:
 
 ```sh
 uboot-2022.10$ ls -l
@@ -527,28 +612,47 @@ bootinfo_spinand.bin
 bootinfo_spinor.bin
 ```
 
-##### 2.3.1.3 fsbl
+The generation logic is in:
+`uboot-2022.10/board/spacemit/k1-x/config.mk`
 
-After obtaining the bootinfo, brom will load the fsbl from the specified offset.
+##### FSBL (First Stage Boot Loader)
 
-The fsbl file consists of a 4KB header plus the uboot-spl.bin binary. This header includes essential information for uboot-spl, such as the CRC checksum.
+After BROM reads `bootinfo`, it loads the **FSBL** from the specified offset.
 
-Once fsbl is launched, it first initializes the DDR memory. Then, it loads opensbi and uboot into designated memory locations from the partition table, followed by running opensbi, which in turn launches uboot. (The specifics of how fsbl initializes DDR are beyond the scope of this document.)
+The FSBL is made up of:
 
-##### 2.3.1.4 Loading and Starting opensbi and uboot
+- A **4 KB header**, which includes essential information for uboot-spl like CRC checksums, and
+- The actual `uboot-spl.bin` binary (U-Boot SPL = Secondary Program Loader).
 
-The methods for loading opensbi and uboot vary across different storage media. Below, we describe the configurations for SPL (Second Program Loader) loading and starting uboot/opensbi based on the storage medium used.
+**What FSBL Does:**
 
-The K1 platform supports loading standalone partitions for opensbi and uboot, as well as loading them as a single image (`uboot-opensbi.itb`). By default, they are loaded by partition names. For loading a single image (`uboot-opensbi.itb`), refer to the FAQ section.
+1. **Initializes DDR memory**
+2. **Loads OpenSBI and U-Boot** into their designated locations in memory, using information from the partition table.
+3. **Runs OpenSBI**, which then
+4. **Starts U-Boot**
 
-###### 2.3.1.4.1 eMMC and SD Card
+> Note: How FSBL performs DDR initialization will not be covered in this section.
 
-Both eMMC and SD cards use the MMC driver. The U-Boot code flow selects between eMMC and SD based on the boot pin configuration. The startup configurations for both are similar.
+##### Booting with OpenSBI and U-Boot
 
-Opensbi and uboot can have different image formats, including raw partitions, files, and FIT (Flattened Image Tree) format, depending on their storage location.
-By default, the K1 platform first attempts to boot from the SD card; if this fails, it tries other media (eMMC, NOR, NAND, etc.).
+Different storage media support various ways to load OpenSBI and U-Boot. The following subsections describe how SPL loads and starts OpenSBI and U-Boot for each type of storage device (eMMC, SD, NOR, NAND).
 
-SPL-DTS needs to enable the configuration for eMMC/SD.
+K1 supports two main ways to load **OpenSBI** and **U-Boot** during the boot process:
+
+1. **Separate partitions** for `opensbi` and `uboot` (default)
+2. A **combined image** (`uboot-opensbi.itb`)
+
+> The default behavior is to load from partition names. For combined image booting, refer to the FAQ section below: *“Combined loading of U-Boot and OpenSBI.”*
+
+###### eMMC and SD Card Boot
+
+**Both eMMC and SD use the MMC driver**, and U-Boot determines which to boot from based on the Boot Pin Select configuration. The startup configurations for both are similar.
+
+**OpenSBI and U-Boot can be stored in various formats** depending on the boot method, including raw partitions, files within a filesystem, or a single FIT (Flattened Image Tree) image.
+
+By default, on K1, the system **attempts to boot from the SD card first**. If that fails, it falls back to other available media (eMMC, NOR, or NAND).
+
+The **SPL device tree source (DTS)** needs to be configured to enable support for eMMC and SD. Example:
 
 ```sh
 //uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
@@ -575,42 +679,50 @@ SPL-DTS needs to enable the configuration for eMMC/SD.
       };
 ```
 
-The following introduces different boot methods for eMMC/SD, with a default approach of loading by partition name.
+The following introduces different boot methods for eMMC/SD, with a default approach of loading by **partition name**.
 
-- Raw Partition Method
+1. **Raw Partition Mode**
+   The FSBL loads U-Boot and OpenSBI from named partitions. Here, we use **eMMC as an example** (SD and NOR are similar and not repeated here).
+   - Run `make uboot_menuconfig` to enter the **SPL configuration interface**.
 
-1.fFSBL Loading and Starting U-Boot/OpenSBI Process (Using eMMC as an example; for SD/NOR, etc., the process is similar but not elaborated here due to space constraints)
+     ![alt text](static/spl-config_1.png)
 
-Execute `make uboot_menuconfig` to enter the SPL compilation configuration (this is the entry point for all SPL-related configurations; subsequent steps are not detailed).
+   - Select loading via the partition table. Here, separate loading of U-Boot/OpenSBI is supported by default. SPL will first look for partitions named `opensbi` and `uboot`. If they’re missing, it falls back to loading raw images from partition index 1 and 2 respectively.
 
-![alt text](static/spl-config_1.png)
+     ![alt text](static/spl-config_2.png)
 
-Select loading via the partition table. Here, separate loading of U-Boot/OpenSBI is supported by default. SPL will first look for partitions named 'opensbi' and 'uboot'. If these partition names are not found, it will attempt to load raw data from partition numbers 1 and 2 respectively.
+     ![alt text](static/spl-config_3.png)
 
-![alt text](static/spl-config_2.png)
+   - After SPL successfully loads OpenSBI and U-Boot, it starts OpenSBI and passes the memory address of U-Boot along with the DTB (Device Tree Blob) information. OpenSBI then boots U-Boot according to the provided address and DTB.
 
-![alt text](static/spl-config_3.png)
+2. **Fixed Offset Mode**
+   This method loads the image directly from a **fixed offset** on the eMMC.
 
-After SPL successfully loads OpenSBI and U-Boot, it starts OpenSBI and passes the memory address of U-Boot along with the DTB (Device Tree Blob) information. OpenSBI then boots U-Boot according to the provided address and DTB.
+   - When enabled, SPL reads a single image—containing both OpenSBI and U-Boot from the configured offset.
 
-- Absolute Offset
+     > **Note:** This mode **does not support separate loading** of OpenSBI and U-Boot. They must be packaged into a **single FIT image**.
+  
+   - If separate loading is needed, refer to the source: `uboot-2022.10/common/spl/spl_mmc.c` under `MMCSD_MODE_RAW`.
 
-Load OpenSBI/U-Boot using absolute offset addresses.
-Enable the following configuration to specify the offset address for eMMC. In this mode, the images of U-Boot/OpenSBI are loaded according to the absolute offset address of the eMMC. This method does not support separate loading of OpenSBI and U-Boot; instead, they need to be packaged together in FIT format. If you want to support independent loading, you can refer to the code segment in `case MMCSD_MODE_RAW` within `uboot-2022.10/common/spl/spl_mmc.c`.
+      ![alt text](static/spl-config_4.png)
 
-![alt text](static/spl-config_4.png)
+3. **Filesystem Mode**
+   This method allows SPL to load boot images from a **filesystem** (typically FAT).
 
-- File System Method
+   - U-Boot SPL can load OpenSBI and U-Boot separately as files from the filesystem (e.g., `opensbi.itb`, `uboot.itb`).
 
-Modify the SPL to load OpenSBI/U-Boot through the file system.
-U-Boot-SPL supports loading OpenSBI and U-Boot via the file system, allowing independent loading of U-Boot and OpenSBI files.
-Use make menuconfig to enable the following configuration, as shown in the image below, select the FAT file system to load `opensbi.itb` and `uboot.itb.`
+   - Run `make menuconfig`, enable the required SPL options, and turn on FAT filesystem support.
 
-![alt text](static/spl-config_5.png)
+     ![alt text](static/spl-config_5.png)
 
-###### 2.3.1.4.2 nor
+###### NOR Boot
 
-For booting from NOR media, K1 provides booting options of NOR (U-Boot-SPL/U-Boot/OpenSBI) + SSD (bootfs/rootfs) or NOR (U-Boot-SPL/U-Boot/OpenSBI) + eMMC (bootfs/rootfs), with a default preference for trying the SSD first.
+K1 supports booting from **NOR flash**. Typical boot combinations include:
+
+- **NOR (u-boot-spl / u-boot / OpenSBI) + SSD (bootfs / rootfs)**
+- **NOR (u-boot-spl / u-boot / OpenSBI) + eMMC (bootfs / rootfs)**
+
+By default, the system **attempts to boot from SSD first**. If unsuccessful, it falls back to alternative configurations.
 
 The DTS (Device Tree Source) configuration for SPL is as follows:
 
@@ -636,59 +748,92 @@ The DTS (Device Tree Source) configuration for SPL is as follows:
         };
 ```
 
-The SPL supports booting from NOR and requires the following configurations to be enabled first; they are typically enabled by default.
+NOR Boot Setup (Loading via SPL)
+> The following options are **enabled by default**, however, you can verify or modify them by using `menuconfig`.
 
-1.Execute `make uboot_menuconfig` and select SPL configuration options.
+1. Run `make uboot_menuconfig`, and then navigate to `SPL configuration options`.
 
-![alt text](static/spl-config_6.png)
+   ![alt text](static/spl-config_6.png)
 
-2.Enable “Support MTD drivers”, “Support SPI DM drivers in SPL”, “Support SPI drivers”, “Support SPI flash drivers”, “Support for SPI flash MTD drivers in SPL”, “Support loading from mtd device”. Ensure that the “Partition name to use to load U-Boot from” matches the partition names in the partition table.
+2. Enable the Following Options:
+   Ensure the following are enabled:
 
-![alt text](static/spl-config_7.png)
+   - `Support MTD drivers`
+   - `Support SPI DM drivers in SPL`
+   - `Support SPI drivers`
+   - `Support SPI flash drivers`
+   - `Support for SPI flash MTD drivers in SPL`
+   - `Support loading from mtd device`
+   - Ensure that the `Partition name to use to load U-Boot from` matches the partition names in the partition table.
+   ![alt text](static/spl-config_7.png)
 
-3.Configuration for Block Devices (blk devices)
-Execute `make uboot_menuconfig`, then select Device Drivers ---> Fastboot support. Choose Support blk device, which includes support for devices like SSD/EMMC. For example, SSD corresponds to nvme, and EMMC corresponds to mmc.
+3. Enable Block Device Support (SSD / eMMC)
+   Navigate to `Device Drivers → Fastboot support`
+   Enable:
+   - `Support blk device`
+   - Select appropriate device type: NVMe (for SSD) or MMC (for eMMC)
 
-![alt text](static/spl-config_8.png)
+   ![alt text](static/spl-config_8.png)
 
-4.For MTD Devices, environmental variables need to be enabled to ensure that SPL can retrieve MTD partition information after booting.
-Execute `make uboot_menuconfig`, then select Environment and enable SPI environment loading. The environment offset address must match the environment partition in the partition table, such as `0x80000`.
+4. Enable MTD Environment (env) Support
+   SPL uses the environment (env) to locate MTD partition information.
 
-![alt text](static/spl-config_9.png)
+   Steps:
+   - Go to the `Environment` configuration section.
+   - Enable **SPI env loading**.
+   - Set the env offset (must match the partition table), e.g.`0x80000`
 
-![alt text](static/spl-config_10.png)
+     ![alt text](static/spl-config_9.png)
 
-5.SPI Flash Driver Configuration needs to match the manufacturer's model of the SPI flash on the hardware (similarly for NAND). In the menuconfig, select the corresponding manufacturer ID. Execute make uboot_menuconfig, then select Device Drivers ---> MTD Support ---> SPI Flash Support. Choose the appropriate driver based on the SPI flash manufacturer of your hardware.
+     ![alt text](static/spl-config_10.png)
 
-![alt text](static/spl-config_11.png)
-If the required driver is not listed, you can add it directly in the code. flash_name can be customized, usually matching the hardware flash name. `0x1f4501` represents the JEDEC ID of the flash, and other parameters can be added based on the specifications of the hardware flash.
+5. Configure SPI Flash Driver (Based on Hardware)
+   If the default build does not include your flash chip’s driver:
 
-```sh
-//uboot-2022.10/drivers/mtd/spi/spi-nor-ids.c
-const struct flash_info spi_nor_ids[] = {
+   - Run `make uboot_menuconfig`
+   - Navigate to `Device Drivers → MTD Support → SPI Flash Support`
+   - Enable the driver matching your SPI NOR Flash vendor.
+   ![alt text](static/spl-config_11.png)
+
+   If the required driver is not listed, manually add it in the source:
+
+   ```sh
+   //uboot-2022.10/drivers/mtd/spi/spi-nor-ids.c
+   const struct flash_info spi_nor_ids[] = {
      { INFO("flash_name",    0x1f4501, 0, 64 * 1024,  16, SECT_4K) },
-```
+   ```
 
-There are mainly two loading methods, as described above.
+   - `flash_name`: Custom name for your chip
+   - `0x1f4501`: JEDEC ID for the target flash
+   - Remaining fields depend on your chip’s specs (sector size, number of sectors, etc.)
 
-- Raw Partition Method
+There are mainly two loading methods, they are:
 
-For NOR devices, U-Boot/OpenSBI will be obtained according to the MTD partition table. The configuration method is as follows:
+- **Partition-Based Loading (Recommended)**
+  For NOR devices, SPL loads `opensbi` and `u-boot` based on names defined in the **MTD partition table**. Configuation can be followed as:
 
-![alt text](static/spl-config_12.png)
+  ![alt text](static/spl-config_12.png)
 
-- Absolute Offset
+- **Fixed Offset Loading**
+  SPL can also load a boot image from a **hardcoded offset** in NOR flash.
+  > **Notes:**
+  > - This method **does not support loading OpenSBI and U-Boot separately**.
+  > - You **must** package them into a **single FIT image**.
 
-NOR boot supports loading via the absolute offset of the storage medium but does not support independently loading U-Boot and OpenSBI. U-Boot and OpenSBI must be packaged together, i.e., in FIT format.
-Enable the following configuration and input the absolute offset address of the storage medium.
+  Enable fixed offset loading and specify the offset:
 
-![alt text](static/spl-config_13.png)
+  ![alt text](static/spl-config_13.png)
 
-###### 2.3.1.4.3 nand
+###### NAND Boot
 
-For NAND-based booting, K1 provides booting options using NAND (U-Boot-SPL/U-Boot/OpenSBI) + SSD (bootfs/rootfs) or pure NAND (U-Boot-SPL/U-Boot/OpenSBI/kernel). NAND boot is not enabled by default.
+K1 platform supports booting from **NAND flash**. Two main configurations are available:
 
-The SPL-DTS configuration is as follows:
+- **NAND (u-boot-spl / U-Boot / OpenSBI) + SSD (bootfs / rootfs)**
+- **Full NAND (u-boot-spl / U-Boot / OpenSBI / kernel)**
+
+> By default, **NAND boot is disabled**.
+
+The **SPL-DTS configuration** is as follows:
 
 ```sh
 //uboot-2022.10/arch/riscv/dts/k1-x_spl.dts
@@ -711,27 +856,46 @@ The SPL-DTS configuration is as follows:
         };
 ```
 
-Below is the configuration for the pure NAND boot solution.
-Run `make uboot_menuconfig` and select SPL Configuration Options.
+**Full NAND boot configuration steps** are showing below:
 
-![alt text](static/spl-config_14.png)
+1. **Enable SPL Build Options**
 
-enable as follow:
-`Support MTD drivers`
-`Support SPI DM drivers in SPL`
-`Support SPI drivers`
-`Use standard NAND driver`
-`Support simple NAND drivers in SPL`
-`Support loading from mtd device`
-`Partition name to use to load U-Boot from`should match the partition names in the partition table.
+   - Run `make uboot_menuconfig` and navigate to `SPL configuration options` and enable the following:
+   ![alt text](static/spl-config_14.png)
+     - `Support MTD drivers`
+     - `Support SPI DM drivers in SPL`
+     - `Support SPI drivers`
+     - `Use standard NAND driver`
+     - `Support simple NAND drivers in SPL`
+     - `Support loading from mtd device`
+     - `Partition name to use to load U-Boot from`should match the partition names in the partition table.
 
-If you enable the opensbi/uboot separate image, you need to enable `Second partition to use to load U-Boot from`, and it must maintain the order of opensbi followed by uboot.
+   - If you are loading OpenSBI and U-Boot **separately**, also enable:
 
-![alt text](static/spl-config_15.png)
+     - `Second partition to use to load U-Boot from`
+     - Ensure the load sequence is: **OpenSBI first, then U-Boot**.
 
-For MTD (MTD stands for Memory Technology Device) devices, you need to enable the environment settings to ensure that after the SPL (Secondary Program Loader) boots, it can obtain the MTD partition information from the environment. When running make uboot_menuconfig, choose Environment and enable SPI environment loading. The environment offset address here needs to be consistent with the environment partition in the partition table, such as 0x80000.
+     ![alt text](static/spl-config_15.png)
+
+2. Configure Environment (env) Support
+
+   MTD(Memory Technology Device))-based systems require the env subsystem to retrieve MTD partition information after SPL (Secondary Program Loader) startup.
+
+   - Run:
+
+     ```bash
+     make uboot_menuconfig
+     ```
+
+   - Navigate to `Environment` configuration.
+   - Enable support for loading env from SPI.
+   - Set env offset to `0x80000` (must match partition table).
 
 The NAND flash driver needs to be adapted to the corresponding model of the SPI flash used on the hardware. The currently supported NAND flash drivers are listed below. If there is no corresponding driver, you can add the manufacturer's JEDEC ID (Joint Electron Devices Engineering Council ID) in the other.c driver.
+
+3. Add or Modify NAND Flash Drivers
+
+   - Ensure your build includes the correct SPI NAND driver matching your actual flash chip. Currently supported vendors include:
 
 ```sh
 ~/uboot-2022.10$ ls drivers/mtd/nand/spi/*.c
@@ -742,8 +906,12 @@ uboot-2022.10/drivers/mtd/nand/spi/gigadevice.c
 uboot-2022.10/drivers/mtd/nand/spi/other.c
 uboot-2022.10/drivers/mtd/nand/spi/macronix.c
 uboot-2022.10/drivers/mtd/nand/spi/toshiba.c
+```
 
+- If the chip isn’t listed, add support manually in the `other.c` source file by defining the **JEDEC ID**.
+   Example: Adding support for FORESEE or Dosilicon:
 
+```c
 //uboot-2022.10/drivers/mtd/nand/spi/other.c
  static int other_spinand_detect(struct spinand_device *spinand)
  {
@@ -770,17 +938,30 @@ uboot-2022.10/drivers/mtd/nand/spi/toshiba.c
  }
 ```
 
-##### 2.3.1.5 Booting the Kernel
+##### Kernel Boot
 
-U-Boot's environment (env) defines multiple boot combinations, allowing developers to customize them according to their needs. The `k1-x_env.txt` file provided with the solution has a higher priority and will override variables in env.bin with the same names.
+After the system enters **U-Boot**, it automatically loads and boots the Linux kernel based on configuration in the `env` file. Developers can customize the boot behavior as needed.
 
-After FSBL (First Stage Boot Loader) loads and boots OpenSBI -> U-Boot, U-Boot uses the load command to load kernel, device tree blob (DTB), and other image files from the FAT or ext4 file system into memory, and then executes the bootm command to start the kernel.
+> **Note:** The file `k1-x_env.txt` takes precedence over `env.bin` — any overlapping variables in `env.bin` will be overridden.
 
-The specific process for loading and booting the kernel can be found in `uboot-2022.10/board/spacemit/k1-x/k1-x.env`. This file includes boot schemes for eMMC/SD/NOR+BLK and automatically adapts to the corresponding boot media.
+**Kernel Boot Flow**
 
-- MMC Boot
+Once FSBL (First Stage Boot Loader) loads and boots OpenSBI, then hands off to U-Boot, the following occurs:
 
-For SD/eMMC, both fall under the category of mmc_boot.
+U-Boot executes a defined boot command to load the `kernel`, `dtb`, and other image files from either a **FAT** or **EXT4** file system into memory. It then runs the `bootm` command to boot the kernel.
+
+All related configurations are located in:
+
+```sh
+uboot-2022.10/board/spacemit/k1-x/k1-x.env
+```
+
+This file includes multiple pre-configured boot flows (eMMC/SD/NOR+BLK, etc.), and U-Boot will auto-detect the appropriate flow based on the active boot device.
+
+**Boot Command Examples**
+
+1. **MMC Boot** (for SD or eMMC)
+   For both **SD** and **eMMC**, the boot flow is handled via `mmc_boot`.
 
 ```sh
 //uboot-2022.10/board/spacemit/k1-x/k1-x.env
@@ -797,15 +978,15 @@ mmc_boot=echo "Try to boot from ${bootfs_devname}${boot_devnum} ..."; \
           bootm ${kernel_addr_r} ${ramdisk_combo} ${dtb_addr};
 ```
 
-The `rootfs` is passed from U-Boot to the kernel via bootargs, where it is parsed by the kernel or the init script and then mounted.
+The `rootfs` is passed from U-Boot to the kernel via `bootargs`. The kernel or its `init` script uses this to mount the correct root partition.
 
-The field `root=/dev/mmcblk2p6` indicates the partition for the rootfs.
+In below example, `root=/dev/mmcblk2p6` indicates the partition for the rootfs.
 
 ```sh
 bootargs=earlycon=sbi earlyprintk console=tty1 console=ttyS0,115200 loglevel=8 clk_ignore_unused swiotlb=65536 rdinit=/init root=/dev/mmcblk2p6 rootwait rootfstype=ext4
 ```
 
-- nor+blk Boot
+2. **NOR + Block Device Boot** (e.g., NOR + SSD)
 
 ```sh
 //uboot-2022.10/board/spacemit/k1-x/k1-x.env
@@ -822,7 +1003,7 @@ nor_boot=echo "Try to boot from ${bootfs_devname}${boot_devnum} ..."; \
          bootm ${kernel_addr_r} ${ramdisk_combo} ${dtb_addr};
 ```
 
-- nand Boot
+3. **NAND Boot**
 
 ```sh
 //uboot-2022.10/board/spacemit/k1-x/k1-x.env
@@ -831,28 +1012,28 @@ run nand_boot;
 //to be adapted
 ```
 
-### 2.4 Secure Boot
+### Secure Boot
 
-Secure boot is implemented based on the FIT (FDT Image) format:
+Secure boot is implemented using the **FIT (Flattened Image Tree)** image format. The general workflow is:
 
-1. Pack opensbi, uboot.itb, and the kernel into an FIT image.
-2. Enable secure boot configuration in the code.
-3. Sign the FIT image using a private key and export the public key to the DTB (Device Tree Blob).
+1. Package **OpenSBI**, `u-boot.itb`, and the **Linux Kernel** into a single FIT image;
+2. Enable secure boot configuration in source code;
+3. Sign the FIT image using a **private key**, and embed the **public key** into the DTS/DTB file for verification during the next-stage boot.
 
-#### 2.4.1 Verification Process
+#### Verification Flow
 
-The verification process during boot is shown in the following diagram:
+The secure boot process follows this verification chain:
 
 ![alt text](static/secure_boot.png)
 
-Signing process:
+**Signing and Verification Details:**
 
-1. The Boot ROM acts as the root of trust and is immutable.
-2. The hash of the Root of Trust Public Key (ROTPK) is burned into the chip's internal eFuse, which can only be programmed once.
-3. The hash algorithm used is SHA256.
-4. The signing algorithm uses SHA256 + RSA2048.
+- **BootROM** serves as the root of trust (RoT), embedded in hardware and immutable;
+- The **hash of the ROTPK (Root of Trust Public Key)** must be programmed into Efuse, and can only be burned once;
+- **Hash algorithm:** `SHA256`
+- **Signature algorithm:** `SHA256 + RSA2048`
 
-#### 2.4.2 Configuration
+#### Configuration
 
 - U-Boot compilation configuration:
 
@@ -881,9 +1062,9 @@ CONFIG_FIT_SIGNATURE=y
 CONFIG_FIT_SIGNATURE=y
 ```
 
-#### 2.4.3  Public and Private Keys
+#### Public and Private Keys Generation
 
-Generate private keys and certificates using OpenSSL. Protect the private key and distribute the certificate.
+Use `openssl` to generate RSA key pairs. The **private key must be securely stored**, and only the **certificate/public key** should be embedded or distributed.
 
 ```sh
 # build private key without password
@@ -902,9 +1083,9 @@ openssl rsa -in prv-rsa.key -pubout -out pub-rsa.key
 openssl rsa -in pub-rsa.key -pubin -noout -text
 ```
 
-#### 2.4.4 Image Signing
+#### Image Signing
 
-- Modify the its file to enable hash and signature configurations.
+1. Modify the ITS script to enable hash and signature configurations.
 
 ```sh
 /dts-v1/;
@@ -945,7 +1126,7 @@ openssl rsa -in pub-rsa.key -pubin -noout -text
 };
 ```
 
-- Using a private key and certificate, sign the fit image file.
+2. Using a private key and certificate, sign the FIT image file.
 
 ```sh
 # build empty dtb file, for next stage public key file output
@@ -961,9 +1142,8 @@ mkimage -f uboot_fdt_sign.its -K pubkey.dtb -k key -r u-boot.itb
 fdtdump -s pubkey.dtb
 ```
 
-- Update the public key information to the parent bootloader code.
-
-  - For example, update the public key information corresponding to the private key used for U-Boot signing to the FSBL DTS.
+3. Update the public key information to the parent bootloader code.
+For example, update the public key information corresponding to the private key used for U-Boot signing to the FSBL DTS.
 
 ```sh
 / {
@@ -982,54 +1162,50 @@ fdtdump -s pubkey.dtb
 };
 ```
 
-## 3. U-Boot Features and Configuration
+## U-Boot Features and Configuration
 
-This chapter primarily covers the functions of U-Boot and common methods for configuring it.
+This section introduces the key features of U-Boot and common configuration methods used in development.
 
-### 3.1  Function Introduction
+### 3.1  Functions
 
-The main functions of U-Boot include:
+The main functions of U-Boot are:
 
-- Loading the Boot Kernel
+- **Loading the Boot Kernel**
+  Loads the Linux kernel image from storage devices (eMMC / SD / NAND / NOR / SSD, etc.) into a designated memory address and initiates kernel execution.
 
-U-Boot loads the kernel image from storage media (such as eMMC, SD, NAND, NOR, SSD, etc.) into a designated memory location and then boots the kernel.
+- **Fastboot Flashing Support**
+  Enables image flashing to designated partitions via the `fastboot` tool.
 
-- Fastboot Firmware Update
+- **Boot Logo Display**
+  Shows a boot logo and boot menu during the U-Boot boot phase.
 
-Using the fastboot tool, images can be flashed to specific partition locations.
-
-- Boot Logo Display
-
-During the boot process, U-Boot displays the boot logo and the boot menu.
-
-- Driver Debugging
-
-Device drivers can be debugged using U-Boot, such as those for MMC, SPI, NAND, NOR, NVMe, etc. U-Boot provides a shell command line interface for testing the functionalities of various drivers. The U-Boot drivers are located in the `drivers/`directory.
+- **Driver Debugging**
+  U-Boot provides a shell interface for testing hardware drivers including MMC, SPI, NAND, NOR, NVMe, etc. All drivers are located under the `drivers/` directory of the U-Boot source tree.
 
 ### 3.2 Compilation
 
-This section describes the process of building U-Boot image files based on the U-Boot code environment.
+This section describes how to compile U-Boot images from the codebase.
 
-- Compilation Configuration
+- **Build Configuration**
+  
+  Before the first build or when switching target boards or configurations, set the appropriate defconfig (example for K1):
 
-For the initial compilation or when switching to a different configuration, you first need to select the appropriate build configuration. Here, we use the k1 configuration as an example:
+  ```shell
+  cd ~/uboot-2022.10
+  make ARCH=riscv k1_defconfig -C ~/uboot-2022.10/
+  ```
 
-```shell
-cd ~/uboot-2022.10
-make ARCH=riscv k1_defconfig -C ~/uboot-2022.10/
-```
+  To modify the build configuration interactively, you can use the following command:
 
-To modify the build configuration interactively, you can use the following command:
+  ```shell
+  make ARCH=riscv menuconfig
+  ```
 
-```shell
-make ARCH=riscv menuconfig
-```
+  ![a](static/OLIdbiLK4onXqyxOOj8cyBDCn3b.png)
 
-![a](static/OLIdbiLK4onXqyxOOj8cyBDCn3b.png)
+  Use **"Y"** to enable or **"N"** to disable specific features. Changes will be saved to the `.config` file in the root directory.
 
-Use the keys "Y" or "N" to enable or disable the relevant feature configurations. Once you have finished configuring and save your changes, they will be updated in the .config file located in the root directory of the U-Boot project.
-
-- Compiling U-Boot
+- **Compiling U-Boot**
 
 ```shell
 cd ~/uboot-2022.10
@@ -1037,7 +1213,7 @@ GCC_PREFIX=riscv64-unknown-linux-gnu-
 make ARCH=riscv CROSS_COMPILE=${GCC_PREFIX} -C ~/uboot-2022.10 -j4
 ```
 
-- compilation output
+- **Compiling Output**
 
 ```shell
 ~/uboot-2022.10$ ls u-boot* -l
@@ -1056,9 +1232,15 @@ k1-x_deb1.dtb        # DTB file for the deb1 solution
 k1-x_spl.dtb         # SPL DTB file
 ```
 
-### 3.3 DTS Configuration
+### DTS Configuration
 
-U-Boot DTS configuration is located in the directory uboot-2022.10/arch/riscv/dts/. Modify the DTS for the specific solution, such as the deb1 solution.
+All U-Boot device tree source files (DTS) are located under:
+
+```bash
+~/uboot-2022.10/arch/riscv/dts/
+```
+
+Edit the corresponding DTS file for the specific solution (e.g., `deb1`):
 
 ```shell
 ~/uboot-2022.10$ ls arch/riscv/dts/k1*.dts -l
@@ -1071,48 +1253,103 @@ arch/riscv/dts/k1-x_fpga.dts
 arch/riscv/dts/k1-x_spl.dts
 ```
 
-## 4. U-Boot Driver Development and Debugging
+## U-Boot Driver Development and Debugging
 
-This section primarily covers the usage and debugging methods of U-Boot drivers. By default, all drivers are already configured.
+This section outlines how to use and debug drivers within U-Boot.
+By default, all necessary drivers are enabled in the build configuration, no manual activation is required.
 
-### 4.1 Booting the Kernel
+---
 
-This subsection describes how to boot the kernel using U-Boot, along with custom configurations and booting procedures for partitions.
+### Booting the Linux Kernel
 
-- After powering on the development board, immediately press the "s" key on the keyboard to enter the U-Boot shell.
-- You can enter fastboot mode by executing `fastboot 0`, and then use a PC's `fastboot stage Image` command to send the image to the development board. (Alternatively, you can use other methods to download images, such as the `fatload` command.)
-- Execute `booti` to boot the kernel (or `bootm` to boot an FIT format image).
+This part demonstrates how to boot a Linux kernel from U-Boot, including setting up custom partition configurations and executing the boot sequence.
+
+**Step 1: Enter U-Boot Shell**
+
+After powering on the development board, press the `s` key immediately to enter the U-Boot shell.
+
+**Step 2: Enter Fastboot Mode**
+
+From the U-Boot shell, run the following command to enter Fastboot mode:
 
 ```shell
-#download kernel image
+=> fastboot 0
+```
+
+The device will wait for incoming image files from the host.
+
+**Step 3: Download the Kernel Image**
+
+On the **host PC**, run the following command to send the kernel image to the board:
+
+```shell
+C:\Users>fastboot stage Z:\k1\output\Image
+```
+
+On the **development board**, run the following command in the U-Boot shell to receive the image:
+
+```shell
 => fastboot -l 0x40000000 0
+```
+
+**Expected Output (U-Boot):**
+
+```shell
 Starting download of 50687488 bytes
 ...
 downloading/uploading of 50687488 bytes finished
+```
 
-# PC's command
-C:\Users>fastboot stage Z:\k1\output\Image
+**Expected Output (PC):**
+
+```shell
 Sending 'Z:\k1\output\Image' (49499 KB)           OKAY [  1.934s]
 Finished. Total time: 3.358s
+```
 
-#After downloading is complete, to exit fastboot mode, press CTRL+C in the U-Boot shell using the keyboard.
+**Step 4: Download DTB**
 
-#download dtb
-=> fastboot -l 0x50000000 0
-Starting download of 33261 bytes
+On the **host PC**, send the DTB file with the below command:
 
-downloading/uploading of 33261 bytes finished
-
-# PC's command
+```shell
 C:\Users>fastboot stage Z:\k1\output\k1-x_deb1.dtb
+```
+
+On the **development board**, receive the DTB file with the below command::
+
+```shell
+=> fastboot -l 0x50000000 0
+```
+
+**Expected Output (U-Boot):**
+
+```shell
+Starting download of 33261 bytes
+downloading/uploading of 33261 bytes finished
+```
+
+**Expected Output (PC):**
+
+```shell
 Sending 'Z:\k1\output\k1-x_deb1.dtb' (32 KB)      OKAY [  0.004s]
 Finished. Total time: 0.054s
 ```
 
-excute boot command
+**Step 5: Exit Fastboot Mode**
+
+After completing the transfers, press `CTRL+C` in the U-Boot shell to exit Fastboot mode.
+
+**Step 6: Boot the Kernel**
+
+Run the following command to start the Linux kernel:
 
 ```shell
 => booti 0x40000000 - 0x50000000
+```
+
+**Expected Boot Output:**
+
+```shell
 Moving Image from 0x40000000 to 0x200000, end=3d4f000
 ## Flattened Device Tree blob at 50000000
    Booting using the fdt blob at 0x50000000
@@ -1120,154 +1357,136 @@ Moving Image from 0x40000000 to 0x200000, end=3d4f000
 
 Starting kernel ...
 
-[    0.000000] Linux version 6.1.15+ ... ...
+[    0.000000] Linux version 6.1.15+ ...
 [    0.000000] OF: fdt: Ignoring memory range 0x0 - 0x200000
 [    0.000000] Machine model: spacemit k1-x deb1 board
 [    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
 [    0.000000] printk: bootconsole [sbi0] enabled
 ```
 
-- Booting a FIT Format Image Using the bootm Command
+### Configuring `env`
 
-Assuming that partition 5 of the eMMC is a FAT32 filesystem and contains a file named uImage.itb, you can load and boot the kernel using the following commands:
+1. **Configuration via `make menuconfig`**
+  During U-Boot build configuration, run the following command to open the interactive configuration menu:
 
-```shell
-=> fatls mmc 2:5
-sdh@d4281000: 74 clk wait timeout(100)
- 50896911   uImage.itb
-     4671   env_k1-x.txt
+   ```shell
+   make menuconfig
+   ```
 
-2 file(s), 0 dir(s)
+2. **Navigate to Environment Settings**
+  In the `menuconfig` interface, go to the **Environment** section to configure environment variable loading.
 
-=> fatload mmc 2:5 0x40000000 uImage.itb
-50896911 bytes read in 339 ms (143.2 MiB/s)
-=> bootm 0x40000000
-## Loading kernel from FIT Image at 40000000 ...
-Boot from fit configuration k1_deb1
-   Using 'conf_2' configuration
-   Trying 'kernel' kernel subimage
-     Description:  Vanilla Linux kernel
-     Type:         Kernel Image
-     Compression:  uncompressed
-     Data Start:   0x400000e8
-     Data Size:    50687488 Bytes = 48.3 MiB
-     Architecture: RISC-V
-     OS:           Linux
-     Load Address: 0x01400000
-     Entry Point:  0x01400000
-   Verifying Hash Integrity ... OK
-## Loading fdt from FIT Image at 40000000 ...
-   Using 'conf_2' configuration
-   Trying 'fdt_2' fdt subimage
-     Description:  Flattened Device Tree blob for k1_deb1
-     Type:         Flat Device Tree
-     Compression:  uncompressed
-     Data Start:   0x43067c90
-     Data Size:    68940 Bytes = 67.3 KiB
-     Architecture: RISC-V
-     Load Address: 0x28000000
-   Verifying Hash Integrity ... OK
-   Loading fdt from 0x43067c90 to 0x28000000
-   Booting using the fdt blob at 0x28000000
-   Loading Kernel Image
-   Using Device Tree in place at 0000000028000000, end 0000000028013d4b
+   ![alt text](static/CgrNbzNbkot1tvxOXIhcGMrRnvc.png)
 
-Starting kernel ...
+   ![alt text](static/Od7AbhfLSoHWY9xN8uIcwlAhnhb.png)
 
-[    0.000000] Linux version 6.1.15+ ... ...
-[    0.000000] OF: fdt: Ignoring memory range 0x0 - 0x1400000
-[    0.000000] Machine model: spacemit k1-x deb1 board
-[    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
-[    0.000000] printk: bootconsole [sbi0] enabled
+   **Supported Storage Devices:**
+   Currently, U-Boot supports loading environment variables from:
+
+   - **MMC devices** (e.g., SD cards or eMMC)
+   - **MTD devices** (including SPI NOR and SPI NAND)
+
+3. **Set Environment Variable Offset Address**
+
+   The environment offset must align with the layout defined in your partition table.
+   The default offset is **`0x80000`**. Configuration examples:
+
+   - **For SPI NOR devices:**
+
+     ```shell
+     (0x80000) Environment address       # Offset for SPI NOR env
+     ```
+
+   - **For MMC devices:**
+
+     ```shell
+     (0x80000) Environment offset        # Offset for MMC env
+     ```
+
+### MMC Driver Configuration and Debugging
+
+This section explains how to configure and debug MMC drivers in U-Boot, covering both **eMMC** and **SD card** support.
+
+Both devices use the MMC driver but have different device numbers:
+
+- **eMMC**: dev number = 2
+- **SD card**: dev number = 0
+
+1. **Configuration via `make menuconfig`**
+
+   - **Enter `make menuconfig`**
+     Run the following command to launch the interactive configuration menu:
+
+     ```shell
+     make menuconfig
+     ```
+
+   - **Enable MMC Host Controller Support**
+     Navigate to:
+     `Device Drivers` → `MMC Host controller Support`
+     Enable the necessary controller options as:
+
+     ![MMC config](static/YnF5beU32ojicYx6xbkcM2pGn2b.png)
+
+2. **DTS Configuration**
+   Define device tree nodes for eMMC and SD card interfaces in U-Boot's DTS files.
+
+   **Example configuration:**
+
+```dts
+// uboot-2022.10/arch/riscv/dts/k1-x.dtsi
+sdhci0: sdh@d4280000 {
+    compatible = "spacemit,k1-x-sdhci";
+    reg = <0x0 0xd4280000 0x0 0x200>;
+    interrupt-parent = <&intc>;
+    interrupts = <99>;
+    resets = <&reset RESET_SDH_AXI>, <&reset RESET_SDH0>;
+    reset-names = "sdh_axi", "sdh0";
+    clocks = <&ccu CLK_SDH0>, <&ccu CLK_SDH_AXI>;
+    clock-names = "sdh-io", "sdh-core";
+    status = "disabled";
+};
+
+sdhci2: sdh@d4281000 {
+    compatible = "spacemit,k1-x-sdhci";
+    reg = <0x0 0xd4281000 0x0 0x200>;
+    interrupt-parent = <&intc>;
+    interrupts = <101>;
+    resets = <&reset RESET_SDH_AXI>, <&reset RESET_SDH2>;
+    reset-names = "sdh_axi", "sdh2";
+    clocks = <&ccu CLK_SDH2>, <&ccu CLK_SDH_AXI>;
+    clock-names = "sdh-io", "sdh-core";
+    status = "disabled";
+};
 ```
 
-### 4.2 env
-
-This chapter introduces how to configure the loading of the environment from a specified storage medium during the U-Boot boot stage.
-
-- Run `make menuconfig` and go to the Environment section.
-
-![a](static/CgrNbzNbkot1tvxOXIhcGMrRnvc.png)
-
-![a](static/Od7AbhfLSoHWY9xN8uIcwlAhnhb.png)
-
-The currently supported optional media include MMC (MultiMediaCard) and MTD (Memory Technology Device) devices, which further include SPI NOR (spinor) and SPI NAND (spinand).
-
-The offset address for the environment needs to be determined based on the partition table configuration. For more details, refer to the partition table configuration in the flashing and boot settings section. The default offset is 0x80000.
-
-```shell
-(0x80000) Environment address       # Offset address for the spinor environment
-(0x80000) Environment offset        # Offset address for the MMC device environment
-```
-
-### 4.3 mmc
-
-Both eMMC (embedded MultiMediaCard) and SD cards use the MMC driver, with device index being 2 and 0 respectively.
-
-- Configuration in the config file
-
-Run `make menuconfig`, then navigate to Device Drivers --> MMC Host Controller Support, and enable the following configurations:
-
-![a](static/YnF5beU32ojicYx6xbkcM2pGn2b.png)
-
-- DTS (Device Tree Source) Configuration
-
-```c
-//uboot-2022.10/arch/riscv/dts/k1-x.dtsi
-         sdhci0: sdh@d4280000 {
-             compatible = "spacemit,k1-x-sdhci";
-             reg = <0x0 0xd4280000 0x0 0x200>;
-             interrupt-parent = <&intc>;
-             interrupts = <99>;
-             resets = <&reset RESET_SDH_AXI>,
-                      <&reset RESET_SDH0>;
-             reset-names = "sdh_axi", "sdh0";
-             clocks = <&ccu CLK_SDH0>,
-                      <&ccu CLK_SDH_AXI>;
-             clock-names = "sdh-io", "sdh-core";
-             status = "disabled";
-         };
-
-         sdhci2: sdh@d4281000 {
-             compatible = "spacemit,k1-x-sdhci";
-             reg = <0x0 0xd4281000 0x0 0x200>;
-             interrupt-parent = <&intc>;
-             interrupts = <101>;
-             resets = <&reset RESET_SDH_AXI>,
-                      <&reset RESET_SDH2>;
-             reset-names = "sdh_axi", "sdh2";
-             clocks = <&ccu CLK_SDH2>,
-                      <&ccu CLK_SDH_AXI>;
-             clock-names = "sdh-io", "sdh-core";
-             status = "disabled";
-         };
-
-//uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
+```dts
+// uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
 &sdhci0 {
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_mmc1 &gpio80_pmx_func0>;
-        bus-width = <4>;
-        cd-gpios = <&gpio 80 0>;
-        cd-inverted;
-        cap-sd-highspeed;
-        sdh-phy-module = <0>;
-        status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_mmc1 &gpio80_pmx_func0>;
+    bus-width = <4>;
+    cd-gpios = <&gpio 80 0>;
+    cd-inverted;
+    cap-sd-highspeed;
+    sdh-phy-module = <0>;
+    status = "okay";
 };
 
 /* eMMC */
 &sdhci2 {
-        bus-width = <8>;
-        non-removable;
-        mmc-hs400-1_8v;
-        mmc-hs400-enhanced-strobe;
-        sdh-phy-module = <1>;
-        status = "okay";
+    bus-width = <8>;
+    non-removable;
+    mmc-hs400-1_8v;
+    mmc-hs400-enhanced-strobe;
+    sdh-phy-module = <1>;
+    status = "okay";
 };
 ```
 
-- Debugging and Verification
-
-The U-Boot shell provides a command-line interface for debugging the MMC driver, which requires enabling the compile-time configuration option `CONFIG_CMD_MMC`.
+3. **Debug and Validation**
+   U-Boot provides a command-line interface for MMC driver debugging.
+   Make sure the `CONFIG_CMD_MMC` option is enabled in the build.
 
 ```shell
 => mmc list
@@ -1290,23 +1509,33 @@ MMC write: dev # 2, block # 0, count 4096 ... 4096 blocks written: OK
 #For other usage options, refer to mmc -h
 ```
 
-- Common Interfaces
+4. **Common Interfaces**
+   For further implementation details, refer to `cmd/mmc.c`.
 
-Refer to the interfaces in cmd/mmc.c for common operations related to the MMC driver.
+### NVMe Driver Configuration and Debugging
 
-### 4.4 nvme
+This section explains how to configure and debug the NVMe driver. The NVMe driver is primarily used for accessing and testing SSD storage.
 
-The nvme driver is primarily used for debugging SSD.
+1. **Configuration via `make menuconfig`**
 
-- Configuration in the config file
+   - **Enter the Configuration Menu**
 
-Run `make menuconfig`, go into Device Driver, and enable the following configurations:
+     ```shell
+     make menuconfig
+     ```
 
-![a](static/OLktbqlRLoreIPxlZ9TcGtwOnff.png)
+   - **Enable NVMe Driver in Device Drivers**
 
-![a](static/UrVybSqdFo0iTnxZ8QAcKoWAnqc.png)
+     Navigate to **Device Drivers** and enable NVMe-related options:
 
-- DTS (Device Tree Source) Configuration
+     ![menuconfig](static/OLktbqlRLoreIPxlZ9TcGtwOnff.png)
+     ![menuconfig](static/UrVybSqdFo0iTnxZ8QAcKoWAnqc.png)
+
+2. **DTS Configuration**
+
+   In the U-Boot device tree configuration, you need to define the device tree node for the NVMe driver.
+
+   **Example configuration:**
 
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x.dtsi
@@ -1370,9 +1599,8 @@ Run `make menuconfig`, go into Device Driver, and enable the following configura
  };
 ```
 
-- Debugging and Verification
-
-Need to enable configuration `CONFIG_CMD_NVME`, follow these steps for debugging purposes:
+3. **Debugging and Verification**
+   Enable configuration `CONFIG_CMD_NVME`, follow below steps for debugging:
 
 ```shell
 => nvme scan
@@ -1409,21 +1637,32 @@ Blk device 0: Metadata capabilities:
 => nvme read/write addr blk_off blk_cnt
 ```
 
-- Common Interfaces
+4. **Common Interfaces**
+   For further implementation details, refer to `cmd/nvme.c`.
 
-Refer to the interfaces in `cmd/nvme.c` for common operations related to the nvme driver.
+### Network Configuration (Net)
 
-### 4.5 net
+1. **Configuration via `make menuconfig`**
 
-- Configuration in the config file
+   - **Enter menuconfig**
+     Run the following command to enter the configuration menu:
 
-Run `make menuconfig`, go into Device Driver, and enable the following configurations:
+      ```shell
+      make menuconfig
+      ```
 
-![a](static/RCZdbLULLo7I0axEo3rc71BdnZg.png)
+   - **Enable network-related options**
+     Navigate to **Device Drivers** and enable the necessary network options:
 
-![a](static/K5s8bumbzofb0txqmiXc43BCnRg.png)
+     ![a](static/RCZdbLULLo7I0axEo3rc71BdnZg.png)
 
-- DTS (Device Tree Source) Configuration
+     ![a](static/K5s8bumbzofb0txqmiXc43BCnRg.png)
+
+2. **DTS Configuration**
+
+   In the U-Boot device tree, add the node for the Ethernet controller.
+
+   **Example configuration**:
 
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x.dtsi
@@ -1470,9 +1709,11 @@ Run `make menuconfig`, go into Device Driver, and enable the following configura
  };
 ```
 
-- Debugging and Verification
+3. **Debugging and Verification**
 
-You need to first enable the compilation configuration CONFIG_CMD_NET. Connect the Ethernet cable to the development board’s network port, and ensure that a TFTP server is set up (you can search online for instructions on how to set up a TFTP server; this will not be covered here).
+Make sure the build configuration includes `CONFIG_CMD_NET`, and that the board is connected to an Ethernet cable with a running TFTP server (not covered here).
+
+**Debugging commands**:
 
 ```shell
 => dhcp #After executing dhcp, if an address is returned, it indicates a successful connection to the network server. Any other situation indicates a connection failure.
@@ -1505,23 +1746,31 @@ Bytes transferred = 66900963 (3fcd3e3 hex)
 =>bootm 0x40000000 
 ```
 
-- Common Interfaces
+4. **Common Interfaces**
+   For further implementation details, refer to `cmd/net.c`.
 
-You can refer to the code interface in cmd/net.c for guidance.
+### SPI Configuration and Debugging
 
-### 4.6 spi
+SPI (Serial Peripheral Interface) is a widely used serial communication protocol for connecting microcontrollers with peripheral devices. In U-Boot, the SPI driver supports NAND or NOR Flash.
 
-spi only exposes one hardware interface, so it only supports NAND or NOR flash.
+1. **Configuration via `make menuconfig`**
+   - **Enter menuconfig**
+     Run the following command to enter the configuration menu:
 
-- Configuration in the config file
+      ```shell
+      make menuconfig
+      ```
 
-Run `make menuconfig`, go into Device Driver, and enable the following configurations:
+   - **Enable SPI support**
+     Navigate to Device Drivers and enable the required SPI options:
 
-![a](static/DdHBbRJQpoIoopxMuO8cS3GBnXg.png)
+     ![a](static/DdHBbRJQpoIoopxMuO8cS3GBnXg.png)
+     ![a](static/AH6bbloZ9omZNux2ZCxcXblVnvc.png)
 
-![a](static/AH6bbloZ9omZNux2ZCxcXblVnvc.png)
+2. **DTS Configuration**
+   Add SPI nodes in the U-Boot device tree to enable hardware support.
 
-- DTS (Device Tree Source) Configuration
+   **Example configuration:**
 
 ```c
 //k1-x.dtsi
@@ -1571,11 +1820,11 @@ Run `make menuconfig`, go into Device Driver, and enable the following configura
 };
 ```
 
-- Debugging and Verification
+3. **Debugging and Verification**
 
-To enable the U-Boot shell command `sspi`, you need to configure `CONFIG_CMD_SPI`.
+   Make sure `CONFIG_CMD_SPI` is enabled to access the `sspi` command in the U-Boot shell.
 
-debug command
+   **Debugging command:**
 
 ```c
 sspi -h
@@ -1591,21 +1840,25 @@ sspi -h
 
 ```
 
-- Common Interfaces
+4. **Common Interfaces**
+   For further implementation details, refer to `cmd/spi.c`.
 
-You can refer to the code interface in cmd/spi.c for guidance.
+### NAND Configuration and Debugging
 
-### 4.7 nand
+The NAND driver in U-Boot is implemented based on the SPI interface, so SPI support must be enabled first. This section provides instructions on configuring and debugging the NAND driver.
 
-The NAND driver is based on SPI, so it's necessary to first enable the SPI driver functionality.
+1. **Configuration via `make menuconfig`**
+   Run the following command to enter the configuration menu:
 
-- Configuration in the config file
+   ```shell
+   make menuconfig
+   ```
 
-Run `make menuconfig`, then navigate to Device Drivers -> MTD Support.
+   Navigate to **Device Drivers → MTD Support** to enable the necessary options for SPI NAND:
 
-![a](static/Pmlobv86koO6qpxDohMcycGVn4e.png)
+   ![a](static/Pmlobv86koO6qpxDohMcycGVn4e.png)
 
-If you need to add a new NAND flash, you can do so by adding the JEDEC ID of the NAND flash according to the supported vendor drivers.
+   For adding support for a new NAND flash device, you can register its **JEDEC ID** in the corresponding vendor driver.
 
 ```shell
 ~/uboot-2022.10$ ls drivers/mtd/nand/spi/*.c -l
@@ -1618,7 +1871,7 @@ drivers/mtd/nand/spi/toshiba.c
 drivers/mtd/nand/spi/winbond.c
 ```
 
-To add a new flash for a Gigadevice chip, follow these steps:
+To add a new flash to the `Gigadevice` chip, follow these steps:
 
 ```c
 //uboot-2022.10/drivers/mtd/nand/spi/gigadevice.c
@@ -1644,11 +1897,13 @@ To add a new flash for a Gigadevice chip, follow these steps:
  };
 ```
 
-If you need to implement support for NAND Flash of other brands and plan to refer to the Gigadevice driver for this purpose
+**Note**: For other NAND vendors, refer to the structure and methods used in the Gigadevice driver.
 
-- DTS (Device Tree Source) Configuration
+2. **DTS Configuration**
 
-NAND driver is attached to the SPI driver, so the DTS needs to be configured under the SPI node.
+Since SPI NAND is a child device under the SPI controller, the node must be defined under the SPI node.
+
+**Example configuration**:
 
 ```c
  &qspi {
@@ -1668,9 +1923,11 @@ NAND driver is attached to the SPI driver, so the DTS needs to be configured und
  };
 ```
 
-- Debugging and Verification
+3. **Debugging and Verification**
 
-The NAND driver can be debugged using MTD commands.
+Enable `CONFIG_CMD_MTD` in U-Boot to use the `mtd` command for interacting with NAND devices.
+
+**Sample Commands**:
 
 ```shell
 => mtd
@@ -1725,29 +1982,45 @@ List of MTD devices:
 => mtd read/write partname addr off size
 ```
 
-- Common Interfaces
+4. **Common Interfaces**
+   For further implementation details, refer to `cmd/mtd.c`.
 
-You can refer to the code interface in cmd/mtd.c for guidance.
+### 4.8  NOR Configuration and Debugging
 
-### 4.8 nor
+The NOR driver is based on SPI, so it's necessary to first enable the SPI driver functionality. This section explains how to configure and debug the NOR driver.
 
-The NOR driver is based on SPI, so it's necessary to first enable the SPI driver functionality.
+1. **Configuration via `make menuconfig`**
+   Run the following command to enter the configuration menu:
 
-- Configuration in the config file
+   ```shell
+   make menuconfig
+   ```
 
-Execute `make menuconfig`, navigate to `Device Drivers ---> MTD Support ---> SPI Flash Support`, and enable the following configurations (they are usually enabled by default). This example uses enabling the Winbond NOR flash as an illustration.
+   Navigate to **Device Drivers → MTD Support → SPI Flash Support**.
+   Enable the following configurations:
 
-![a](static/WkhTbAHpFot5raxYWMWckwBwnsh.png)
+   ![a](static/WkhTbAHpFot5raxYWMWckwBwnsh.png)
 
-![a](static/VTT0bxjO1oobWYxPeficMzw4nfl.png)
+   ![a](static/VTT0bxjO1oobWYxPeficMzw4nfl.png)
 
-Adding a new SPI NOR flash:
+   **Adding Support for a New SPI NOR Flash**
 
-- For NOR flashes already supported by the above-mentioned vendors, You can directly enable the corresponding build configurations, such as those for NOR flashes from the Gigadevice manufacturer.
-- The JEDEC ID list for SPI flashes is maintained in u-boot-2022.10/drivers/mtd/spi/spi-nor-ids.c. If a specific NOR flash’s JEDEC ID is not in the list, you can add the JEDEC ID yourself. The JEDEC ID corresponds to the manufacturer code of the SPI flash. You can find the manufacturer code (such as 0xfe for Winbond) in the NOR flash datasheet by searching for the keyword manufacturer.
-- DTS Configuration
+   - For supported NOR Flash chips from known vendors (e.g., GigaDevice), simply enable the appropriate config options.
+   - **To check or extend the JEDEC ID list**:
+     The JEDEC ID table is maintained in:
 
-The NOR driver depends on the SPI driver interface. For SPI driver configuration, refer to the SPI subchapter. You need to add a DTS node as follows:
+     ```
+     uboot-2022.10/drivers/mtd/spi/spi-nor-ids.c
+     ```
+
+     If your specific NOR chip is missing from the table, you can manually add its JEDEC ID based on the datasheet.
+     *(Look for the `manufac` keyword; e.g., Winbond's manufacturer ID is `0xfe`.)*
+
+2. **DTS Configuration**
+
+   The NOR flash device is configured as a child node under the SPI controller node in the device tree.
+
+   **Example Configuration**:
 
 ```c
 //k1/uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
@@ -1767,11 +2040,13 @@ The NOR driver depends on the SPI driver interface. For SPI driver configuration
  };
 ```
 
-- Debugging and Verification
+3. **Debugging and Verification**
+   Ensure the following configs are enabled:
 
-Debugging can be performed using the mtd and `sf` commands in the U-Boot command line. The build configuration needs to have `CONFIG_CMD_MTD=y` and `CONFIG_CMD_SF` enabled.
+   - `CONFIG_CMD_MTD=y`
+   - `CONFIG_CMD_SF=y`
 
-Reading and writing to the NOR flash using the mtd commands:
+**Debug NOR using `mtd` Commands**:
 
 ```shell
 => mtd list
@@ -1827,7 +2102,7 @@ Dump 16 data bytes from 0x0:
 =>
 ```
 
-Reading from and writing to NOR Flash using the `sf` command:
+**Debug NOR using `sf` (SPI Flash) Commands**:
 
 ```shell
 => sf
@@ -1858,7 +2133,7 @@ SF: 16 bytes @ 0x0 Read: OK
 =>
 ```
 
-- Common Interfaces
+4. Common Interfaces
 
 ```c
 include <spi.h>
@@ -1868,32 +2143,42 @@ struct udevice *new, *bus_dev;
 int ret;
 static struct spi_flash *flash;
 
-//bus,cs对应spi的bus和cs编号，如0，0
+//Specify SPI bus and cs (chip select), e.g. 0，0
 ret = spi_find_bus_and_cs(bus, cs, &bus_dev, &new);
 flash = spi_flash_probe(bus, cs, speed, mode);
 
 ret = spi_flash_read(flash, offset, len, buf);
 ```
 
-### 4.9 hdmi
+### HDMI Configuration and Debugging
 
 This section primarily focuses on how to enable the HDMI (High-Definition Multimedia Interface) driver.
 
-- Configuration in the config file
+1. **Configuration via `make uboot_menuconfig`**
+   Run the following command to enter the U-Boot configuration menu:
 
-Execute `make uboot_menuconfig`, then go to `Device Drivers -> Graphics support`, and make sure the following configurations are enabled (they should be enabled by default).
+   ```shell
+   make uboot_menuconfig
+   ```
 
-![a](static/GeszbbETBojI9KxyCWBcPM7fnHe.png)
+   Navigate to: **Device Drivers → Graphics support**
 
-![a](static/MXYNbqJwjoNsdhxsBT2clnTSn1e.png)
+   Enable the following configurations (enabled by default):
 
-![a](static/MX60b8b2uoLDLaxHlJlcTyc7nte.png)
+   ![a](static/GeszbbETBojI9KxyCWBcPM7fnHe.png)
 
-![a](static/Sm8hbLmawoxfMdxrMlBcJMVInHd.png)
+   ![a](static/MXYNbqJwjoNsdhxsBT2clnTSn1e.png)
 
-![a](static/NuSSbshdfon2mWxWZU6cEipvnwf.png)
+   ![a](static/MX60b8b2uoLDLaxHlJlcTyc7nte.png)
 
-- DTS (Device Tree Source) Configuration
+   ![a](static/Sm8hbLmawoxfMdxrMlBcJMVInHd.png)
+
+   ![a](static/NuSSbshdfon2mWxWZU6cEipvnwf.png)
+
+2. **DTS Configuration**
+   The HDMI driver requires device tree support. The relevant nodes must be configured in the U-Boot device tree source files.
+
+   **Example Configuration**:
 
 ```c
 &dpu {
@@ -1907,22 +2192,28 @@ Execute `make uboot_menuconfig`, then go to `Device Drivers -> Graphics support`
 };
 ```
 
-### 4.10 boot logo
+### Boot Logo Configuration and Display
 
-This section primarily describes how to display the boot logo during the U-Boot boot process.
+This section explains how to configure and display a boot logo during the U-Boot startup phase.
 
-- Configuration in the config file
+1. **Configuration via `make menuconfig`**
 
-Run `make menuconfig` and enable the following configurations.
+   - **Ensure HDMI is Enabled**
+     First, confirm HDMI support is enabled in U-Boot. Refer to the section **HDMI Configuration and Debugging** for details.
 
-1. First, enable HDMI support in U-Boot, refer to section hidm.
-2. Then, enable boot logo support in U-Boot. Go to `Device Drivers -> Graphics support` and enable the following option.
+   - **Enable Boot Logo Support**
+     Run the following command to open the U-Boot configuration menu:
 
-![a](static/FfzObuq4poT5ZYxU17scAzZRnyf.png)
+     ```shell
+     make menuconfig
+     ```
 
-- env Configuration
+     Navigate to `Device Drivers → Graphics support`, and enable the following option:
 
-To add the three necessary environment variables for the bootlogo—splashimage, splashpos, and splashfile—into the U-Boot configuration, you would modify the file located at uboot-2022.10/include/configs/k1-x.h.
+    ![a](static/FfzObuq4poT5ZYxU17scAzZRnyf.png)
+
+2. **Environment Variable Setup**
+   Add the following environment variables (`splashimage`、`splashpos`  and `splashfile` ) to support boot logo display. These should be defined in U-Boot’s configuration file located at `uboot-2022.10/include/configs/k1-x.h`
 
 ```c
 //uboot-2022.10/include/configs/k1-x.h
@@ -1933,7 +2224,7 @@ To add the three necessary environment variables for the bootlogo—splashimage,
         ... ...
      "splashimage=" __stringify(CONFIG_FASTBOOT_BUF_ADDR) "\0" \
      "splashpos=m,m\0" \
-     "splashfile=k1-x.bmp\0" \
+     "splashfile=bianbu.bmp\0" \
 
         ... ...
         ... ...
@@ -1943,19 +2234,29 @@ To add the three necessary environment variables for the bootlogo—splashimage,
  #endif /* __CONFIG_H */
 ```
 
-Among them, `splashimage` represents the address in memory where the bootlogo image is loaded;
+**Explanation**:
 
-`splashpos` represents the position where the image is displayed, "m,m" means the image is displayed in the center of the screen;
+- `splashimage`: Memory address where the boot logo image will be loaded.
+- `splashpos`: Image position on the screen. `"m,m"` means centered both horizontally and vertically.
+- `splashfile`: Filename of the BMP image to be displayed. This image must be placed in the same partition as `bootfs`.
 
-`splashfile` refers to the filename of the BMP file that will be displayed; this image needs to be placed in the partition where the bootfs resides.
+3. **Packaging the BMP Image into BootFS**
+   To ensure the BMP logo is included in BootFS:
 
-- Packaging the .bmp image into the bootfs
+   - **Prepare the BMP Image**
+     Place the `bianbu.bmp` image file under:
 
-To package the BMP image that will be displayed into the bootfs:
+     ```
+     ./buildroot-ext/board/spacemit/k1/
+     ```
 
-Place the `k1-x.bmp` file in the `./buildroot-ext/board/spacemit/k1` directory. The filename should match the one specified in `UBOOT_LOGO_FILE` within `buildroot-ext/board/spacemit/k1/prepare_img.sh`, as well as the environment variable splashfile, such as `k1-x.bmp`.
+     The filename must match both:
 
-After compilation and packaging, the BMP image will be included in the bootfs.
+     - `UBOOT_LOGO_FILE` in `buildroot-ext/board/spacemit/k1/prepare_img.sh`
+     - The `splashfile` environment variable
+
+   - **Update the Packaging Script**
+     Check that `prepare_img.sh` correctly includes the BMP file `bianbu.bmp`:
 
 ```shell
 //buildroot-ext/board/spacemit/k1/prepare_img.sh
@@ -1970,31 +2271,47 @@ DEVICE_DIR=$(dirname $0)
 
 ... ...
 
-UBOOT_LOGO_FILE="$DEVICE_DIR/k1-x.bmp"
+UBOOT_LOGO_FILE="$DEVICE_DIR/bianbu.bmp"
 
 ```
 
-- How to Modify the Boot Logo
+4. **Updating the Boot Logo**
+   To update the boot logo, simply replace the existing `bianbu.bmp` file located in the following directory:
 
-1. Directly replace the `k1-x.bmp` file in the `buildroot-ext/board/spacemit/k1/` directory, or add a new image according to the description above.
+   ```
+   buildroot-ext/board/spacemit/k1/
+   ```
 
-### 4.11 boot menu
+   Make sure the new image file retains the same filename (`bianbu.bmp`)
 
-This section mainly introduces how to enable the U-Boot bootmenu feature.
+### Boot Menu Configuration and Usage
 
-- DTS (Device Tree Source) Configuration
+This section mainly introduces how to enable and use the Boot Menu feature in U-Boot.
 
-Run `make menuconfig`, go to `Command line interface > Boot commands`, and enable the following configuration:
+1. **Configuration via `make menuconfig`**
+   - **Launch the configuration menu**
+     Run the following command:
 
-![a](static/BmycbCac2oCtuGxjjpvcUlHunug.png)
+     ```shell
+     make menuconfig
+     ```
 
-Then go to `Boot options > Autoboot options` and enable the following options:
+   - **Enable Boot Menu Support**
+     Navigate to **Command line interface** → **Boot commands**, and enable the following option:
 
-![a](static/UEhPbxaIgoXpv8xBh52cn7Vdndb.png)
+     ![a](static/BmycbCac2oCtuGxjjpvcUlHunug.png)
 
-- env Configuration
+   - **Enable Autoboot Options**
+     Then go to **Boot options** → **Autoboot options**, and enable the following option:
 
-In `buildroot-ext/board/spacemit/k1/env_k1-x.txt`, you need to add bootdelay and bootmenu_delay, for example, `bootdelay=5`, `bootmenu_delay=5`. Here, 5 represents the waiting time for the bootmenu, measured in seconds.
+     ![a](static/UEhPbxaIgoXpv8xBh52cn7Vdndb.png)
+
+2. **Environment Configuration**
+   In the file `buildroot-ext/board/spacemit/k1/env_k1-x.txt`, add the environment variables `bootdelay` and `bootmenu_delay`.
+
+   For example:
+   - `bootmenu_delay=5`: the system waits 5 seconds on the boot menu for user to choose a boot option.
+   - `bootdelay=5`: after a boot option is selected, the system waits another 5 seconds before starting.
 
 ```c
 //buildroot-ext/board/spacemit/k1/env_k1-x.txt
@@ -2022,31 +2339,47 @@ bootmenu_8="recovery from mmc"=run spacemit_flashing_mmc
 bootmenu_9="recovery from net"=run spacemit_flashing_net
 ```
 
-- Enter the bootmenu
+3. **Accessing the Boot Menu**
+   After powering on the board, press and hold the `Esc` key to enter the Boot Menu interface.
 
-Press and hold the Esc key on the keyboard after power-on to enter the bootmenu.
+### Fastboot Command Configuration and Usage
 
-### 4.12 fastboot command
+This section introduces the Fastboot command support for the **K1-DEB1** solution.
 
-This section mainly introduces the fastboot commands supported by the k1-deb1 solution.
+#### Configuration
+To enable Fastboot support, follow these steps:
 
-- Configuration in the config file
+- **Launch the configuration menu**
 
-Run `make menuconfig`, go to `Device Drivers ---> Fastboot support`, and enable the following compilation configurations:
+     ```shell
+     make menuconfig
+     ```
 
-![a](static/LrxMbKM9Eoioc9xJo9bcUrA2nnb.png)
+- Navigate to `Device Drivers → Fastboot support`, and enable the Fastboot configuration options:
 
-Fastboot depends on the USB driver, so you need to enable USB support:
+     ![a](static/LrxMbKM9Eoioc9xJo9bcUrA2nnb.png)
 
-![a](static/DmeEbYiPqoUuW9xa8u8cw9hlnPg.png)
+- **Enable USB Support**
+     Since Fastboot relies on USB drivers, also enable `Device Drivers → USB support`:
 
-![a](static/MuMabzRykoQeWHxZk1UcNDZVnDg.png)
+     ![a](static/DmeEbYiPqoUuW9xa8u8cw9hlnPg.png)
 
-- enter the fastboot mode
+     ![a](static/MuMabzRykoQeWHxZk1UcNDZVnDg.png)
 
-1.You can enter the U-Boot shell by pressing the 's' key after the system boots up, and then execute `fastboot 0` to enter fastboot mode.
+#### Entering Fastboot Mode
 
-The default fastboot buffer address/size is defined by the macros `CONFIG_FASTBOOT_BUF_ADDR`/`CONFIG_FASTBOOT_BUF_SIZE`.
+**Method 1: Using U-Boot Shell**
+
+- **Access U-Boot Shell**
+     During system boot-up, press the `s` key to enter the U-Boot shell.
+
+- **Execute Fastboot Command**
+
+```shell
+=> fastboot 0
+```
+
+The default fastboot buffer address/size is defined by the macros `CONFIG_FASTBOOT_BUF_ADDR` and `CONFIG_FASTBOOT_BUF_SIZE`.
 
 ```shell
 #or fastboot -l 0x30000000 -s 0x10000000 0，Specify the buffer address and size.
@@ -2061,11 +2394,19 @@ handle setup GET_DESCRIPTOR, 0x80, 0x6 index 0x0 value 0x100 length 0x12
 ..
 ```
 
-2.After the device boots into Bianbu OS, send the `adb reboot bootloader` command to restart the system into fastboot mode.(某些方案可能不支持)
+**Method 2: From Bianbu OS**
 
-- Supported fastboot commands
+If the device boots into Bianbu OS, it can be rebooted it into Fastboot mode using ADB:
 
-For configuring the fastboot environment on your computer, please refer to the chapter on installing the computer environment.
+```shell
+adb reboot bootloader
+```
+
+> **Note**: This method may not be supported by all configurations.
+
+#### Supported Fastboot Commands
+
+For PC-side Fastboot installation, refer to the section 电脑环境安装.
 
 ```shell
 #Native fastboot protocol commands
@@ -2082,9 +2423,9 @@ fastboot oem read part              # Read data from part to buffer address
 fastboot get_staged file            # Upload data and name it file. Depends on the oem read part command
 ```
 
-### 4.13 Files System
+### Files System
 
-- fat
+- **FAT**
 
 ```shell
 => fat
@@ -2100,9 +2441,9 @@ fastboot get_staged file            # Upload data and name it file. Depends on t
 =>
 ```
 
-- ext4
+- **EXT4**
 
-similar to fat command.
+similar to `fat` command.
 
 ```shell
 => ext4
@@ -2117,9 +2458,11 @@ ext4load <interface> [<dev[:part]> [addr [filename [bytes [pos]]]]]
 =>
 ```
 
-### 4.14 Common U-Boot Commands
+### Common U-Boot Commands
 
-Common Commands/Tools
+This section outlines frequently used U-Boot commands
+
+1. **Basic Commands**
 
 ```shell
 printenv  - print environment variables
@@ -2132,7 +2475,7 @@ fdt       - flattened device tree utility commands
 help      - print command description/usage
 ```
 
-- fdt
+2. `fdt`
 
 The `fdt` command is primarily used to print the contents of DTS (Device Tree Source), such as the DTB (Device Tree Blob) file loaded after U-Boot starts.
 
@@ -2193,7 +2536,7 @@ chosen {
 =>
 ```
 
-- shell command
+3. shell command
 
 U-Boot supports shell-style commands such as `if/fi,` `echo`, etc.
 
@@ -2207,16 +2550,16 @@ nor boot
 =>
 ```
 
-## 5. OpensBI Functionality and Configuration
+## OpensBI Functionality and Configuration
 
 This section introduces the compilation configuration for OpensBI.
 
-## 5.1 OpensBI Compilation
+## OpensBI Compilation
 
 ```shell
 cd ~/opensbi/
 
-#Note: The toolchain used for compilation must be provided by spacemit. Toolchains not provided by spacemit may cause compilation issues.
+#Note: The toolchain used for compilation must be provided by spacemiT. Using a different toolchain may result in compilation errors.
 GCC_PREFIX=riscv64-unknown-linux-gnu-
 
 CROSS_COMPILE=${GCC_PREFIX} PLATFORM=generic \
@@ -2226,23 +2569,23 @@ FW_TEXT_START=0x0  \
 make
 ```
 
-### 5.2 Generated Compilation Files
+### Generated Compilation Files
 
 ```shell
 ~/opensbi$ ls build/platform/generic/firmware/ -l
-fw_dynamic.bin     # Dynamic image that passes configuration parameters during the jump
+fw_dynamic.bin     # Dynamic firmware image; passes boot parameters to the next stage
 fw_dynamic.elf
 fw_dynamic.elf.dep
-fw_dynamic.itb     # fw_dynamic.bin packed into FIT format
+fw_dynamic.itb     # FIT image generated from fw_dynamic.bin
 fw_dynamic.its
 fw_dynamic.o
 fw_jump.bin       # Jump image that only performs a jump
 fw_payload.bin    # Payload image that includes the U-Boot image
 ```
 
-### 5.3 OpensBI Functionality Configuration
+### Configuring OpenSBI Features
 
-You can enable or disable certain features by executing menuconfig:
+To enable or disable optional OpenSBI features by running `menuconfig`:
 
 ```shell
 make PLATFORM=generic PLATFORM_DEFCONFIG=k1-x_deb1_defconfig menuconfig
@@ -2250,36 +2593,54 @@ make PLATFORM=generic PLATFORM_DEFCONFIG=k1-x_deb1_defconfig menuconfig
 
 ![a](static/JdMVb4GyioYNhMxUOhHc8R3enEd.png)
 
-## 6. FAQ
+## FAQ
 
-This chapter introduces common issues and their solutions, as well as common debugging methods and frequently encountered problems.
+This section introduces common issues and their solutions, as well as common debugging methods and frequently encountered problems.
 
-### 6.1 Device Not Detected When Using TitanFlash to Flash Firmware
+### Device Not Detected by TitanFlash During Firmware Flashing
 
-Ensure that the USB cable is connected to the computer, and the serial port prints as shown below:
+Ensure the USB cable is securely connected to the host PC and that the serial output from the device is visible, as shown below:
 ![alt text](static/flash_tool_3.png)
 
-If the device is still not detected, check the device manager to see if an ADB device exists. If not, refer to the fastboot environment installation chapter in the computer setup section.
+If serial output indicates the device is connected but TitanFlash still fails to detect it, proceed to the next checks.
+
+- Check Device Manager (Windows)
+  Open **Device Manager** and verify whether the device appears under **ADB Interface**.
+  If not, the required USB driver may be missing.
+
 ![alt text](static/flash_tool_4.png)
 
-### 6.2 Changes to def_config Do Not Take Effect After Updating Code
+- Refer to Installation Guide
+  If ADB devices are not listed in Device Manager, please refer to the **电脑环境安装** section for instructions on installing the Fastboot and ADB drivers.
 
-Execute `make menuconfig` to update the .config file. The changes will take effect only after recompilation.
+### Changes to `def_config` Do Not Take Effect After Updating Code
 
-### 6.3 Merging U-Boot and OpensBI for Loading
+If changes are made to the `defconfig` file but those changes are not reflected during the build process, you must run the following command to update the `.config` file accordingly:
+
+```shell
+make menuconfig
+```
+
+This ensures that the new configuration is applied before building.
+
+### Merging U-Boot and OpensBI for Loading
 
 The SDK design separates U-Boot and OpensBI loading. Developers can merge the two based on their requirements. Follow these steps.
 
-- SPL Boot Configuration
+**Step 1: SPL Boot Configuration**
 
-1.In U-Boot, remove the configuration for the second partition and uncheck `Second partition to use to load U-Boot from.`
-2.Change the partition name to opensbi-uboot and recompile U-Boot. (Note: The partition name is opensbi-uboot)
+- **Disable U-Boot "Second Partition" Setting**
+  In U-Boot configuration, deselect the option **“Second partition to use to load U-Boot from.”**
+
+- **Rename the Partition to `opensbi-uboot`**
+  Update the partition name in the configuration to `opensbi-uboot` and recompile U-Boot.
 
 ![alt text](static/spl-config_16.png)
 
-- Generate uboot-opensbi.itb
+**Step 2: Generate `u-boot-opensbi.itb`**
 
-Create the `uboot-opensbi.its` file with the following content:
+- **Create the ITS Description File**
+  Create a new file named `u-boot-opensbi.its` with the following contents:
 
 ```sh
 /dts-v1/;
@@ -2330,20 +2691,23 @@ Create the `uboot-opensbi.its` file with the following content:
 };
 ```
 
-- Generate ITB File with mkimage
+- Generate `uboot-opensbi.itb` by placing the required files in the same directory
 
-Place the following files in the same directory:
-```uboot-opensbi.its```
-```u-boot-nodtb.bin```
-`fw_dynamic.bin`
-`k1-x_MUSE-Card.dtb`（this is the device tree for the solution; modify according to the actual solution name）
+  - `u-boot-opensbi.its`
+  - `u-boot-nodtb.bin`
+  - `fw_dynamic.bin`
+  - `k1-x_MUSE-Card.dtb` (Replace `k1-x_MUSE-Card.dtb` with the actual DTB name for your platform if different.)
 
-Execute the following command to generate the `uboot-opensbi.itb` file:
-`uboot-2022.10/tools/mkimage -f uboot-opensbi.its -r u-boot-opensbi.itb`
+- **Build the Unified Image**
+  Run:
 
-- Modify Partition Table
+```sh
+uboot-2022.10/tools/mkimage -f u-boot-opensbi.its -r u-boot-opensbi.itb
+```
 
-Using `partition_universal.json` as an example, delete the U-Boot partition, change the OpensBI partition name to `opensbi-uboot`, and set the partition size to the combined size of both, as follows:
+**Step 3: Modify Partition Table**
+
+As an example, in `partition_universal.json`, remove the separate `uboot` partition and rename the `opensbi` partition to `opensbi-uboot`. Ensure the new size accommodates both images, as follows:
 
 ```sh
 ~$ cat partition_universal.json 
@@ -2390,9 +2754,9 @@ Using `partition_universal.json` as an example, delete the U-Boot partition, cha
 
 ```
 
-- Update Flashing Commands
+**Step 4: Flashing Procedure**
 
-Take emmc as an example
+**For eMMC devices**, use the following fastboot commands:
 
 ```sh
 fastboot stage factory/FSBL.bin
@@ -2406,7 +2770,7 @@ fastboot stage u-boot-opensbi.itb
 fastboot continue
 
 fastboot flash gpt partition_universal.json
-#bootinfo_emmc.bin
+#bootinfo_emmc.bin # it is not used during boot, but flashing this partition is still required.
 fastboot flash bootinfo factory/bootinfo_emmc.bin
 fastboot flash fsbl factory/FSBL.bin
 fastboot flash env env.bin
@@ -2415,15 +2779,28 @@ fastboot flash bootfs bootfs.img
 fastboot flash rootfs rootfs.ext4
 ```
 
-If using the TitanFlasher tool provided by spacemit, change the name u-boot.itb in the fastboot.yaml file to `u-boot-opensbi.itb`.
+**Using TitanFlasher**
 
-### 6.4 Define FSBL Location for eMMC Boot
+For using the **TitanFlasher** tool provided by SpacemiT, make sure to update the `fastboot.yaml` in the flashing package. Replace any reference to `u-boot.itb` with:
 
-Only eMMC has distinct boot0 and user regions; NOR, NAND, and SD card boot media have only one storage region. The hardware is configured to load bootinfo and FSBL from the boot region, so bootinfo and FSBL cannot be placed in the user region.
+```yaml
+image: u-boot-opensbi.itb
+```
+
+### Define FSBL Location for eMMC Boot
+
+Unlike NOR, NAND, or SD cards, which use a single storage region, eMMC devices have separate `boot0` and `user` regions.
+
+By design, the hardware loads `bootinfo` and `fsbl` from the `boot0` region — not the `user` region. So they must be placed in `boot0`.
 
 During the flashing process, the bootinfo information for eMMC is fixed in the U-Boot code inside the fastboot_oem_flash_bootinfo function. This is done so that the same partition_universal.json partition table can be used for card booting and other purposes.
 
-If you need to modify the FSBL load offset for eMMC, you can directly modify the following code:
+When flashing the system, U-Boot generates the `bootinfo` content for eMMC using the `fastboot_oem_flash_bootinfo` function.
+
+This design allows the same `partition_universal.json` to be reused across different boot media, such as SD cards and eMMC.
+
+**How to Modify FSBL Load Offset on eMMC**
+To change the FSBL load offset for eMMC, edit the following code directly:
 
 ```sh
 //uboot-2022.10/drivers/fastboot/fb_mmc.c
@@ -2464,7 +2841,8 @@ If you need to modify the FSBL load offset for eMMC, you can directly modify the
 
 ```
 
-For eMMC's boot0, the fastboot flashing service performs special handling for the bootinfo/FSBL partition, writing the image file to the boot0 region. Specifically, this can be referenced in the `uboot-2022.10/drivers/fastboot/fb_mmc.c::fastboot_mmc_flash_write` function, under the `if (strcmp(cmd, "bootinfo") == 0)` and `if (strcmp(cmd, CONFIG_FASTBOOT_MMC_BOOT1_NAME) == 0)` branches.
+For eMMC boot0, the Fastboot flashing service handles the `bootinfo` and `fsbl` partitions specially by writing the image files directly to the boot0 area.
+This logic is implemented in `uboot-2022.10/drivers/fastboot/fb_mmc.c::fastboot_mmc_flash_write`, specifically in the `if (strcmp(cmd, "bootinfo") == 0)` and `if (strcmp(cmd, CONFIG_FASTBOOT_MMC_BOOT1_NAME) == 0)` branches.
 
 ```sh
 //uboot-2022.10/drivers/fastboot/fb_mmc.c
@@ -2496,19 +2874,28 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
 577     }
 ```
 
-### 6.5 Will bootinfo_sd.bin at Address 0 Conflict with the GPT Table?
+### Will `bootinfo_sd.bin` at Address 0 Conflict with the GPT Table?
 
-`bootinfo_sd.bin` is placed at address 0 on the SD card and does not conflict with the GPT table (the GPT table is actually located at offset 0x100 after address 0). It is also not recognized as a partition.
+Placing `bootinfo_sd.bin` at address 0 on the SD card will **not** conflict with the GPT table.
+The GPT header actually starts at offset `0x100`, and `bootinfo` is not treated as a recognized partition.
 
-### 6.6 How to Set Up Hidden Partitions
+### How to Set Up Hidden Partitions
 
 The partition table `partition_universal.json` supports hidden partitions. The hidden tag is used to mark hidden partitions. After flashing and booting, hidden partitions do not appear in the GPT table.
 
-Partition tables with hidden partitions require the use of the TitanFlasher tool to flash the image, or executing fastboot flash gpt `partition_universal.json` followed by using fastboot commands to flash the images for hidden partitions.
+To flash hidden partitions, you must use **TitanFlasher** or run:
 
-Currently, only blk devices such as eMMC and SSD support hidden partitions. The bootinfo partition only supports hidden partitions.
+```sh
+fastboot flash gpt partition_universal.json
+```
 
-A sample partition table with hidden partitions is as follows. Partitions without the hidden tag are considered visible partitions.
+After flashing the partition table, you can use Fastboot to flash images to hidden partitions.
+
+>**Note:** Only block devices like eMMC and SSD currently support hidden partitions. The `bootinfo` partition is only supported as a hidden partition.
+
+**Example: Partition Table with Hidden Partitions**
+
+If `hidden` is not specified, the partition is treated as visible by default.
 
 `cat k1/common/flash_config/partition_universal.json`
 
@@ -2565,7 +2952,14 @@ A sample partition table with hidden partitions is as follows. Partitions withou
 }
 ```
 
-For U-Boot versions prior to v1.0.9, patches need to be applied. Save the following patch file, enter the U-Boot repository, apply the patch, and recompile.
+For U-Boot versions prior to v1.0.9, a patch is required to support hidden partitions.
+
+1. Save the patch file (e.g., `support-hidden-partition.patch`).
+
+2. Apply the patch in the U-Boot source directory.
+
+3. Rebuild U-Boot.
+
 `cat support-hidden-partition.patch`
 
 ```sh
@@ -2808,11 +3202,14 @@ index 801895d7d4..3f633d30a1 100644
 2.25.1
 ```
 
-### 6.7 gzip format image file is not supported
+### 6.7 Flashing gzip format image file is not supported
 
-The spacemit flashing mechanism compresses large file images into gzip to solve the problem of slow usb transfer of large file data.The flashing service decompresses the detection data in gzip format by default.If you need to burn the gzip image to a custom partition, you can make the following changes
+To speed up USB transfers of large image files, SpacemiT’s flashing process compresses them using gzip. By default, the flashing service detects and decompresses gzip data automatically.
 
-- method 1, Do not perform gzip check on the specified partition, such as partition usbfs
+If you **want to flash gzip images directly** to a custom partition (without decompressing), here are two options:
+
+- **Option 1: Skip gzip check for specific partitions**
+For example, to skip gzip handling for a partition named `usbfs` as below:
 
 ```c
 diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
@@ -2833,9 +3230,10 @@ index 88d8778376..a37cbde596 100644
 ```
 
 - method 2, Turn off the compressed image brushing function(***not recommended, resulting in longer flashing time***)
+- **Option 2: Disable Gzip Support for Flashing (Not Recommended: Slower Flashing)**
 
 ```c
-//Turn off the check of the brush service compressed image
+//Disable gzip detection in U-Boot
 //uboot-2022.10
 diff --git a/drivers/fastboot/fb_mmc.c b/drivers/fastboot/fb_mmc.c
 index 88d8778376..5f8d4f8931 100644
@@ -2852,8 +3250,8 @@ index 88d8778376..5f8d4f8931 100644
                 if (strcmp(cmd, part_name_t)){
 
 
-//Disable image compression by the brush tool
-//buildroot-ext. you can directly change the partition_universal.json in the flashing package, note that the last line of the json format cannot contain commas
+//Disable image compression with the flash tool
+//buildroot-ext: You can directly modify the partition_universal.json file inside the flashing package. Make sure the last line in the JSON file does not have a trailing comma 
 diff --git a/board/spacemit/k1/partition_universal.json b/board/spacemit/k1/partition_universal.json
 index e02a1d0..e9da5a9 100644
 --- a/board/spacemit/k1/partition_universal.json
