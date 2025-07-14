@@ -1,6 +1,6 @@
 # UART
 
-介绍uart的配置和调试方式
+介绍UART的配置和调试方式
 
 ## 模块介绍  
 
@@ -9,31 +9,29 @@ UART 是一种通用串行数据总线，用于异步通信。该总线双向通
 ### 功能介绍  
 
 ![](static/uart.png)
-内核通过uart实现控制台，同时某些外设如蓝牙可通过uart与主控进行通信。
-k1平台支持9路uart设备可根据需要配置开启uart后连接外设使用
+内核通过UART实现控制台，同时某些外设如蓝牙可通过UART与主控进行通信。
+K1平台支持 **9路** uart设备可根据需要配置开启UART后连接外设使用
 
 ### 源码结构介绍
 
-uart控制器驱动代码在drivers/tty/serial目录下：  
+UART控制器驱动代码在 `drivers/tty/serial` 目录下：  
 
 ```  
 drivers/tty/serial  
-|--serial_core.c        #内核uart框架接口代码
-|--pxa_k1x.c        #k1 uart驱动 
+|--serial_core.c        #内核UART框架接口代码
+|--pxa_k1x.c        #k1 UART驱动 
 ```  
 
 ## 关键特性  
 
 ### 特性
 
-| 特性 |
-| :-----|
-| 支持硬件流控(uart2，uart3) |
-| 支持DMA传输模式 |
-| 支持中断模式 |
-| 支持RS485/RS232串口协议 |
-| 支持64B RX/TX fifo |
-| k1平台支持9路可配置的uart |
+- 支持硬件流控(uart2，uart3) 
+- 支持DMA传输模式 
+- 支持中断模式 
+- 支持RS485/RS232串口协议 
+- 支持64B RX/TX fifo 
+- K1平台支持9路可配置的UART
 
 ### 性能参数
 
@@ -46,7 +44,7 @@ drivers/tty/serial
 ### CONFIG配置
 
 CONFIG_SERIAL_PXA_SPACEMIT_K1X=y
-此为k1 uart驱动config配置
+此为K1 UART驱动config配置
 
 ```
 Symbol: SERIAL_PXA_SPACEMIT_K1X [=y]
@@ -59,11 +57,11 @@ Device Drivers
 
 ### dts配置
 
-由于9路uart的使用方法和配置方法类似，这里以uart2为例
+由于9路UART的使用方法和配置方法类似，这里以uart2为例
 
 #### pinctrl
 
-可查看linux仓库的arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi，参考已配置好的uart节点配置，如下：
+可查看linux仓库的`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`，参考已配置好的UART节点配置，如下：
 
 ```dts
  pinctrl_uart2: uart2_grp {
@@ -78,7 +76,7 @@ Device Drivers
 
 #### dtsi配置示例
 
-dtsi中配置uart控制器基地址和时钟复位资源，正常情况无需改动
+dtsi中配置UART控制器基地址和时钟复位资源，正常情况无需改动
 
 ```dts
  uart2: uart@d4017100 {
@@ -118,7 +116,7 @@ dts完整配置，如下所示
 
 ### API介绍
 
-k1 uart驱动实现了发送数据，设置传输模式，设置奇偶校验位等接口并注册进uart框架
+K1 UART驱动实现了发送数据，设置传输模式，设置奇偶校验位等接口并注册进UART框架
 常用：
 
 ```
@@ -133,13 +131,13 @@ static void serial_pxa_set_termios(struct uart_port *port, struct ktermios *term
 
 ## 测试介绍
 
-uart测试可通过tx连接本设备rx信号以loopback模式完成测试
+UART测试可通过tx连接本设备rx信号以loopback模式完成测试
 
 ```
 程序实现思路：
-1.以uart3为例，dts配置uart3打开后，首先确认/dev/ttyS2是否存在，存在即uart3加载成功
-2.打开ttyS3节点，设置波特率，设置停止位奇偶校验位等属性
-3.发送数据，数据从txfifo通过外部loopback搬运到rxfifo中来，读取ttyS3收到的信息，与发送数据比对，一致则认为uart功能正常
+1. 以uart3为例，dts配置uart3打开后，首先确认/dev/ttyS2是否存在，存在即uart3加载成功
+2. 打开ttyS3节点，设置波特率，设置停止位奇偶校验位等属性
+3. 发送数据，数据从txfifo通过外部loopback搬运到rxfifo中来，读取ttyS3收到的信息，与发送数据比对，一致则认为uart功能正常
 ```
 
 ## FAQ

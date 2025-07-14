@@ -9,11 +9,11 @@
 ### 功能介绍  
 
 ![](static/ir.jpg)
-在k1平台中外接红外接收头(解调器)收到解调后的电信号在驱动和内核IR框架中进行解码并上报事件。
+在 K1 平台中外接红外接收头(解调器)收到解调后的电信号在驱动和内核IR框架中进行解码并上报事件。
 
 ### 源码结构介绍
 
-IR-RX控制器驱动代码在drivers/media/rc目录下：  
+IR-RX控制器驱动代码在 `drivers/media/rc` 目录下：  
 
 ```  
 drivers/media/rc  
@@ -24,10 +24,8 @@ drivers/media/rc
 
 ## 关键特性  
 
-| 特性 |
-| :-----|
-| 可配置噪声阈值 |
-| 32Bytes大小RX FIFO |
+- 可配置噪声阈值 
+- 32Bytes大小RX FIFO 
 
 ## 配置介绍
 
@@ -49,7 +47,7 @@ Device Drivers
 
 #### pinctrl
 
-可查看linux仓库的arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi，参考已配置好的pwm节点配置，如下：
+可查看linux仓库的`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`，参考已配置好的pwm节点配置，如下：
 
 ```dts
  pinctrl_ir_rx_1: ir_rx_1_grp {
@@ -101,6 +99,6 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
 
 ## 测试介绍
 
-可基于k1平台外接红外解调器，连接到上述ir配置的pin上，通过遥控器向解调器发送信号，并在应用层接收码值。
+可基于K1平台外接红外解调器，连接到上述IR配置的pin上，通过遥控器向解调器发送信号，并在应用层接收码值。
 
 ## FAQ
