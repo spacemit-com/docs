@@ -1,34 +1,38 @@
 # PCIe
 
-介绍PCIe的功能和使用方法。
+介绍 PCIe 的功能和使用方法。
 
 ## 模块介绍
 
-PCIe 是一种高速串行计算机扩展总线标准。采用高速串行点对点双通道高带宽传输，所连接设备独享通道带宽。k1 共有3个PCIe控制器, 支持外接各种PCIe接口设备，包括nvme ssd, sata和wifi等。
-PCIe0和USB3控制器共用一个phy硬件, 不能同时使用。应用方案上一般使用USB3, 故PCIe0较少使用。
+PCIe（Peripheral Component Interconnect Express） 是一种高速串行计算机扩展总线标准。采用高速串行点对点双通道高带宽传输，所连接设备独享通道带宽。
+
+K1 平台提供 3 个 PCIe 控制器，支持连接多种 PCIe 外设，包括 NVMe SSD、SATA 控制器、Wi-Fi 模块等。
+
+**注意：** PCIe0 与 USB3 控制器共享同一个 PHY 硬件资源，无法同时启用。常规应用场景中更倾向启用 USB3，因此 PCIe0 一般不使用。
 
 ### 功能介绍
 
 ![](static/linux_pcie.png)
+ 
+Linux PCIe 子系统框架由三部分组成：
 
-Linux PCIe子系统框架包括三部分: PCIe core、PCIe控制器驱动和PCIe设备驱动。各部分主要功能如下:  
-1.PCIe核心
+1. **PCIe 核心**
 
-- PCIe总线的枚举, 资源分配，中断
-- PCIe设备添加和删除
-- PCIe设备驱动注册与注销  
+   - PCIe 总线枚举、资源分配、中断处理
+   - PCIe 设备添加和删除
+   - PCIe 设备驱动注册与注销  
 
-2.PCIe控制器驱动
+2. **PCIe 控制器驱动**
 
-- 对PCIe主机控制器进行操作  
+   - 对 PCIe 主机控制器进行操作  
 
-3.PCIe设备驱动
+3. **PCIe 设备驱动**
 
-- PCIe设备驱动，如GPU、NIC和NVMe等
+   - PCIe 具体设备的驱动，如 GPU、NIC 和 NVMe 等
 
 ### 源码结构介绍
 
-控制器驱动代码在drivers/pci/controller/dwc目录下：
+控制器驱动代码位于 `drivers/pci/controller/dwc` 目录下：
 
 ```
 |-- pcie-designware.c           #dwc pcie驱动公共代码
@@ -42,17 +46,17 @@ Linux PCIe子系统框架包括三部分: PCIe core、PCIe控制器驱动和PCIe
 
 | 特性 | 特性说明 |
 | :-----| :----|
-| 支持模式 | 支持RC模式 |
-| 支持协议和lane数 | 支持gen2x1, gen2x2 |
-| 支持设备 | 支持NVMe ssd、PCIe转sata、PCIe 网卡和PCIE显卡 |
+| 支持模式 | 支持 RC 模式 |
+| 支持协议和lane数 | 支持 Gen2x1, Gen2x2 |
+| 支持设备 | 支持NVMe SSD、PCIe转STAT、PCIe 网卡和 PCIe 显卡 |
 
 ### 性能参数
 
-| ssd型号 | 顺序读(MB/s) | 顺序写(MB/s)  |
+| SSD 型号 | 顺序读(MB/s) | 顺序写(MB/s)  |
 | :-----| :----| :----: |
 | LRC20Z500GCB | 829 | 812 |  
 
-测试方法
+**测试方法** 
 
 ```
 # 测试读
@@ -66,18 +70,18 @@ direct=1 --numjobs=1 --runtime=60 --group_reporting
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括 **驱动使能配置** 和 **DTS 配置**
 
 ### CONFIG配置
 
-CONFIG_PCI  为PCI和PCIe总线协议提供支持，默认情况，此选项为Y
+`CONFIG_PCI`：为 PCI 和 PCIe 总线协议提供支持，默认情况，此选项为 `Y`
 
 ```
 Device Drivers
     PCI support (PCI [=y])
 ```
 
-PCI_K1X_HOST 为K1 PCIe控制器驱动提供支持，默认情况下，此选型为Y
+`PCI_K1X_HOST`：为 K1 PCIe 控制器驱动提供支持，默认情况下，此选型为 `Y`
 
 ```
 Device Drivers
@@ -87,30 +91,30 @@ Device Drivers
                 Spacemit K1X PCIe Controller - Host Mode (PCI_K1X_HOST [=y])
 ```
 
-### dts配置
+### DTS 配置
 
 #### 配置空间分配
 
 各控制器配置空间分配如下。
 
 1. PCIe0  
-mem 空间大小  240MB  
-io  空间大小  1MB
+   - MEM 空间：240MB  
+   - I/O 空间：1MB
 2. PCIe1  
-mem 空间大小  240MB  
-io  空间大小  1MB
+   - MEM 空间：240MB  
+   - I/O 空间：1MB
 3. PCIe2  
-mem 可预取空间大小  256MB  
-mem 不可预取空间大小  112MB
-io  空间大小  1MB
+   - MEM 空间（可预取）：256MB  
+   - MEM 空间（不可预取）：112MB
+   - I/O 空间：1MB
 
 ##### 配置空间详细说明
 
-以PCIe2控制器为例，说明PCIe控制器的地址空间分配。
-PCIe2 分配地址空间为 0xa00000000到0xb80000000, 大小0x18000000(384MB)。
-可以根据需要，对mem、IO和config空间进行修改，只需保证在0xa00000000到0xb80000000范围，且三部分空间不重合。
+以 PCIe2 控制器为例，说明 PCIe 控制器的地址空间分配。
+- PCIe2 分配地址空间为 0xa00000000 到 0xb80000000, 总空间 0x18000000 (384MB)。
+- 可以根据需要，对 mem、IO 和 config 空间进行修改，只需保证在 0xa00000000 到 0xb80000000 范围内划分，且三部分空间互不重叠。
 
-当前k1-x.dts中配置
+当前 `k1-x.dts` 配置示例如下：
 
 ```c
 pcie2_rc: pcie@ca800000 {
@@ -128,7 +132,7 @@ pcie2_rc: pcie@ca800000 {
 }
 ```
 
-含义如下
+含义如下:
 
 - mem 空间  
 
@@ -153,15 +157,15 @@ pcie2_rc: pcie@ca800000 {
   大小为8kB  
 ```
 
-#### pinctrl
+#### pinctrl 配置
 
-查看方案原理图，找到 pcie 使用的 pin 组。参考pinctrl章节，确定 pcie 使用的 pin 组。
+根据原理图查找对应的 PCIe 引脚。参考 [PINCTRL](01-PINCTRL.md) 章节，确定 PCIe 使用的 pin 组。
 
-假设 pcie2 可以直接采用 k1-x_pinctrl.dtsi 中定义 pinctrl_pcie2_4。
+假设 PCIe2 可以直接采用 `k1-x_pinctrl.dtsi` 中的 `pinctrl_pcie2_4`。
 
-dts 配置
+DTS 配置
 
-方案 dts 中 pcie_rc 描述如下。
+方案 DTS 中 `pcie_rc` 描述如下。
 
 ```c
 &pcie2_rc {
@@ -171,9 +175,9 @@ dts 配置
 };
 ```
 
-#### 完整的pcie dts
+#### 完整的 PCIe DTS
 
-pcie2_rc模式控制器dts如下
+`pcie2_rc` 模式控制器 DTS 如下
 
 ```
 pcie2_rc: pcie@ca800000 {
@@ -236,7 +240,7 @@ pcie2_rc: pcie@ca800000 {
 
 ### API介绍
 
-注册pci设备驱动
+- **注册 PCI 设备驱动**
 
 ```
 /* Proper probing supporting hot-pluggable devices */
@@ -248,21 +252,21 @@ int __must_check __pci_register_driver(struct pci_driver *, struct module *,
     __pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
 ```
 
-注销pci设备驱动
+- **注销 PCI 设备驱动**
 
 ```
 void pci_unregister_driver(struct pci_driver *dev);
 ```
 
-## Debug介绍
+## Debug 介绍
 
 ### sysfs
 
-/sys/bus/pci  查看系统spi总线设备和驱动信息
+`/sys/bus/pci`：查看系统 PCI 总线设备和驱动信息
 
 ```
-|-- devices                 //pci总线上的设备
-|-- drivers                 //pci总线上注册的设备驱动
+|-- devices                 // PCI 总线上的设备
+|-- drivers                 // PCI 总线上注册的设备驱动
 |-- drivers_autoprobe
 |-- drivers_probe
 |-- rescan
@@ -273,7 +277,7 @@ void pci_unregister_driver(struct pci_driver *dev);
 
 ## 测试介绍
 
-1.查看pci总线拓扑信息
+1. 查看 PCI 总线拓扑信息
 
 ```
 #lspci
@@ -283,21 +287,21 @@ void pci_unregister_driver(struct pci_driver *dev);
 0002:01:00.0 Non-Volatile memory controller: Silicon Motion, Inc. SM2263EN/SM2263XT (DRAM-less) NVMe SSD Controllers (rev 03)  
 ```
   
-2.查看pci设备详细信息  
-如下显示0001:01:00.0设备详细信息
+2. 查看 PCI 设备详细信息  
+如下显示 `0001:01:00.0` 设备详细信息
 
 ```
 lspci -vvvs 0001:01:00.0
 
 ```
 
-3.nvme ssd读测试
+3. NVMe SSD 读测试
 
 ```
 fio --name read --eta-newline=5s --filename=/dev/nvme0n1 --rw=read --size=2g --io_size=10g --blocksize=1024k --ioengine=libaio --fsync=10000 --iodepth=32 --direct=1 --numjobs=1 --runtime=60 --group_reporting
 ```
 
-4.nvme ssd写测试
+4. NVMe SSD 写测试
 
 ```
 fio --name write --eta-newline=5s --filename=/dev/nvme0n1 --rw=write --size=2g --io_size=60g --blocksize=1024k --ioengine=libaio --fsync=10000 --iodepth=32 --direct=1 --numjobs=1 --runtime=60 --group_reporting

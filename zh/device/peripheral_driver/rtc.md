@@ -1,18 +1,19 @@
 # RTC
 
-介绍rtc的功能和使用方法。
+本文介绍 RTC（实时时钟）的功能和使用方法。
 
 ## 模块介绍
 
-RTC(real-time-clock)简称实时时钟，主要用来计时，产生闹钟等；并维护系统时间；RTC一般有一个备用电池，所以即使系统关机掉电，rtc也能在备份电池的供电下继续正常工作。
+RTC（Real-Time Clock，实时时钟）主要用于计时、产生闹钟等功能，并维护系统时间。RTC 通常配有一颗备用电池，因此即使系统掉电，RTC 也能在备用电池的供电下继续正常工作。
 
 ### 功能介绍
 
 ![](static/rtc.png)  
 
-1. dev/sysfs/proc 即接口层，负责向用户空间提供操作的节点及相关接口
-2. rtc-core层为rtc驱动提供一套API，完成设备和驱动的注册等等
-3. rtc驱动层，具体负责rtc驱动的实现，如设置时间，设置闹钟等
+
+1. `dev/sysfs/proc` 层：接口层，负责向用户空间提供操作节点及相关接口
+2. `rtc-core` 层：为 RTC 驱动提供一套 API，完成设备与驱动的注册等
+3. `RTC 驱动层`：具体实现 RTC 的核心功能，如设置时间、设置闹钟等
 
 ### 源码结构介绍
 
@@ -34,13 +35,11 @@ drivers/rtc/
 
 ### 特性
 
-| 特性 |
-| :-----|
-| 支持日历、闹钟、秒计数 |
+- 支持日历、闹钟、秒计数
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括 **驱动使能配置** 和 **DTS 配置**
 
 ### CONFIG配置
 
@@ -61,7 +60,7 @@ drivers/rtc/
     -> Spacemit spm8xxx RTC (RTC_DRV_SPT_PMIC [=y])      
 ```
 
-### dts配置
+### DTS 配置
 
 ```
 &i2c8 {
@@ -86,7 +85,7 @@ drivers/rtc/
 
 ## 接口描述
 
-RTC驱动注册生成的字符设备节点/dev/rtcN，应用层使用时只需遵循Linux系统中标准的RTC编程方法即可  
+RTC 驱动注册后会生成字符设备节点 `/dev/rtcN`，应用层只需按照 Linux 系统中标准的 RTC 编程方式进行访问即可。
 
 ### API介绍
 
@@ -99,18 +98,17 @@ int __devm_rtc_register_device(struct module *owner, struct rtc_device *rtc)  --
 
 ## 测试介绍
 
-```
-具体可参考：
-Documentation/ABI/testing/rtc-cdev
+详见内核文档：
+`Documentation/ABI/testing/rtc-cdev`
 
 下面用伪代码的方式阐述测试方法：
-
-1. fd = open("/dev/rtcN", xxx)
-2. ioctl(fd, RTC_SET_TIME, ...) --> 设置rtc时间
-3. ioctl(fd, RTC_RD_TIME, ...)  --> 获得rtc时间
-4. ioctl(fd, RTC_ALM_SET, ...)  --> 设置rtc闹钟
-5. ioctl(fd, RTC_AIE_ON, ...)  --> 使能rtc
-6. ioctl(fd, RTC_ALM_READ, ...)  --> 读取rtc闹钟 
+```
+1. fd = open("/dev/rtcN", xxx)  // 打开 RTC 设备
+2. ioctl(fd, RTC_SET_TIME, ...) // 设置 RTC 时间
+3. ioctl(fd, RTC_RD_TIME, ...)  // 读取 RTC 时间
+4. ioctl(fd, RTC_ALM_SET, ...)  // 设置 RTC 闹钟
+5. ioctl(fd, RTC_AIE_ON, ...)   // 使能 RTC
+6. ioctl(fd, RTC_ALM_READ, ...)  // 读取 RTC 闹钟 
 ```
 
 ## FAQ

@@ -1,21 +1,23 @@
 # PMIC
 
-介绍regulator的功能和使用方法。
+本文介绍 Linux 中 Regulator 子系统的功能及使用方法。
 
 ## 模块介绍
 
-regulator翻译起来就是调节器，一些可以输出电压电流的设备可以使用该子系统，我司P1芯片就是一款包含该功能的PMIC；针对Linux内核来说，regulator是一套软件框架，该框架旨在提供标准内核接口来控制电压和电流。
+Regulator（电源调节器）子系统主要用于控制能够输出电压和电流的硬件模块，我司P1芯片就是一款包含该功能的PMIC。对于 Linux 内核来说，regulator 是一套标准的软件框架，提供统一的接口用于控制各类电压/电流输出设备。
 
 ### 功能介绍
 
 ![](static/regulator.png)  
 
-1. regulator consumer: 有调节器供电的设备，他们消耗调节器提供的电力
-2. regulator framework:提供标准的内核接口，控制系统的voltage/current regulators，并提供相应的开关、电压/电流设置的机制
-3. regulator diver: regulator的驱动代码，负责向framework注册设备，并且与底层硬件通讯
-4. machine： 主要是配置各个regulator的属性
+1. **regulator consumer：** 有调节器供电的设备，他们消耗调节器提供的电力
+2. **regulator framework：** 提供标准的内核接口，控制系统的voltage/current regulators，并提供相应的开关、电压/电流设置的机制
+3. **regulator diver：** regulator 的驱动代码，负责向 framework 注册设备，并且与底层硬件通讯
+4. **machine：** 主要是配置各个regulator的属性，如电压范围、初始状态等。
 
 ### 源码结构介绍
+
+Regulator 模块在内核源码中的路径为 `drivers/regulator/`，目录结构如下：
 
 ```
 drivers/regulator/
@@ -41,15 +43,15 @@ drivers/regulator/
 
 | 特性 | 特性说明 |
 | :-----| :----|
-| 支持6路DCDC  | 支持动态调压/enable/disable |
-| 支持5路ALDO | 支持调压/enable/disable |
-| 支持7路DLDO | 支持调压/enable/disable |
+| 支持 6路 DCDC  | 支持动态调压：enable/disable |
+| 支持 5路 ALDO | 支持调压：enable/disable |
+| 支持 7路 DLDO | 支持调压：enable/disable |
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括 **驱动使能配置** 和 **DTS 配置**
 
-### CONFIG配置
+### CONFIG 配置
 
 ```
 CONFIG_REGULATOR_SPACEMIT:
@@ -69,7 +71,7 @@ CONFIG_REGULATOR_SPACEMIT:
   Selects: REGULATOR_FIXED_VOLTAGE [=y] 
 ```
 
-### dts配置
+### DTS 配置
 
 ```
 &i2c8 {
@@ -215,7 +217,7 @@ CONFIG_REGULATOR_SPACEMIT:
 
 ## 接口描述
 
-### API介绍
+### API 介绍
 
 ```
 请参考内核文档：
@@ -225,36 +227,48 @@ Documentation/power/regulator/regulator.rst
 
 ```
 
-### demo示例
+### Demo 示例
+
+1. 配置dts，引用想要使用的regulator
 
 ```
-1. 配置dts，引用想要使用的regulator
     &cpu_0 {
         clst0-supply = <&dcdc_1>;
         vin-supply-names = "clst0";
     };
+```
 
-代码中获得相应的句柄：
+2. 代码中获得相应的句柄：
+
+```
         const char *strings;
         struct regulator *regulator;
         err = of_property_read_string_array(cpu_dev->of_node, "vin-supply-names",
                         &strings, 1);
         regulator = devm_regulator_get(cpu_dev, strings);  --> 传入的struct device *必须有实体对应
-        
- 代码中使能相应的regulator:
+```
+
+3. 代码中使能相应的regulator:
+
+```
          regulator_enable(regulator);
- 
- 代码中设置相应的regulator的电压：
+```
+
+4. 代码中设置相应的regulator的电压：
+
+```
          regulator_set_voltage(regulator, 95000000, 95000000);
 ```
 
 ## Debug介绍
+待补充
 
 ## FAQ
+待补充
 
 ## 附录
 
-### SPL/UBOOT 使用方法
+### SPL/U-Boot 配置说明
 
 ```
 uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
@@ -411,10 +425,11 @@ uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
                         };
 ```
 
-#### UBOOT 阶段电源开启及电压设置方法
+#### U-Boot 阶段电源开启及电压设置方法
 
-uboot 阶段有两种方式设置或者开启电源，第一种是直接在 dts 中配置
+U-Boot 阶段有两种方式设置或者开启电源
 
+方式一：直接在 DTS 中配置
 ```c
                         dcdc_6: DCDC_REG1 { --> regulator_get_by_devname传入的名字参数
                                 regulator-name = "dcdc1";
@@ -428,7 +443,7 @@ uboot 阶段有两种方式设置或者开启电源，第一种是直接在 dts 
                         };
 ```
 
-另外一种是直接在代码中设置：
+方式二：通过代码动态设置
 
 ```c
 1. 首先要获得想要设置或者开启电压的regulator句柄

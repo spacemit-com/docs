@@ -1,63 +1,59 @@
 # Display
 
-介绍spacemit平台Display模块的功能和使用方法。
+介绍 SpacemiT 平台 Display 模块的功能和使用方法。
 
 ## 模块介绍
 
-spacemit平台Display模块使用DRM框架，DRM全称是Direct Rendering Manager，是Linux系统目前主流的显示框架，适应当前显示硬件的特性。
+SpacemiT 平台的 Display 模块基于 **DRM 框架（Direct Rendering Manager）** 实现。DRM 是 Linux 系统主流的显示子系统架构，适配现代显示硬件特性，支持显存管理、显示时序配置、图层混合等多项功能。
 
 ### 功能介绍
 
+DRM 框架包括 **用户空间** 与 **内核空间** 两个部分。
 ![display-drm](static/display-drm.png)
 
-#### 用户空间Libdrm
+#### 用户空间：Libdrm
 
-DRM框架在用户空间提供的Lib，用户或应用程序在用户空间调用libdrm提供的库函数， 即可访问到显示的资源，并对显示资源进行管理和使用。
+DRM 框架在用户空间提供了 libdrm 库，用户或应用程序可通过调用该库的函数，访问和管理显示资源。
 
-#### 内核空间DRM driver
+#### 内核空间：DRM driver
 
-DRM driver提供了一系列的 IOCTL 接口，可以分成两类：Graphics Execution Manager (GEM)、Kernel Mode-Setting (KMS)。
+DRM driver 提供了一组 IOCTL 接口，主要包括以下两类：
 
-##### GEM
+1. **Graphics Execution Manager (GEM)**
+   GEM 主要是对 FrameBuffer 的管理，包括：
+    - 显存申请释放 (Framebuffer managing)
+    - 显存共享机制 (Memory sharing objects)
+    - 显存同步机制 (Memory synchronization)
 
-GEM 主要是对 FrameBuffer 的管理，如显存的申请释放 (Framebuffer managing) ，显存共享机制 (Memory sharing objects)， 及显存同步机制 (Memory synchronization)；
+2. **Kernel Mode-Setting (KMS)**
+   KMS 主要负责管理 **显示模式的设置** 和 **图像输出** 。核心组成包括：
 
-##### KMS
+    - **Framebuffer**
+      - 一块内存区域，驱动和应用层可访问，单个图层的显示内容。
 
-KMS 主要负责管理显示模式的设置和图像输出 。KMS模型由组件Framebuffer，CRTC，Planes，Encoder，Connector组成。
+    - **CRTC（显示控制器）**
+      - 负责把要显示的图像，转化为底层硬件层面上的具体时序要求
+      - 还负责帧切换、电源控制、色彩调整等等。
 
-###### Framebuffer
+    - **Planes（图层）**
+      - 每个图像拥有一个 Planes，Planes 的属性控制着图像的显示区域、图像翻转、色彩混合方式等， CRTC 的显示图像实际上是 由 Framebuffer 与 Plane 的组合渲染，得到多个图像的混合显示或单独显示。
+      - 图层有以下三种类型：
+        1) **主图层（primary plane）：** 用于显示背景或者图像内容
+        2) **叠加图层（overlay plane）：** 常用于视频、字幕等附加显示
+        3) **光标图层(cursor)：** 专用于鼠标指针显示
 
-一块内存区域，驱动和应用层可访问，单个图层的显示内容。
+    - **Encoder（编码器）**
+      - 负责电源管理、视频输出格式封装
+      - 把时序转换为显示器所需要的信号，将画面显示到不同的显示设备，例如将视频输出到 HDMI 接口、MIPI DSI 接口等。
 
-###### CRTC
+    - **Connector（连接器）**
+      - 负责硬件显示设备的接入、屏参获取等，例如 HDMI, MIPI DSI 等。
 
-显示控制器，负责把要显示的图像，转化为底层硬件层面上的具体时序要求，还负责着帧切换、电源控制、色彩调整等等。
-
-###### Plane
-
-图层，每个图像拥有一个Planes，Planes的属性控制着图像的显示区域、图像翻转、色彩混合方式等， CRTC的显示图像实际上是Framebuffer和Planes的组合，得到多个图像的混合显示或单独显示。
-图层有以下三种类型：
-
-1) 主图层（primary plane），用于显示背景或者图像内容；
-2) 叠加图层（overlay plane），通常用于叠加，比如视频图层；
-3) 光标图层(cursor)，用于显示鼠标。
-
-###### Encoder
-
-编码器，负责电源管理、视频输出格式封装，把时序转换为显示器所需要的信号，将画面显示到不同的显示设备，例如将视频输出到HDMI接口、MIPI DSI接口等。
-
-###### Connector
-
-连接器，负责硬件显示设备的接入、屏参获取等，例如HDMI, MIPI DSI等。
-
-##### Panel
-
-显示面板，负责将接收的图像信号转换为显示图像。
+在内核空间中，还包括 **Panel（显示面板）** 模块，负责将接收到的图像信号转换为最终在屏幕上显示的图像内容。
 
 ### 源码结构介绍
 
-spacemit平台DRM驱动源码结构：
+SpacemiT 平台 DRM 驱动源码结构如下：
 
 ```
 linux-6.6/drivers/gpu/drm$ tree spacemit
@@ -138,8 +134,8 @@ spacemit
 
 | 特性 | 特性说明 |
 | :-----| :----|
-| 支持MIPI DSI | 支持MIPI DPHY v1.1, 支持DPHY 4 lane，最高速率1.2Gbps/lane |
-| 支持HDMI | 支持HDMI 1.4a |
+| 支持 MIPI DSI | 支持 MIPI DPHY v1.1, 支持 DPHY 4 lane，最高速率 1.2Gbps/lane |
+| 支持 HDMI | 支持 HDMI 1.4a |
 
 ### 性能参数
 
@@ -148,9 +144,9 @@ spacemit
 | MIPI DSI| 1920x1200@60FPS |
 | HDMI | 1920x1080@60FPS |
 
-**MIPI DSI屏幕帧率测试方法:**
+**MIPI DSI 屏幕帧率测试方法:**
 
-查看Connectors：
+- 查看 Connectors：
 
 ```
 # modetest -M spacemit -D /dev/dri/card1 -c
@@ -185,7 +181,7 @@ id      encoder status          name            size (mm)       modes   encoders
                 value:
 ```
 
-查看Encoders：
+- 查看 Encoders：
 
 ```
 # modetest -M spacemit -D /dev/dri/card1 -e
@@ -194,7 +190,7 @@ id      crtc    type    possible crtcs  possible clones
 129     127     DSI     0x00000001      0x00000001
 ```
 
-测试MIPI DSI屏幕帧率：
+- 测试 MIPI DSI 屏幕帧率：
 
 ```
 # modetest -M spacemit -D /dev/dri/card1 -s 130@127:1200x1920 -v
@@ -204,9 +200,9 @@ freq: 60.28Hz
 freq: 60.28Hz
 ```
 
-**HDMI屏幕帧率测试方法:**
+**HDMI 屏幕帧率测试方法:**
 
-查看Connectors：
+- 查看 Connectors：
 
 ```
 # modetest -M spacemit -D /dev/dri/card2 -c
@@ -268,7 +264,7 @@ id      encoder status          name            size (mm)       modes   encoders
                 value:
 ```
 
-查看Encoders：
+- 查看 Encoders：
 
 ```
 # modetest -M spacemit -D /dev/dri/card2 -e
@@ -277,7 +273,7 @@ id      crtc    type    possible crtcs  possible clones
 129     127     TMDS    0x00000001      0x00000001
 ```
 
-测试HDMI屏幕帧率：
+- 测试 HDMI 屏幕帧率：
 
 ```
 # modetest -M spacemit -D /dev/dri/card2 -s 130@127:1920x1080 -v
@@ -289,11 +285,11 @@ freq: 60.00Hz
 
 ## 配置介绍
 
-主要包括Display驱动使能配置和dts配置，K1芯片支持1个MIPI DSI硬件接口和1个HDMI硬件接口。
+主要包括 **Display 驱动使能配置** 和 **DTS 配置**，K1 芯片支持 1个 MIPI DSI 硬件接口和 1个 HDMI 硬件接口。
 
-### CONFIG配置
+### CONFIG 配置
 
-CONFIG_DRM_SPACEMIT：spacemit平台DRM驱动配置选项，默认情况，此选项为Y，MIPI DSI驱动或HDMI驱动配置依赖此配置选项，可单独配置或同时配置MIPI DSI驱动和HDMI驱动。
+`CONFIG_DRM_SPACEMIT`：SpacemiT 平台 DRM 驱动配置选项，默认情况，此选项为 `Y`，并作为启用 MIPI DSI 驱动或 HDMI 驱动的前置条件。用户可根据需求选择单独配置启用 MIPI DSI、HDMI 或两者同时启用的显示输出方案。
 
 ```
  Device Drivers  --->
@@ -303,9 +299,9 @@ CONFIG_DRM_SPACEMIT：spacemit平台DRM驱动配置选项，默认情况，此�
    < >   HDMI Support For Spacemit
 ```
 
-#### MIPI DSI CONFIG配置
+#### MIPI DSI CONFIG 配置
 
-CONFIG_SPACEMIT_MIPI_PANEL：spacemit平台MIPI DSI驱动配置选项，具体方案根据需要进行配置。
+`CONFIG_SPACEMIT_MIPI_PANEL`：SpacemiT 平台 MIPI DSI 驱动配置选项，具体方案根据需要进行配置。
 
 ```
  Device Drivers  --->
@@ -314,9 +310,9 @@ CONFIG_SPACEMIT_MIPI_PANEL：spacemit平台MIPI DSI驱动配置选项，具体�
    <*>   MIPI Panel Support For Spacemit
 ```
 
-#### HDMI CONFIG配置
+#### HDMI CONFIG 配置
 
-CONFIG_SPACEMIT_HDMI：spacemit平台HDMI驱动配置选项，具体方案根据需要进行配置。
+`CONFIG_SPACEMIT_HDMI`：SpacemiT 平台 HDMI 驱动配置选项，具体方案根据需要进行配置。
 
 ```
  Device Drivers  --->
@@ -325,16 +321,16 @@ CONFIG_SPACEMIT_HDMI：spacemit平台HDMI驱动配置选项，具体方案根据
    <*>   HDMI Support For Spacemit
 ```
 
-### dts配置
+### DTS 配置
 
 #### MIPI DSI
 
-##### gpio
+##### GPIO
 
-MIPI DSI panel gpio相关配置，包括panel复位gpio配置和panel电源控制gpio配置。
+MIPI DSI panel GPIO 相关配置，包括 **panel 复位 GPIO 配置** 和 **panel 电源控制 GPIO 配置**。
 
-以k1-x_deb1方案为例：
-gpio81配置为panel复位pin，gpio82和gpio83配置为panel电源控制pin。
+以 k1-x_deb1 方案为例：
+gpio81 配置为 panel 复位 pin，gpio82 和 gpio83 配置为 panel 电源控制 pin。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
@@ -354,10 +350,10 @@ gpio81配置为panel复位pin，gpio82和gpio83配置为panel电源控制pin。
 
 #### 电源配置
 
-MIPI DSI电源配置，包括MIPI DSI 1.2v电源控制配置。
+MIPI DSI 电源配置，包括 MIPI DSI 1.2V 电源控制配置。
 
-以k1-x_deb1方案为例：
-配置pmic ldo_5为MIPI DSI 1.2v。
+以 k1-x_deb1 方案为例：
+配置 pmic ldo_5 为 MIPI DSI 1.2V。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
@@ -369,11 +365,15 @@ MIPI DSI电源配置，包括MIPI DSI 1.2v电源控制配置。
 };
 ```
 
-#### clock配置
+#### Clock 配置
 
-MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，及MIPI DSI DPHY相关clock配置。其中pixel clock和 bit clock通过timing参数计算获取，具体计算方法请参见display timing配置章节。display-timings中的clock-frequency为pixel clock值，mipi dsi dpu中的spacemit-dpu-bitclk和mipi dsi dphy中的phy-bit-clock为bit clock值。mipi dsi dpu escclk及mipi dsi dphy escclk配置51200000或76800000（分辨率1920x1080以上推荐使用76800000），其它clock参数使用系统默认值，不需在dts文件中配置。
+MIPI DSI 相关 clock配置，包括 MIPI DSI DPU相关clock配置，reset配置，及MIPI DSI DPHY相关 clock 配置。其中 `pixel clock` 和 `bit clock` 通过 timing 参数计算获取，具体计算方法请参见 **Display Timing 配置** 章节。
+- `display-timings` 中的 `clock-frequency` 为 pixel clock 值
+- MIPI DSI DPU 中的 `spacemit-dpu-bitclk` 和 MIPI DSI DPHY 中的 `phy-bit-clock` 为bit clock 值。
+- MIPI DSI DPU ESCCLK 及 MIPI DSI DPHY ESCCLK 配置 `51200000` 或 `76800000`（分辨率 1920x1080 以上推荐使用 `76800000`）
+- 其它 clock 参数使用系统默认值，不需在 DTS 文件中配置。
 
-配置平台MIPI DSI DPU相关clock和reset。
+配置平台 MIPI DSI DPU 相关 clock 和 reset。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x-lcd.dtsi
@@ -421,8 +421,8 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 }
 ```
 
-配置方案MIPI DSI DPU bitclk 及 escclk。
-以k1-x_deb1方案为例：
+配置方案 MIPI DSI DPU bitclk 及 escclk。
+以 k1-x_deb1 方案为例：
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
@@ -434,8 +434,8 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 };
 ```
 
-配置Panel型号MIPI DSI DPHY bitclk 及 escclk。
-以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
+配置 Panel 型号 MIPI DSI DPHY bitclk 及 escclk。
+以 MIPI DSI panel 型号 lcd_gx09inx101_mipi 为例：
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
@@ -449,87 +449,107 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 };};
 ```
 
-#### display timing配置
+#### Display timing 配置
 
-根据MIPI DSI panel提供规格书的timing信息填写dpu timing 配置，及mipi dsi timing 配置。其中pixel clock和 bit clock通过timing参数计算获取。
+根据 MIPI DSI panel 提供规格书的 timing 信息填写 DPU timing 配置，及 MIPI DSI timing 配置。其中 pixel clock 和 bit clock 通过 timing 参数计算获取。
 
 ![display-timing](static/display-timing.png)
 
-##### display timing参数说明
+##### Display timing 参数说明
 
-**HFP:**
+- **HFP:**
 hfront porch(horizon front porch): 水平前肩是指水平同步信号之前的空白时间，用于显示设备进行准备。
 
-**HBP:**
+- **HBP:**
 hback porch(horizon back porch): 水平后肩是指水平同步信号之后的空白时间，用于显示设备进行复位和恢复。
 
-**HSYNC:**
+- **HSYNC:**
 hsync pulse: 水平同步信号用于同步显示设备的行扫描，水平同步脉冲宽度表示水平同步信号的持续时间。
 
-**VFP:**
+- **VFP:**
 vfront porch(vertical front porch): 垂直前肩是指垂直同步信号之前的空白时间，用于显示设备进行准备。
 
-**VBP:**
+- **VBP:**
 vback porch(vertical back porch): 垂直后肩是指垂直同步信号之后的空白时间，用于显示设备进行复位和恢复。
 
-**VSYNC:**
+- **VSYNC:**
 vsync pulse: 垂直同步信号用于同步显示设备的刷新率，垂直同步脉冲宽度表示垂直同步信号的持续时间。
 
-**HACTIVE:**
+- **HACTIVE:**
 hactive(Horizon display period): 水平行中有效显示的行像素。
 
-**VAVTIVE:**
+- **VAVTIVE:**
 vactive(vertical display period): 垂直帧中有效显示的行数。
 
-#### display timing计算方法
+#### Display timing 计算方法
 
-**FPS:**
+以下为各相关参数的定义及计算公式：
+
+- **FPS（Frames Per Second）：**
 帧率，每秒显示的帧数。
 
-**Bpp:**
+- **Bpp（Bits Per Pixel）：**
 位深，每个像素使用的 bit 位数。
 
-**htotal:**
-水平总像素。
+- **Htotal（水平总像素数）：**
+每一行包含的总像素数。
+   ```
+   Htotal = hactive + HFP + HSYNC pulse + HBP
+   ```
 
-Htotal = hactive + HFP + HSYNC pulse + HBP
+- **vtotal（垂直总像素数）：**
+每一帧包含的总像素行数。
+   ```
+   vtotal = vactive + VFP + VSYNC pulse + VBP
+   ```
 
-**vtotal:**
-垂直总像素
-
-vtotal = vactive + VFP + VSYNC pulse + VBP
-
-**Pixel clock:**
+- **Pixel clock:**
 每秒传输或处理像素数据的频率
-
 像素时钟计算方法：
+   ```
+   pixel clock = htotal \* vtotal \* fps  = (hactive + hfp + hbp + hsync) \* (vactive + vfp + vbp + vsync) \* fps
+   ```
 
-pixel clock = htotal \* vtotal \* fps  = (hactive + hfp + hbp + hsync) \* (vactive + vfp + vbp + vsync) \* fps
-
-**Bit clock:**
+- **Bit clock:**
 MIPI DSI 数据传输过程中，每 Lane 的数据传输时钟
-
 Bit clock 计算方法：
+   ```
+   bit clock =  ((htotal \* vtotal \* fps  \* bpp) / lane bumber) \* 1.1 =   (((hactive + hfp + hbp + hsync) \* (vactive + vfp + vbp + vsync) \* fps  \* bpp) / lane bumber) \* 1.1
+  ```
 
-bit clock =  ((htotal \* vtotal \* fps  \* bpp) / lane bumber) \* 1.1 =   (((hactive + hfp + hbp + hsync) \* (vactive + vfp + vbp + vsync) \* fps  \* bpp) / lane bumber) \* 1.1
-
-**DSI clock:**
+- **DSI clock:**
 MIPI DSI 的 clock lane 实际时钟信号, 采用双边沿采样，一个时钟可以传两个 bit 数据。
-
-dsi clock = bit clock / 2
+   ```
+   dsi clock = bit clock / 2
+   ```
 
 **注意：**
-spacemit 平台计算 MIPI DSI Bit clock 时, 需要乘以系数 1.1。
+在 SpacemiT 平台中计算 MIPI DSI 的 Bit Clock 时，需额外乘以 **1.1 的系数**。
 
-以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
-配置mipi dsi dpu timing及mipi dsi dphy timing。
+以下以 MIPI DSI 面板型号 `lcd_gx09inx101_mipi` 为例，说明如何计算并配置 pixel clock 与 bit clock。
 
-pixel clock= (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ 
+**Pixel Clock 计算**
+```
+pixel clock = (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps 
+            = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 
+            = 152880000 Hz
+```
 
-bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ
+**Bit Clock 计算**
+```
+bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 
+          = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 
+          = 1009008000 Hz
+```
 
-通过display timing计算，pixel clock值为152880000 HZ，系统可配置为153000000 HZ，bit clock值为1009008000 HZ，系统可配置为1000000000 HZ。
-dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clock配置为1000000000。
+通过 Display timing计算：
+pixel clock 值为 152880000 Hz，系统可配置为 153000000 Hz
+bit clock 值为 1009008000 Hz，系统可配置为 1000000000 Hz
+
+DTS 配置建议：
+- `clock-frequency = 153000000`
+- `spacemit-dpu-bitclk = 1000000000`
+- `phy-bit-clock = 1000000000`
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
@@ -567,7 +587,7 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 };};
 ```
 
-已完成功能调试的MIPI DSI panel，相关dtsi文件放置lcd目录。
+已完成功能调试的 MIPI DSI panel，相关 dtsi 文件放置 lcd 目录。
 
 ```
 linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
@@ -584,12 +604,21 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 `-- lcd_orisetech_ota7290b_mipi.dtsi
 ```
 
-##### Panel配置
+##### Panel 配置
 
-使能MIPI DSI Panel，需使能MIPI DSI dpu, MIPI DSI host, lcds，配置panel及pwm背光。
+使能 MIPI DSI Panel，需使能 
+- MIPI DSI DPU
+- MIPI DSI Host
+- LCD 面板节点（lcds）
+- 指定的 Panel 型号
+- PWM 背光控制
 
-以k1-x_deb1方案为例：
-使能dpu_online2_dsi，dsi2，lcds, 配置panel为型号lcd_gx09inx101_mipi，配置pwm背光。
+以 k1-x_deb1 方案为例, 需进行如下配置：
+- 使能 `dpu_online2_dsi`
+- 使能 `dsi2`
+- 使能 `lcds`
+- 配置 panel 为型号 `lcd_gx09inx101_mipi`
+- 配置 PWM 背光
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
@@ -627,12 +656,12 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 
 ```
 
-##### dts 配置示例
+##### DTS 配置示例
 
 **MIPI DSI Panel配置示例：**
 
-以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
-配置MIPI DSI panel。
+以 MIPI DSI panel 型号 `lcd_gx09inx101_mipi` 为例：
+配置 MIPI DSI panel。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
@@ -803,8 +832,8 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 
 **方案配置示例：**
 
-以k1-x_deb1方案为例：
-选择MIPI DSI panel型号lcd_gx09inx101_mipi，配置方案MIPI DSI panel。
+以 k1-x_deb1 方案为例：
+选择 MIPI DSI panel 型号 `lcd_gx09inx101_mipi`，配置方案 MIPI DSI panel。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
@@ -875,9 +904,9 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 
 #### HDMI
 
-#### pinctrl
+##### pinctrl 配置
 
-支持两组 hdmi pinctrl: pinctrl_hdmi_0 和 pinctrl_hdmi_1，仅可选择其中任意一组。
+支持两组 HDMI pinctrl：`pinctrl_hdmi_0` 和 `pinctrl_hdmi_1`，仅可选择其中任意一组。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_pinctrl.dtsi
@@ -900,11 +929,15 @@ pinctrl_hdmi_1: hdmi_1_grp {
 };
 ```
 
-#### clock配置
+##### Clock 配置
 
-HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI相关clock配置, reset配置。相关clock参数使用系统默认值，不需在dts文件中配置。
+HDMI 模块涉及的 clock 配置主要包括：
+- HDMI DPU（数据处理单元）相关 clock 和 reset
+- HDMI 控制器本身相关的 clock 和 reset
 
-配置平台HDMI DPU相关clock和reset，及HDMI相关clock和reset。
+相关的 clock 参数使用系统默认值，**无需在 DTS 文件中显式配置**。
+
+以下为 HDMI DPU 与 HDMI 控制器在平台上的配置相关 clock 和 reset 示例（以 ·k1-x-hdmi.dtsi· 为例）：
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x-hdmi.dtsi
@@ -968,9 +1001,9 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
 };
 ```
 
-#### dts 配置示例
+##### DTS 配置示例
 
-以k1-x_deb1方案为例，方案中配置HDMI。
+以下以 `k1-x_deb1` 方案为例，配置 HDMI。
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
@@ -988,15 +1021,15 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
 
 ## 接口介绍
 
-### API介绍
+### API 介绍
 
-DRM驱动API介绍请参考linux内核文档[drm-kms](https://docs.kernel.org/gpu/drm-kms.html)
+DRM 驱动 API 介绍请参考 Linux 内核文档 [drm-kms](https://docs.kernel.org/gpu/drm-kms.html)
 
-## Debug介绍
+## Debug 介绍
 
 ### debugfs
 
-**MIPI DSI debugfs节点**
+- **MIPI DSI debugfs 节点**
 
 ```
 # cd /sys/kernel/debug/dri/1
@@ -1006,7 +1039,7 @@ bridge_chains     dump              internal_clients
 clients           framebuffer       name
 ```
 
-**HDMI debugfs节点**
+- **HDMI debugfs节点**
 
 ```
 # cd /sys/kernel/debug/dri/2
@@ -1016,7 +1049,7 @@ bridge_chains     dump              internal_clients
 clients           framebuffer       name
 ```
 
-**查看framebuffer信息**
+- **查看 framebuffer 信息**
 
 ```
 # cd /sys/kernel/debug/dri/1
@@ -1103,7 +1136,7 @@ framebuffer[131]:
                         imported=no
 ```
 
-**dump当前显示的buffer**
+- **dump 当前显示的 buffer**
 
 ```
 # cd /sys/class/drm/card1-DSI-1
@@ -1114,7 +1147,7 @@ framebuffer[131]:
 [  436.763663] [drm] dump framebuffer: /tmp/plane43_fb134_AR24_planes0_64x64.rgb
 ```
 
-**查看连接状态**
+- **查看连接状态**
 
 ```
 # cd /sys/class/drm/card1-DSI-1
@@ -1122,7 +1155,7 @@ framebuffer[131]:
 connected
 ```
 
-**查看支持的显示模式**
+- **查看支持的显示模式**
 
 ```
 # cd /sys/class/drm/card1-DSI-1
@@ -1132,9 +1165,9 @@ connected
 
 ## 测试介绍
 
- libdrm是一个用户空间库，提供了与 DRM 驱动进行交互的 API。通过libdrm开发者可以直接与 DRM 设备进行通信，执行各种操作，如创建和管理 framebuffer、设置显示模式、处理图层等。modetest 是一个使用 libdrm 库的测试工具，通常用于测试和验证 DRM 驱动的功能。
+libdrm 是一个用户空间库，提供了与 DRM 驱动进行交互的 API。通过 libdrm 开发者可以直接与 DRM 设备进行通信，执行各种操作，如创建和管理 framebuffer、设置显示模式、处理图层等。**modetest** 是一个使用 libdrm 库的测试工具，通常用于测试和验证 DRM 驱动的功能。
 
-通过modetest工具运行DRM驱动测试用例。
+通过 modetest 工具运行 DRM 驱动测试用例如下。
 
 ```
 # modetest -M spacemit
