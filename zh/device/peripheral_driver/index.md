@@ -34,7 +34,8 @@ SpacemiT K1 包含了各种丰富的 IO 能力，集成多套 PCIe，USB，GMAC�
 
 ## 快速索引
 高速扩展接口驱动
-- [GMAC](09-GMAC.md)  
+- [GMAC](09-GMAC.md) 
+- [EtherCAT](22-EtherCAT.md)  
 - [USB](10-USB.md)  
 - [PCIe](11-PCIe.md)   
 
@@ -50,6 +51,7 @@ SpacemiT K1 包含了各种丰富的 IO 能力，集成多套 PCIe，USB，GMAC�
 - [I2C](06-I2C.md)  
 - [QSPI](07-QSPI.md) 
 - [SPI](SPI.md) 
+- [CAN](15-CAN.md)
 - [GPADC](gpadc.md)
 
 存储接口驱动
@@ -66,6 +68,7 @@ SpacemiT K1 包含了各种丰富的 IO 能力，集成多套 PCIe，USB，GMAC�
 - [Thermal](thermal.md)  
 - [CPUFREQ](15-Cpufreq.md)  
 - [Standby](../standby.md)
+- [PMIC](14-PMIC.md)
 
 第三方外设驱动
 - [WIFI](WIFI.md)
