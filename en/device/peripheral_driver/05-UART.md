@@ -1,115 +1,148 @@
-介绍uart的配置和调试方式
+# UART
 
-# 模块介绍  
-UART 是一种通用串行数据总线，用于异步通信。该总线双向通信，可以实现全双工传输和接收。
-## 功能介绍  
+UART Functionality and Usage Guide.
+
+## Overview
+
+UART is a universal serial protocol for asynchronous communication. This bus supports bidirectional communication and can achieve full-duplex transmission and reception.
+
+### Functional Description
+
 ![](static/uart.png)
-内核通过uart实现控制台，同时某些外设如蓝牙可通过uart与主控进行通信。
-k1平台支持9路uart设备可根据需要配置开启uart后连接外设使用
 
-## 源码结构介绍
-uart控制器驱动代码在drivers/tty/serial目录下：  
+The kernel uses UART to implement the console, and some peripherals, such as Bluetooth, can communicate with the main controller through UART.
+The K1 platform supports **9 UART devices** that can be configured and enabled as needed to connect peripherals.
+
+### Source Code Structure
+ 
+The UART controller driver code is located in the `drivers/tty/serial` directory:
+
 ```  
 drivers/tty/serial  
-|--serial_core.c        #内核uart框架接口代码
-|--pxa_k1x.c       	#k1 uart驱动 
+|--serial_core.c        #Kernel UART framework interface code
+|--pxa_k1x.c        #K1 UART driver
 ```  
-# 关键特性  
-## 特性
-| 特性 |
-| :-----|
-| 支持硬件流控(uart2，uart3) |
-| 支持DMA传输模式 |
-| 支持中断模式 |
-| 支持RS485/RS232串口协议 |
-| 支持64B RX/TX fifo |
-| k1平台支持9路可配置的uart |
 
-## 性能参数
-- 波特率最高支持3M
+## Key Features
 
+### Features
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
-## CONFIG配置
+- Supports hardware flow control (UART2/UART3)
+- Supports DMA transfer mode
+- Supports interrupt mode
+- Supports RS485/RS232 serial protocols
+- Supports 64B RX/TX FIFO
+- The K1 platform supports 9 configurable UARTs
+
+### Performance Parameters
+
+- Baud rate up to 3M
+
+## Configuration
+
+It mainly includes driver enablement configuration and DTS configuration.
+
+### CONFIG Configuration
+
+```
 CONFIG_SERIAL_PXA_SPACEMIT_K1X=y
-此为k1 uart驱动config配置
+```
+
+This is the configuration for the K1 UART driver to enable the K1 UART driver
+
 ```
 Symbol: SERIAL_PXA_SPACEMIT_K1X [=y]
 Device Drivers
     -> Character devices
-		-> Serial drivers
-			-> PXA serial driver (<choice> [=y])
-				-> Spacemit PXA driver suppor (SERIAL_PXA_SPACEMIT_K1X [=y])
-``` 
-
-## dts配置
-由于9路uart的使用方法和配置方法类似，这里以uart2为例
-### pinctrl
-可查看linux仓库的arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi，参考已配置好的uart节点配置，如下：
-```dts
-	pinctrl_uart2: uart2_grp {
-		pinctrl-single,pins =<
-			K1X_PADCONF(GPIO_21, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_txd */
-			K1X_PADCONF(GPIO_22, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_rxd */
-			K1X_PADCONF(GPIO_23, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_cts_n */
-			K1X_PADCONF(GPIO_24, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_rts_n */
-		>;
-	};
-```
-### dtsi配置示例
-dtsi中配置uart控制器基地址和时钟复位资源，正常情况无需改动
-```dts
-	uart2: uart@d4017100 {
-		compatible = "spacemit,pxa-uart";
-		reg = <0x0 0xd4017100 0x0 0x100>;
-		interrupt-parent = <&intc>;
-		interrupts = <44>;
-		clocks = <&ccu CLK_UART2>, <&ccu CLK_SLOW_UART>;
-		clock-names = "func", "gate";
-		clk-fpga = <14750000>;
-		resets = <&reset RESET_UART2>;
-		/*dmas = <&pdma0 DMA_UART2_RX 1
-				&pdma0 DMA_UART2_TX 1>;
-		dma-names = "rx", "tx";*/
-		power-domains = <&power K1X_PMU_BUS_PWR_DOMAIN>;
-		clk,pm-runtime,no-sleep;
-		cpuidle,pm-runtime,sleep;
-		interconnects = <&dram_range4>;
-		interconnect-names = "dma-mem";
-		status = "disabled";
-	}
+  -> Serial drivers
+   -> PXA serial driver (<choice> [=y])
+    -> Spacemit PXA driver suppor (SERIAL_PXA_SPACEMIT_K1X [=y])
 ```
 
-### dts配置示例
-dts完整配置，如下所示
+### DTS Configuration
+
+Since the usage and configuration methods for the 9 UARTs are similar, here we use UART2as an example.
+
+#### pinctrl
+
+You can refer to the pre-configured UART node settings in the Linux repository `arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi` as shown below:
+
 ```dts
-	&uart2 {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_uart2>;
-		status = "okay";
-	};
+ pinctrl_uart2: uart2_grp {
+  pinctrl-single,pins =<
+   K1X_PADCONF(GPIO_21, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_txd */
+   K1X_PADCONF(GPIO_22, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_rxd */
+   K1X_PADCONF(GPIO_23, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_cts_n */
+   K1X_PADCONF(GPIO_24, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_1V8_DS2))    /* uart2_rts_n */
+  >;
+ };
 ```
 
-# 接口描述
-## 测试介绍
-uart测试可通过tx连接本设备rx信号以loopback模式完成测试
+#### dtsi Configuration Example
+
+In the `.dtsi` file, the UART controller's base address and clock/reset resources are configured. Typically, no modification is needed.
+
+```dts
+ uart2: uart@d4017100 {
+  compatible = "spacemit,pxa-uart";
+  reg = <0x0 0xd4017100 0x0 0x100>;
+  interrupt-parent = <&intc>;
+  interrupts = <44>;
+  clocks = <&ccu CLK_UART2>, <&ccu CLK_SLOW_UART>;
+  clock-names = "func", "gate";
+  clk-fpga = <14750000>;
+  resets = <&reset RESET_UART2>;
+  /*dmas = <&pdma0 DMA_UART2_RX 1
+    &pdma0 DMA_UART2_TX 1>;
+  dma-names = "rx", "tx";*/
+  power-domains = <&power K1X_PMU_BUS_PWR_DOMAIN>;
+  clk,pm-runtime,no-sleep;
+  cpuidle,pm-runtime,sleep;
+  interconnects = <&dram_range4>;
+  interconnect-names = "dma-mem";
+  status = "disabled";
+ }
 ```
-程序实现思路：
-1.以uart3为例，dts配置uart3打开后，首先确认/dev/ttyS2是否存在，存在即uart3加载成功
-2.打开ttyS3节点，设置波特率，设置停止位奇偶校验位等属性
-3.发送数据，数据从txfifo通过外部loopback搬运到rxfifo中来，读取ttyS3收到的信息，与发送数据比对，一致则认为uart功能正常
+
+#### DTS Configuration Example
+
+The complete DTS configuration is shown below:
+
+```dts
+ &uart2 {
+  pinctrl-names = "default";
+  pinctrl-0 = <&pinctrl_uart2>;
+  status = "okay";
+ };
 ```
-## API介绍
-k1 uart驱动实现了发送数据，设置传输模式，设置奇偶校验位等接口并注册进uart框架
-常用：
+
+## Interface
+
+### API
+
+The K1 UART driver implements interfaces for sending data, setting transfer modes, and configuring parity bits, and registers them with the UART framework.
+Commonly used:
+
 ```
 static void serial_pxa_start_tx(struct uart_port *port)
-该接口实现了开启uart传输(中断模式)
+# This interface initiates UART transmission (in interrupt mode).
+
 static void serial_pxa_set_mctrl(struct uart_port *port, unsigned int mctrl)
-该接口实现了设置uart传输模式
+# This interface sets the UART transmission mode.
+
 static void serial_pxa_set_termios(struct uart_port *port, struct ktermios *termios,
                            const struct ktermios *old)
-该接口实现了设置uart停止位奇偶校验位等属性的功能
+# This interface sets UART attributes such as stop bits and parity bits.
 ```
-# FAQ
+
+## Testing
+
+UART testing can be completed in loopback mode by connecting the TX signal to the RX signal of the same device.
+
+Program Implementation Logic:
+
+1. Take UART3 as an example. After enabling UART3 in the DTS, first check whether `/dev/ttyS2` exists. If it does, UART3 has been successfully initialized.
+2. Open the ttyS2 node, then configure its properties such as baud rate, stop bits, and parity.
+3. Send data: the data will move from the TX FIFO to the RX FIFO through an external loopback. Read the received data from ttyS2 and compare it with the sent data. If they match, the UART functionality is considered normal.
+
+## FAQ

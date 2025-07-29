@@ -1,46 +1,58 @@
-介绍QSPI的功能和使用方法。
-# 模块介绍
-QSPI 是soc和外设之间的一种串行接口总线(spi), 支持4x模式。SPI有主、从两种模式，通常一个主设备(master)和一个或多个从设备(slave)连接。主设备选择一个从设备进行通信，完成数据交互。主设备提供时钟，读写操作都由主设备发起。k1 qspi暂时只支持主设备模式。
+# QSPI
 
-## 功能介绍
+QSPI Functionality and Usage Guide.
+
+## Overview
+
+**QSPI (Quad SPI)** is a serial interface bus between the SoC and peripherals, supporting 4x (quad) mode. SPI operates in master/slave mode — typically one master device communicates with one or more slave devices. The master selects the target slave to exchange data, provides the clock, and initiates all read/write operations.
+Currently, the K1 QSPI only supports master mode.
+
+### Feature Overview
+
 ![](static/linux_spi.png)  
 
-Linux spi驱动框架分为三部分: spi core、spi控制器驱动和spi设备驱动。  
-spi core主要作用:
-- spi总线和spi_master类注册  
-- spi控制器添加和删除  
-- spi设备添加和删除  
-- spi设备驱动注册与注销  
+The Linux SPI driver framework is divided into three parts: **SPI core**, **SPI controller driver**, and **SPI device driver**.
+**SPI core** mainly performs the following functions:
 
-spi 控制器驱动:
-- spi master控制器驱动，对spi master控制器进行操作
+- Registers SPI buses and spi_master classes.
+- Adds and removes SPI controllers.
+- Adds and removes SPI devices.
+- Registers and unregisters SPI device drivers.
 
-spi 设备驱动
-- spi device驱动
+**SPI controller driver**:
 
-## 源码结构介绍
-控制器驱动代码在drivers/spi目录下:  
+- SPI controller driver, which operates the SPI Master controller
+
+**SPI device driver**
+
+- SPI Device driver
+
+### Source Code Structure Introduction
+
+The controller driver code is located in the `drivers/spi` directory: 
+
 ```
-|-- spi-k1x-qspi.c              #k1 qspi驱动
+|-- spi-k1x-qspi.c              #K1 QSPI driver
 ```
 
-# 关键特性
-## 特性
-| 特性 | 特性说明 |
+## Key Features
+
+| Feature | Description |
 | :-----| :----|
-| 通信协议 | 支持SSP/SPI/MicroWire/PSP协议 |
-| 通信频率 | 最高频率支持102MHz, 最低频率支持13.25MHz |
-| 通信倍数 | x1/x2/x4 |
-| 支持外设 | 支持spi-nor和spi-nand |  
+| Communication Protocol | Supports SSP/SPI/MicroWire/PSP protocols |
+| Communication Frequency | Maximum frequency support is 102MHz, minimum frequency support is 13.25MHz |
+| Communication Multiplier | x1/x2/x4 |
+| Supported Peripherals | Supports spi-nor and spi-nand |  
 
-## 性能参数
-### 通信频率
+### Performance Parameters
 
-当前 qspi 控制器最大支持 102MHz，支持的通信频率列表
+#### Communication Frequency
 
-| 最大频率（MHz） | 分频系数(x)   | 实际频率 |
+The current QSPI controller supports up to 102MHz. The list of supported communication frequencies is as follows:
+
+| Maximum Frequency (MHz)） | Divisor (x)   | Actual Frequency |
 | --------------- | ------------- | -------- |
-| 409             | 4, 5,6,7,8    | 409/x    |
+| 409             | 4,5,6,7,8    | 409/x    |
 | 307             | 2,3,4,5,6,7,8 | 307/x    |
 | 245             | 3,4,5,6,7,8   | 245/x    |
 | 223             | 3,4,5,6,7,8   | 223/x    |
@@ -48,47 +60,70 @@ spi 设备驱动
 | 495             | 5,6,7,8       | 495/x    |
 | 189             | 2,3,4,5,6,7,8 | 189/x    |
 
-### 通信倍速
+#### Communication Multiplier
 
-qspi 通信倍速支持 x1/x2/x4。
+QSPI supports communication multipliers of x1/x2/x4.
 
-测试方法  
-可以通过示波器或者逻辑分析测试sck信号频率
+Testing Method:
+Verify the SCK frequency using an oscilloscope or logic analyzer to confirm the communication multiplier.
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
-## CONFIG配置
+## Configuration
 
-## dts配置
-### pinctrl
+It mainly includes driver enablement configuration and dts configuration.
 
-查看方案原理图，找到 qspi 使用的 pin 组。参考 1.2.2 节，确定 qspi 使用的 pin 组。
+### CONFIG Configuration
 
-假设 qspi 可以直接采用 k1-x_pinctrl.dtsi 中定义 pinctrl_qspi 组。
+- CONFIG_SPI: Provides support for the SPI bus protocol, with a default value of `Y`
+```
+Device Drivers
+        SPI support (SPI [=y])
+```
 
-### spi 设备配置
+- CONFIG_SPI_MEM: Provides support for simplified operations on SPI interface memory devices, with a default value of `Y`
+```
+Device Drivers
+        SPI support (SPI [=y])
+                SPI memory extension (SPI_MEM [=y])
+```
 
-需要确认 spi 设备类型，qspi 与 spi 设备通信频率和倍速。
+- CONFIG_SPI_K1X_QSPI: Provides support for the K1 QSPI controller driver, with a default value of `Y`
+```
+Device Drivers
+        SPI support (SPI [=y])
+                K1X QuadSPI Controller (SPI_K1X_QSPI [=y])
 
-#### 设备类型
+```
 
-确认 qspi 下连接的 spi 设备类型，是 spi-nor 还是 spi-nand。
+### DTS Configuration
 
-#### 通信频率
+#### pinctrl
 
-qspi 控制器和 spi 设备最大通信速率。  
-当前 qspi 控制器支持的通信频率列表见“性能参数”--->"通信频率"中的频率列表
+Check the schematic of the solution to find the pin group used by QSPI. You can refer to the **pin configuration definition** section in [PINCTRL](01-PINCTRL.md) to determine the pin group used by QSPI.
 
+Assuming QSPI can directly use the pinctrl_qspi group defined in `k1-x_pinctrl.dtsi`.
 
-#### 通信倍速
+#### SPI Device Configuration
 
-qspi 通信倍速支持 x1/x2/x4。
+You need to confirm the SPI device type, the communication frequency, and the multiplier for QSPI and SPI devices.
 
-#### spi 设备 dts
+##### Device Type
 
-以 spi nor 为例，采用最大通信频率 26.5MHz，发送和接收都采用 x4 通信。
+Confirm the type of SPI device connected to QSPI, whether it is SPI-NOR or SPI-NAND.
 
-qspi 控制器默认最大通信频率 26.5MHz，最大通信频率为 26.5MHz 时，方案 dts 可以不用配置"k1x,qspi-freq"。
+##### Communication Frequency
+
+The maximum communication rate supported by the QSPI controller and SPI device.
+The list of communication frequencies supported by the current QSPI controller can be found in the **Communication Frequency** section under **Performance Parameters** in this document.
+
+##### Communication Multiplier
+
+QSPI supports communication multipliers of x1/x2/x4.
+
+##### SPI Device DTS
+
+Taking SPI NOR as an example, using the maximum communication frequency of 26.5MHz, both sending and receiving use x4 communication.
+
+The default maximum communication frequency of the QSPI controller is 26.5MHz. If the maximum communication frequency of the QSPI controller is 26.5MHz, the `k1x,qspi-freq` configuration item can be omitted in the solution DTS.
 
 ```c
 &qspi {
@@ -107,13 +142,13 @@ qspi 控制器默认最大通信频率 26.5MHz，最大通信频率为 26.5MHz �
 };
 ```
 
-### dts
+#### DTS Example
 
-#### spi-nor
+##### SPI-NOR
 
-综合上述信息，qspi 连接 spi-nor flash，最大通信频率为 26.5MHz，且采用 x4 通信。
+Combining the above information, QSPI is connected to SPI-NOR flash with a maximum communication frequency of 26.5MHz and using x4 communication.
 
-方案 dts 配置如下
+Example DTS configuration:
 
 ```c
 &qspi {
@@ -135,11 +170,11 @@ qspi 控制器默认最大通信频率 26.5MHz，最大通信频率为 26.5MHz �
 };
 ```
 
-#### spi-nand
+##### SPI-NAND
 
-qspi 连接 spi-nand flash，最大通信频率为 26.5MHz，且采用 x4 通信。
+QSPI is connected to SPI-NAND flash with a maximum communication frequency of 26.5MHz and using x4 communication.
 
-方案 dts 配置可以参考 spi-nor，只用修改 flash 设备节点。
+The solution DTS configuration can refer to SPI-NOR, only the flash device node needs to be modified.
 
 ```c
 &qspi {
@@ -158,61 +193,70 @@ qspi 连接 spi-nand flash，最大通信频率为 26.5MHz，且采用 x4 通信
         };
 };
 ```
-# 接口描述
-## 测试介绍
-### spi-nand/nor读写速率测试
-打开CONFIG_MTD_TESTS
-```
-Device Drivers
-         Memory Technology Device (MTD) support (MTD [=y])
-                MTD tests support (DANGEROUS) (MTD_TESTS [=m])   
-```
-测试命令
-```
-insmod mtd_speedtest.ko dev=0   #0表示spi-nand/nor的mtd设备号
-```
-## API介绍
-设备驱动注册与注销
+
+## Interface
+
+### API
+
+Device driver registration and unregistration.
+
 ```
 int __spi_register_driver(struct module *owner, struct spi_driver *sdrv);  
 void spi_unregister_driver(struct spi_driver *sdrv);
 ```
-数据传输API
-- 初始化spi_message
+
+Data transfer APIs
+
+- Initialize `spi_message`
+
 ```
 void spi_message_init(struct spi_message *m);
 ```
-- 添加spi_transfer到spi_message的transfer列表
+
+- Add `spi_transfer` to the transfer list of `spi_message`
+
 ```
 void spi_message_add_tail(struct spi_transfer *t, struct spi_message *m);
 ```
-- write数据
+
+- Write data
+
 ```
 int spi_write(struct spi_device *spi, const void *buf, size_t len);
 ```
-- read数据
+
+- Read data
+
 ```
 int spi_read(struct spi_device *spi, void *buf, size_t len);
 ```
-- 同步传输spi_message
+
+- Synchronous transfer of spi_message
+
 ```
 int spi_sync(struct spi_device *spi, struct spi_message *message);
 ```
-## Debug介绍
+
+## Debugging
+
 ### sysfs
-查看系统spi总线设备和驱动信息
+
+View system SPI bus devices and driver information
 /sys/bus/spi
+
 ```
-|-- devices                 //spi总线上的设备
-|-- drivers                 //spi总线上注册的设备驱动
+|-- devices                 //Devices on the SPI bus
+|-- drivers                 //Drivers registered on the SPI bus
 |-- drivers_autoprobe
 |-- drivers_probe
 `-- uevent
 ```
 
 ### debugfs
-用于查看系统中spi设备信息
-/sys/kernel/debug/spi-nor/spi4.0
+
+Used to view information about SPI devices in the system
+`/sys/kernel/debug/spi-nor/spi4.0`
+
 ```
 |-- capabilities
 `-- params
@@ -261,4 +305,23 @@ sector map
  ------------------+------------+----------
  00000000-003fffff |     [01  ] |
 ```
-# FAQ
+
+## Testing
+
+### SPI-NAND/NOR Read/Write Speed Test
+
+Enable CONFIG_MTD_TEST
+
+```
+Device Drivers
+         Memory Technology Device (MTD) support (MTD [=y])
+                MTD tests support (DANGEROUS) (MTD_TESTS [=m])   
+```
+
+Testing command:
+
+```
+insmod mtd_speedtest.ko dev=0   # Specifies the MTD device index for SPI-NAND/NOR
+```
+
+## FAQ

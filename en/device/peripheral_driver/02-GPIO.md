@@ -1,35 +1,53 @@
-介绍GPIO的功能和使用方法。
-# 模块介绍
-GPIO是管理gpio模块的控制器
+# GPIO
 
-## 功能介绍
+GPIO Functionality and Usage Guide.
+
+## Overview
+
+GPIO is the **controller for the GPIO module**
+
+### Functional Description
+
 ![](static/linux_gpio.png)  
 
-Linux gpio子系统驱动框架主要有三部分组成:  
-- GPIO 控制器驱动: 与GPIO控制器进行交互，对控制器进行初始化和操作  
-- gpio lib驱动: 提供标准的API给其它模块使用，如设置GPIO 方向、读写GPIO电平状态  
-- GPIO 字符设备驱动: 将GPIO以字符设备的上报给用户空间，用户空间可以通过标准的文件接口访问GPIO
-## 源码结构介绍
-控制器驱动代码在drivers/gpio目录下：  
+The Linux GPIO subsystem driver framework mainly consists of three parts:
+
+- **GPIO Controller Driver**: Interacts with the GPIO controller, performing initialization and operations on the controller.
+- **GPIO lib Driver**: Provides standard APIs for use by other modules, such as setting GPIO direction and reading/writing GPIO level states.
+- **GPIO Character Device Driver**: Exposes GPIOs to user space as character devices, allowing user space to access GPIOs through standard file interfaces.
+
+
+### Source Code Structure
+
+The controller driver code is located in the `drivers/gpio` directory:
+
 ```
 |-- gpio-k1x.c  
 ```
-# 关键特性
-## 特性
-| 特性 | 特性说明 |
+
+## Key Features
+
+| Feature | Description |
 | :-----| :----|
-| 支持方向设置 | 支持将GPIO的设置成输入或输出 |
-| 支持输出设置高低电平 | 支持在GPIO输出模式下，设置GPIO的电平高低 |
-| 支持gpio中断功能 | 支持上升沿和下降沿触发gpio中断 |
-# 配置介绍
-主要包括驱动CONFIG使能配置和dts配置
-## CONFIG配置
-CONFIG_GPIOLIB 为gpio控制器提供支持，默认情况，此选项为Y
+| Direction Configuration Support | Supports setting GPIO as input or output |
+| High/Low Level Output Support | Supports setting the level of GPIO in output mode |
+| GPIO Interrupt Support | Supports GPIO interrupts triggered by rising and falling edge |
+
+## Configuration Introduction
+
+It mainly includes **driver CONFIG enablement configuration** and **DTS configuration**.
+
+### CONFIG Configuration
+
+- **CONFIG_GPIOLIB**: Provides support for GPIO controllers, with a `Y`default value of
+
 ```
 Device Drivers
         GPIO Support (GPIOLIB [=y])
 ```
-CONFIG_GPIO_K1X 为k1 gpio控制器提供支持，默认情况，此选项为Y
+
+- **CONFIG_GPIO_K1X**: Provides support for the K1 GPIO controller, with a default value of `Y`
+
 ```
 Device Drivers  
         GPIO Support (GPIOLIB [=y])
@@ -37,25 +55,26 @@ Device Drivers
                         SPACEMIT-K1X GPIO support (GPIO_K1X [=y])
 ```
 
-# 使用介绍
-方案 gpio 使用分成 3 步。
+## Usage Guide
 
-1. 方案使用的 gpio 描述
-2. 对相应的 pin 进行设置
-3. gpio 的使用
+Using GPIO involves three steps:
 
-说明:
+1. GPIO Description
+2. GPIO Pin Configuration
+3. GPIO Usage
 
-1. pin 编号在内核目录下：include\dt-bindings\pinctrl\k1-x-pinctrl.h 中定义。
-2. pin 配置相同表示一组 pin 设置成 gpio 功能时配置相同，即 mux mode、上下拉、边沿检测、驱动能力配置相同。
+**Notes:**
 
-## 方案gpio描述
+1. Pin numbers are defined in the kernel directory `include/dt-bindings/pinctrl/k1-x-pinctrl.h`.
+2. Pin configuration is the same when a group of pins is set to the GPIO function, meaning that the mux mode, pull-up/pull-down, edge detection, and drive strength configurations are the same.
 
-用来描述方案使用的所有gpio。
+### GPIO Description
 
-采用linux gpio框架gpio-ranges属性进行定义。如果某段gpio对应的pin编号也连续，则定义为一组。
+Define all GPIOs used in the system.
 
-上述例子方案dts文件gpio控制器定义
+The `gpio-ranges` property of the Linux GPIO framework is used for definition. If the pin numbers corresponding to a segment of GPIOs are also consecutive, they are defined as a group.
+
+The GPIO controller definition in the solution DTS file for the example above
 
 ```c
 &gpio{
@@ -75,15 +94,16 @@ Device Drivers
 };
 ```
 
-## gpio pin配置
+### GPIO Pin Configuration
 
-将方案使用的gpio对应的pin设置成gpio功能，并进行配置(边沿检测/上下拉/驱动能力)。
+Set the pins corresponding to the GPIOs used in the solution to the GPIO function and configure them (edge detection/pull-up/pull-down/drive strength).
 
-采用pinctrl-single,gpio-range属性设置。如果存在某段pin编号连续且配置相同，则配置为一组。
+Use the `pinctrl-single,gpio-range` property for setting. If there is a continuous range of pin numbers with the same configuration, they are configured as a group.
 
-pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
+Refer to [Pin Configuration Parameters](01-PINCTRL.md) for pin configuration parameters.
 
-例如：
+
+For example:
 
 ```c
 &pinctrl {
@@ -113,127 +133,68 @@ pin配置参数参考[pin配置参数](PINCTRL#pin-配置参数)。
 };
 ```
 
-## gpio 使用
+### GPIO Usage
 
-若方案 eth0 使用 gpio 110 作为 phy 的 reset 信号，则 eth0 使用 gpio 110 如下。
+For example, in the solution, eth0 uses gpio 110 as the PHY Reset signal:
 
 ```c
 &eth0 {
     emac,reset-gpio = <&gpio 110 0>;
 };
 ```
-# 接口描述
-## 测试介绍
-通过查看gpio对应的寄存器值判断gpio设置是否正确
-```
-devmem reg_addr
-```
 
-## API介绍
-申请指定的gpio
+## Interface Introduction
+
+### API
+
+- **Request a specified GPIO**
+
 ```
 int gpio_request(unsigned gpio, const char *label);
 ```
-释放已申请的指定gpio
+
+- **Release a specified GPIO that has been requested**
+
 ```
 void gpio_free(unsigned gpio);
 ```
-设置指定的GPIO为输入模式
+
+- **Set a specified GPIO to input mode**
+
 ```
 int gpio_direction_input(unsigned gpio)
 ```
-设置指定的GPIO为输出模式和初始值
+
+- **Set a specified GPIO to output mode and assign an initial value**
+
 ```
 int gpio_direction_output(unsigned gpio, int value)
 ```
-设置指定GPIO的输出值
+
+- **Set the output value of a specified GPIO**
+
 ```
 void gpio_set_value(unsigned gpio, int value)
 ```
-获取指定GPIO的信号值
+
+- **Get the signal value of a specified GPIO**
+
 ```
 int gpio_get_value(unsigned gpio)
 ```
-获取指定gpio对应的中断编号
+
+- **Get the interrupt number corresponding to the specified GPIO.**
+
 ```
 int gpio_to_irq(unsigned gpio)
 ```
-### demo示例
-以某方案 eth0 使用 gpio 110 作为 phy 的 reset 信号为例:  
-方案dts配置和引用
 
-```c
-&gpio{
-        gpio-ranges = <
-                ...
-                &pinctrl 110 GPIO_110 1
-                ...
-        >;
-};
-...
-&pinctrl {
-        pinctrl-single,gpio-range = <
-                &range GPIO_110 1 (MUX_MODE0 | EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)
-                ...
-        >;
-};
-...
-&eth0 {
-    emac,reset-gpio = <&gpio 110 0>;
-    emac,reset-active-low;
-};
-```
-gmac驱动中操作gpio_110  
-k1x-emac.c代码
-```c
-/* 获取eth0设备节点reset-gpio 编号 */
-rst_gpio = of_get_named_gpio(np, "emac,reset-gpio", 0);
-...
-/* 申请指定的gpio */
-if (gpio_request(rst_gpio, "mdio-reset"))
-        return 0;
-...
-/* 设置rst_gpio为输出模式，且信号值为1, active_state为真 */
-gpio_direction_output(rst_gpio, active_state ? 1 : 0);
-...
-if (delays[0])
-	msleep(DIV_ROUND_UP(delays[0], 1000));
+## Debugging
 
-/* 设置rst_gpio信号值为0 */
-gpio_set_value(rst_gpio, active_state ? 0 : 1);
-if (delays[1])
-	msleep(DIV_ROUND_UP(delays[1], 1000));
-
-/* 设置rst_gpio信号值为1 */
-gpio_set_value(rst_gpio, active_state ? 1 : 0);
-if (delays[2])
-	msleep(DIV_ROUND_UP(delays[2], 1000));
-```
-
-gpio中断使用  
-```c
-/* 获取设备节点gpio-irq 编号 */
-gpio_irq = of_get_named_gpio(np, "A,gpio-irq", 0);
-
-/* 获取中断号 */
-int irq = gpio_to_irq(gpio_irq);
-if (irq < 0) {
-	printk("unable to get irq num\n");
-	return -1;
-}
-
-/* 申请中断 */
-if(request_irq(irq, irq_handler, IRQF_TRIGGER_RISING,
-	"test_irq", NULL)) {
-	printk(unable to request irq\n");
-	return -EINVAL;
-}
-
-```
-
-## debug介绍
 ### sysfs
-读取和操作GPIO端口
+
+Accessing and Controlling GPIOs via sysfs.
+
 ```
 /sys/class/gpio
 |-- export
@@ -241,18 +202,17 @@ if(request_irq(irq, irq_handler, IRQF_TRIGGER_RISING,
 |-- gpiochip512 -> ../../devices/platform/soc/d401d800.i2c/i2c-8/8-0041/spacemit-pinctrl@spm8821/gpio/gpiochip512
 `-- unexport
 ```
-- export  
-用于通知系统需要导出控制的GPIO引脚编号
-- unexport  
-用于通知系统取消导出
-- gpiochipX  
-gpio X的详细信息
-- gpioX/direction  
-gpio X 的方向
-- gpioX/value  
-gpio X的端口值
+
+- **export**: Used to inform the system to export the specified GPIO pin number for control
+- **unexport**: Used to inform the system to unexport (remove) the GPIO pin
+- **gpiochipX**: Detailed information of GPIO chip X
+- **gpioX/direction**: Direction setting of GPIO X
+- **gpioX/value**: Port value of GPIO X
+
+
 ### debugfs
-显示系统的gpio控制器及其管理的gpio信息。
+
+Inspect the system’s GPIO controllers and the GPIO information they manage.
 
 ```
 /sys/kernel/debug/gpio
@@ -275,4 +235,13 @@ gpiochip0: GPIOs 0-127, k1x-gpio:
 gpiochip1: GPIOs 512-517, parent: platform/spacemit-pinctrl@spm8821, spacemit-pinctrl@spm8821, can sleep:
 
 ```
-# FAQ
+
+## Testing
+
+You can use `devmem` to check register values and determine whether the GPIO configuration has taken effect.
+
+```
+devmem reg_addr
+```
+
+## FAQ

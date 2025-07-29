@@ -1,19 +1,27 @@
-介绍CPUFREQ的功能和使用方法。
-# 模块介绍
-CPUFREQ子系统负责cpu运行时，对其频率及电压进行调整，以求性能满足的前提下，cpu的功耗尽可能低的技术
-## 功能介绍
+# CPUFREQ
+
+CPUFREQ Functionality and Usage Guide.
+
+## Overview
+
+The CPUFREQ subsystem is responsible for adjusting the CPU frequency and voltage during runtime. Its goal is to minimize CPU power consumption while ensuring that performance requirements are met.
+
+### Functionality Description
+
 ![](static/cpufreq.png)
 
-1. cpufreq core是cpufreq framework的核心模块，它主要实现三类功能：  
-    1.1 抽象调频调压的公共逻辑接口  
-    1.2 以sysfs的形式向用户空间提供统一的接口，以notifier的形式向其他driver提供频率变化的通知
-    1.3 提供CPU频率和电压控制的驱动框架  
-2. cpufreq governor负责调频调压的各种策略  
-3. cpufreq driver负责平台相关调频调压机制的实现
-4. cpufreq stats负责调频信息和各频点运行事件统计，提供每个CPU的cpufreq有关的统计信息
+1. cpufreq core is the core module of the cpufreq framework, and it mainly implements three types of functions:
+   - Abstracts shared logic for frequency/voltage scaling.
+   - Exposes a unified sysfs interface to userspace and broadcasts frequency changes via notifiers.
+   - Implements the driver framework for CPU frequency/voltage control.
+2. cpufreq governor is responsible for the strategies of frequency and voltage scaling.
+3. cpufreq driver is responsible for the implementation of platform-specific frequency and voltage scaling mechanisms.
+4. cpufreq stats is responsible for the statistics of frequency scaling information and the runtime events of each frequency point, providing statistical information related to cpufreq for each CPU.
 
-## 源码结构介绍
-CPU调频平台驱动目录如下：
+### Source Code Structure
+
+The directory structure for the CPU frequency scaling platform driver is as follows:
+
 ```
 drivers/cpufreq/
 ├── cpufreq.c
@@ -31,16 +39,19 @@ drivers/cpufreq/
 ├── cpufreq_stats.c
 ├── cpufreq_userspace.c
 ├── freq_table.c
-├── spacemit-cpufreq.c --> 平台驱动  
+├── spacemit-cpufreq.c --> Platform Driver  
 ```
-# 关键特性
-## 特性
-| 特性 | 特性说明 |
+
+## Key Features
+
+| Feature | Description |
 | :-----| :----|
-| 支持动态调频调压 |
-| 支持频率boost到1.8Ghz |
-## 性能参数
-| 支持频率档位 | 频率档位对应电压 |  
+| Dynamic Frequency/Voltage Scaling | Supports dynamic adjustment of CPU frequency and voltage to optimize performance and power consumption |
+| Turbo Boost up to 1.8 GHz | Supports boosting the CPU frequency to 1.8 GHz for improved performance under high load conditions |
+
+### Performance Parameters
+
+| Frequency Steps (Hz) | Voltage (V) |  
 | :-----| :----:|  
 | 1600000000HZ | 1.05V |  
 | 1228800000HZ | 0.95V |  
@@ -48,104 +59,119 @@ drivers/cpufreq/
 | 819000000HZ | 0.95V |  
 | 614400000HZ | 0.95V |  
 
-测试方法
-```
-1. 将策略修改成userspace模式
-echo userspace > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+**Testing Method**
 
-2. 查看所支持的频率列表
-cat /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies
-614400 819000 1000000 1228800 1600000
+1. Set the governor to userspace mode:
+   ```
+   echo userspace > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+   ```
 
-3. 设置cpu频率
-echo 1228800 > /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed
+2. Check the list of supported frequencies:
+   ```
+   cat /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies
+   Expected output: 614400 819000 1000000 1228800 1600000
+   ```
 
-4. 查看频率是否设置成功
-cat /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq
+3. Set the CPU frequency to a specific value (e.g., 1228800 Hz):
+   ```
+   echo 1228800 > /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed
+   ```
 
-```
-# 配置介绍
-主要包括驱动使能配置和dts配置
-## CONFIG配置
-CPUFREQ配置如下：
+4. Verify if the frequency has been set successfully:
+   ```
+   cat /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq
+   ```
+
+## Configuration
+
+The configuration mainly includes driver enabling and dts (Device Tree Source) configuration.
+
+### CONFIG Configuration
+
+The CPUFREQ configuration is as follows:
+
 ```
 CONFIG_SPACEMIT_K1X_CPUFREQ:
 
-	This adds the CPUFreq driver support for Freescale QorIQ SoCs
-	which are capable of changing the CPU's frequency dynamically.
+ This adds the CPUFreq driver support for Freescale QorIQ SoCs
+ which are capable of changing the CPU's frequency dynamically.
  
-	Symbol: SPACEMIT_K1X_CPUFREQ [=y]
-	Type  : tristate
-	Defined at drivers/cpufreq/Kconfig:315
-	Prompt: CPU frequency scaling driver for Spacemit K1X
-	Depends on: CPU_FREQ [=y] && OF [=y] && COMMON_CLK [=y]
-	Location:
-		-> CPU Power Management
-			-> CPU Frequency scaling
-				-> CPU Frequency scaling (CPU_FREQ [=y])
-					-> CPU frequency scaling driver for Spacemit K1X (SPACEMIT_K1X_CPUFREQ [=y])
-	Selects: CPUFREQ_DT [=y] && CPUFREQ_DT_PLATDEV [=y]    
+ Symbol: SPACEMIT_K1X_CPUFREQ [=y]
+ Type  : tristate
+ Defined at drivers/cpufreq/Kconfig:315
+ Prompt: CPU frequency scaling driver for Spacemit K1X
+ Depends on: CPU_FREQ [=y] && OF [=y] && COMMON_CLK [=y]
+ Location:
+  -> CPU Power Management
+   -> CPU Frequency scaling
+    -> CPU Frequency scaling (CPU_FREQ [=y])
+     -> CPU frequency scaling driver for Spacemit K1X (SPACEMIT_K1X_CPUFREQ [=y])
+ Selects: CPUFREQ_DT [=y] && CPUFREQ_DT_PLATDEV [=y]    
 ```
 
-## dts配置
+### DTS Configuration
+
+Due to the large size of the DTS configuration, only the relevant file is provided here:
 ```
-由于dts配置太过庞大，目前进贴其文件：
 arch/riscv/boot/dts/spacemit/k1-x_opp_table.dtsi
 ```
-# 接口描述
-## 测试介绍
-测试调频调压，可以按照上述小结“测试方法”循环测试设置不同频率的正确性
-## API介绍
 
+## Debugging
 
-## Debug介绍
 ### sysfs
 
 ```
-在如下目录中有关于CPUFREQ所有的sysfs节点
+All sysfs nodes related to CPUFREQ can be found in the following directory:
 /sys/devices/system/cpu/cpufreq/policy0/
+
 affected_cpus
+
 related_cpus
-查看系统支持的策略
+
+Check the policies supported by the system:
 scaling_governor
 
-支持boost的节点
+The node for supporting boost:
 boost
 
-查看系统支持的频率点
+To view the frequencies supported by the system:
 scaling_available_frequencies
 
-查看软件支持的最大频率
+To view the maximum frequency supported by the software:
 scaling_max_freq        
 
-查看cpu跑的当前的频率
+To view the current running frequency of the CPU:
 cpuinfo_cur_freq
 
-查看系统支持的策略
+To view the scaling governors supported by the system:
 scaling_available_governors   
 
-查看软件支持的最小频率
+View the minimum frequency supported by the software:
 scaling_min_freq
 
-cpu硬件支持的最大频率
+The maximum frequency supported by the CPU hardware:
 cpuinfo_max_freq
 
-boost模式下cpu支持的频率
+CPU frequencies supported in boost mode:
 scaling_boost_frequencies
 
-userspace模式是设置cpu频率的接口
+The userspace mode is the interface for setting the CPU frequency:
 scaling_setspeed
 
-cpu硬件支持的最小频率
+The minimum frequency supported by the CPU hardware:
 cpuinfo_min_freq
 
-查看当前CPU跑的频率
+To view the current running frequency of the CPU:
 scaling_cur_freq
 cpuinfo_transition_latency
 
-当前cpu调频驱动的名称
+The name of the current CPU frequency scaling driver:
 scaling_driver
 
 ```
-### debugfs
-# FAQ
+
+## Testing
+
+To test frequency and voltage scaling, you can follow the testing method described in the previous section **Testing Method** and repeatedly test to verify the correctness of setting different frequencies.
+
+## FAQ

@@ -1,17 +1,21 @@
-介绍regulator的功能和使用方法。
+# PMIC
 
-# 模块介绍
-regulator翻译起来就是调节器，一些可以输出电压电流的设备可以使用该子系统，我司P1芯片就是一款包含该功能的PMIC；针对Linux内核来说，regulator是一套软件框架，该框架旨在提供标准内核接口来控制电压和电流。
+Regulator Functionality and Usage Guide.
 
-## 功能介绍
+## Overview
+
+The term 'regulator' refers to a device that controls voltage and current output. SpacemiT P1 chip is a PMIC (Power Management Integrated Circuit) with this functionality. In the Linux kernel, the regulator framework provides a standardized interface for voltage and current control.
+
+### Function
+
 ![](static/regulator.png)  
 
-1. regulator consumer: 有调节器供电的设备，他们消耗调节器提供的电力
-2. regulator framework:提供标准的内核接口，控制系统的voltage/current regulators，并提供相应的开关、电压/电流设置的机制
-3. regulator diver: regulator的驱动代码，负责向framework注册设备，并且与底层硬件通讯
-4. machine： 主要是配置各个regulator的属性
+1. **Regulator Consumer:** Devices powered by regulators, which consume the electricity provided by the regulators.
+2. **Regulator Framework:** Provides standard kernel interfaces to control the system's voltage/current regulators and 3. offers mechanisms for switching, voltage, and current settings.
+3. **Regulator Driver:** The driver code for regulators, responsible for registering devices with the framework and communicating with the underlying hardware.
+3. Machine: Configures regulator properties for the target hardware.
 
-## 源码结构介绍
+### Source Code Structure
 
 ```
 drivers/regulator/
@@ -30,38 +34,40 @@ drivers/regulator/
 ├── of_regulator.c
 ├── spacemit-regulator.c
 ```
-# 关键特性
 
-## 特性
-| 特性 | 特性说明 |
+## Key Features
+
+| Feature | Description |
 | :-----| :----|
-| 支持6路DCDC  | 支持动态调压/enable/disable |
-| 支持5路ALDO | 支持调压/enable/disable |
-| 支持7路DLDO | 支持调压/enable/disable |
+| 6-Channel DCDC Support  | Supports dynamic voltage adjustment and enable/disable |
+| 5-Channel ALDO Support | Supports voltage adjustment and enable/disable |
+| 7-Channel DLDO Support | Supports voltage adjustment and enable/disable |
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
+## Configuration Introduction
 
-## CONFIG配置
+It mainly includes driver enablement configuration and DTS configuration.
+
+### CONFIG Configuration
 
 ```
 CONFIG_REGULATOR_SPACEMIT:
 
-	This driver provides support for the voltage regulators on the
-	spacemit pmic.
+ This driver provides support for the voltage regulators on the
+ spacemit pmic.
 
-	Symbol: REGULATOR_SPACEMIT [=y]
-	Type  : tristate
-	Defined at drivers/regulator/Kconfig:1666
-		Prompt: Spacemit regulator support
-		Depends on: REGULATOR [=y] && MFD_SPACEMIT_PMIC [=y]
-		Location: 
-			-> Device Drivers
-				-> Voltage and Current Regulator Support (REGULATOR [=y])
-					-> Spacemit regulator support (REGULATOR_SPACEMIT [=y])
-		Selects: REGULATOR_FIXED_VOLTAGE [=y] 
+ Symbol: REGULATOR_SPACEMIT [=y]
+ Type  : tristate
+ Defined at drivers/regulator/Kconfig:1666
+  Prompt: Spacemit regulator support
+  Depends on: REGULATOR [=y] && MFD_SPACEMIT_PMIC [=y]
+  Location: 
+   -> Device Drivers
+    -> Voltage and Current Regulator Support (REGULATOR [=y])
+     -> Spacemit regulator support (REGULATOR_SPACEMIT [=y])
+  Selects: REGULATOR_FIXED_VOLTAGE [=y] 
 ```
-## dts配置
+
+### DTS Configuration
 
 ```
 &i2c8 {
@@ -205,44 +211,49 @@ CONFIG_REGULATOR_SPACEMIT:
 };
 ```
 
-# 接口描述
+## Interface
 
-## API介绍
+### API
+
+Please refer to the kernel documentation:
 ```
-请参考内核文档：
-Documentation/power/regulator/consumer.rst
-Documentation/power/regulator/machine.rst
-Documentation/power/regulator/regulator.rst
+- Documentation/power/regulator/consumer.rst
+- Documentation/power/regulator/machine.rst
+- Documentation/power/regulator/regulator.rst
 
 ```
 
-### demo
+### Demo Example
+
 ```
-1. 配置dts，引用想要使用的regulator
+1. Configure the dts to reference the regulator you want to use:
     &cpu_0 {
         clst0-supply = <&dcdc_1>;
         vin-supply-names = "clst0";
     };
 
-代码中获得相应的句柄：
+Obtain the corresponding handle in the code:
         const char *strings;
         struct regulator *regulator;
         err = of_property_read_string_array(cpu_dev->of_node, "vin-supply-names",
                         &strings, 1);
-        regulator = devm_regulator_get(cpu_dev, strings);  --> 传入的struct device *必须有实体对应
+        regulator = devm_regulator_get(cpu_dev, strings);  --> The passed-in struct device * must have a corresponding entity
         
- 代码中使能相应的regulator:
+ Enable the corresponding regulator in the code:
          regulator_enable(regulator);
  
- 代码中设置相应的regulator的电压：
+ Set the voltage of the corresponding regulator in the code:
          regulator_set_voltage(regulator, 95000000, 95000000);
 ```
 
-## Debug介绍
+## Debugging
 
-# FAQ
-# 附录
-## SPL/UBOOT 使用方法
+## FAQ
+
+## Appendix
+
+### SPL/UBOOT Usage Method
+
 
 ```
 uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
@@ -383,50 +394,50 @@ uboot-2022.10$ vi arch/riscv/dts/k1-x_spm8821.dtsi
 };
 ```
 
-### SPL 阶段电源开启及电压设置方法
+#### SPL Stage Power-On and Voltage Setting Method
 
 ```c
                         dcdc_6: DCDC_REG1 {
                                 regulator-name = "dcdc1";
                                 regulator-min-microvolt = <500000>;
                                 regulator-max-microvolt = <3450000>;
-                                regulator-init-microvolt = <950000>; ---> 加上该字段，会自动设置该电源电压为0.95v
-                                regulator-boot-on; ---> 加上该字段，在SPL阶段会自动打开该电源
-                                u-boot,dm-spl;   ---> 需要加该字段，SPL才可识别该dts node
+                                regulator-init-microvolt = <950000>; ---> Adding this field will automatically set the power supply voltage to 0.95v
+                                regulator-boot-on; ---> Adding this field will automatically turn on the power supply during the SPL stage
+                                u-boot,dm-spl;   ---> This field is required for SPL to recognize the DTS node
                                 regulator-state-mem {
                                         regulator-off-in-suspend;
                                 };
                         };
 ```
 
-### UBOOT 阶段电源开启及电压设置方法
+#### UBOOT Stage Power-On and Voltage Setting Method
 
-uboot 阶段有两种方式设置或者开启电源，第一种是直接在 dts 中配置
+There are two ways to set or enable a power supply during the UBOOT stage. The first method is to configure it directly in the DTS:
 
 ```c
-                        dcdc_6: DCDC_REG1 { --> regulator_get_by_devname传入的名字参数
+                        dcdc_6: DCDC_REG1 { --> The name parameter passed to regulator_get_by_devname
                                 regulator-name = "dcdc1";
                                 regulator-min-microvolt = <500000>;
                                 regulator-max-microvolt = <3450000>;
-                                regulator-init-microvolt = <950000>; ---> 加上该字段，会自动设置该电源电压为0.95v
-                                regulator-boot-on; ---> 加上该字段，在UBOOT阶段会自动打开该电源
+                                regulator-init-microvolt = <950000>; ---> Adding this field will automatically set the power supply voltage to 0.95v
+                                regulator-boot-on; ---> Adding this field will automatically turn on the power supply during the UBOOT stage
                                 regulator-state-mem {
                                         regulator-off-in-suspend;
                                 };
                         };
 ```
 
-另外一种是直接在代码中设置：
+The other method is to set it directly in the code:
 
 ```c
-1. 首先要获得想要设置或者开启电压的regulator句柄
+1. First, obtain the regulator handle for the voltage you want to set or enable
     struct udevice *rdev = NULL;
-    char *regulator_name = "DCDC_REG1"  --> 该字段传入的是dts中标识的dts node的名字
+    char *regulator_name = "DCDC_REG1"  --> This field is the name of the DTS node specified in the DTS
     ret = regulator_get_by_devname(regulator_name, &rdev);
     
-2. 开启某一路电
+2. Enable a specific power supply
     regulator_set_enable(&rdev, true);
     
-3. 设置某一路电的电压
+3. Set the voltage of a specific power supply
     regulator_set_value(&rdev, 1800000);
 ```

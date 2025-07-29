@@ -1,50 +1,48 @@
 # CAN
 
-介绍CAN的配置和调试方式
+CAN Functionality and Usage Guide.
 
-## 模块介绍  
+## Overview
 
-CAN（Controller Area Network，控制器局域网络）是一种用于控制器和设备之间进行通信的串行通信协议。主要用于汽车工业，工业自动化、医疗设备、航空航天、机器人等多个领域。
+CAN (Controller Area Network) is a serial communication protocol designed for real-time data exchange between microcontrollers and peripherals. It is widely adopted in automotive systems, industrial automation, medical equipment, aerospace, and robotics.
 
-### 功能介绍  
+### Function Description
 
 ![cat](static/can.png)
 
-can控制器实现了基于CAN2.0和CANFD协议的报文收发，包括标准数据帧，标准远程帧，扩展数据帧等。can驱动通过网络设备接口注册为网络设备。在用户层可以通过指定网络工具或接口完成can驱动调用实现报文收发。
+The CAN controller supports message transmission and reception compliant with CAN 2.0 and CAN FD protocols, handling standard data frames, remote frames, and extended data frames, etc. The CAN driver registers as a network device through the network device interface. In the user layer, CAN driver calls can be made to achieve message transmission and reception using specified network tools or interfaces.
 
-### 源码结构介绍
+### Source Code Structure
 
-CAN控制器驱动代码在drivers/net/can目录下：  
+The CAN controller driver code is located in the `drivers/net/can` directory:
 
 ```c
 drivers/net/can  
-|--dev.c                     #内核can框架代码，包含计算波特率参数，注册can设备等
-|--flexcan/                #k1 can驱动
+|--dev.c                     # Kernel CAN framework code, including baud rate parameter calculation, CAN device registration, etc.
+|--flexcan/                  # K1 CAN driver
  |--flexcan-core.c
  |--flexcan.h
 ```  
 
-## 关键特性  
+## Key Features  
 
-### 特性
-
-| 特性 | 特性说明 |
+| Feature | Description |
 | :-----| :----|
-| 支持CANFD | 支持CANFD协议，兼容CAN2.0 |
-| 支持最大64B数据 | CANFD协议支持8，16，32，64B数据传输 |
+| Support for CANFD | Compliant  the CANFD protocol, compatible with CAN 2.0 |
+| Support for Maximum 64B Data| The CANFD protocol supports data transmission of 8, 16, 32, and 64 bytes|
 
-### 性能参数
+### Performance Parameters
 
-支持最高8M数据域波特率
+Supports a maximum data field baud rate of 8 Mbps.
 
-## 配置介绍
+## Configuration
 
-主要包括驱动使能配置和dts配置
+It mainly includes driver enablement configuration and dts configuration.
 
-### CONFIG配置
+### CONFIG Configuration
 
 CONFIG_CAN_DEV
-此为内核平台can框架提供支持，支持k1 can驱动情况下，应为Y
+This provides support for the kernel platform CAN framework. When supporting the K1 CAN driver, this option should be set to `Y`.
 
 ```shell
 Symbol: CAN_DEV [=y]
@@ -53,7 +51,7 @@ Device Drivers
   -> CAN Device Drivers (CAN_DEV [=y])
 ```
 
-在支持平台层can框架后，配置CONFIG_CAN_FLEXCAN为Y，支持k1 can驱动
+After enabling the platform layer CAN framework, set CONFIG_CAN_FLEXCAN to `Y` to enable the K1 CAN driver.
 
 ```shell
 Symbol: CAN_FLEXCAN [=y]
@@ -61,13 +59,13 @@ Symbol: CAN_FLEXCAN [=y]
   -> Support for Freescale FLEXCAN based chips (CAN_FLEXCAN [=y])
 ```
 
-### dts配置
+### DTS Configuration
 
-在k1平台，can控制器部分不包含收发器，控制器对外的接口为TX和RX
+On the K1 platform, the CAN controller does not include a transceiver, and the external interface of the controller consists of TX and RX pins.
 
 #### pinctrl
 
-可查看linux仓库的arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi，参考已配置好的can节点配置，如下：
+You can refer to the already configured CAN node in the Linux repository at `arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`. Here is an example of how the CAN node might be configured:
 
 ```dts
     pinctrl_can_0: can_0_grp {
@@ -78,9 +76,9 @@ Symbol: CAN_FLEXCAN [=y]
     };
 ```
 
-#### dtsi配置示例
+#### dtsi Configuration Example
 
-dtsi中配置can控制器基地址和时钟复位资源，正常情况无需改动
+The CAN controller's base address and clock reset resources are configured in the dtsi file. These settings generally do not need to be changed under normal circumstances.
 
 ```dts
     flexcan0: fdcan@d4028000 {
@@ -96,10 +94,9 @@ dtsi中配置can控制器基地址和时钟复位资源，正常情况无需改�
     };
 ```
 
-#### dts配置示例
+#### dts Configuration Example
 
-dts完整配置，如下所示
-可选择配置时钟频率为20M，40M，80M以支持不同波特率
+The complete dts configuration is shown below. You can choose to configure the clock frequency to 20M, 40M, or 80M to support different baud rates.
 
 ```dts
 /*can0*/
@@ -113,152 +110,150 @@ dts完整配置，如下所示
 /*rcan*/
 &r_flexcan {
        pinctrl-names = "default";
+       pinctrl-0 = <&pinctrl_r_can_0>;
        clock-frequency = <80000000>;
        status = "okay";
-       pinctrl-0 = <&pinctrl_r_can_0>;
+       mboxes = <&mailbox 2>;
+       mbox-names = "mcan0";
 };
 
 ```
 
-## 接口描述
+## Interface
 
-### API介绍
+### API
 
-can驱动主要实现了发送接收报文的接口
-常用：
+The CAN driver mainly implements interfaces for sending and receiving messages. Commonly used APIs include:
 
 ```c
 static int flexcan_open(struct net_device *dev)  
 ```
 
-开启can设备时调用
+APIs Called When Opening a CAN Device.
 
 ```c
 static netdev_tx_t flexcan_start_xmit(struct sk_buff *skb, struct net_device *dev) 
 ```
 
-can设备开始传输时调用
-配置can传输时波特率的参数为初始化驱动时保存在驱动私有数据结构体中
+The function called when the CAN device starts transmission.
+The parameters for configuring the CAN transmission bitrate are saved in the driver's private data structure during driver initialization.
 
-### Demo示例
+### Demo Example
 
-## Debug介绍
+## Debugging
 
-
-1.查看can设备是否加载成功  
+1. Check if the CAN device is loaded successfully.  
 ifconfig -a
 
-2.k1配置can的仲裁域和数据域波特率  
+2. Configure the CAN arbitration and data domain baud rates on K1. 
 ip link set can0 type can bitrate 125000 dbitrate 250000 berr-reporting on fd on  
 
-3.打开can设备(同时另一端准备接收)  
+3. Bring up the CAN device (while the other end is ready to receive). 
 ip link set can0 up  
 
-4.k1端发送报文  
-cansend格式：cansend can-dev id#data  
+4. Send a message from the K1 end
+cansend format: cansend can-dev id#data 
 eg：cansend can0 123##3.11223344556677881122334455667788aabbccdd  
 
-5.k1端接收报文(另一端发送)  
+5. Receive a message on the K1 end (while the other end is sending)  
 candump can0
 
-## 测试介绍
+## Testing
 
-基于k1平台可以外接can收发器进行测试，通讯的另一端一般选择USBCAN分析仪连接电脑模拟can设备，由于通信的另一端设备和用法不确定，这里主要介绍k1 的测试用法。以下将以MUSE Pi开发板为例，基于bianbu-linux系统做demo演示，dts配置请参考dts配置示例章节。
+The K1 platform can be connected to a CAN transceiver for testing. The other end of the communication is typically connected to a USBCAN analyzer linked to a computer to simulate a CAN device. As the connected device and its configuration may vary, this section focuses on K1-specific testing procedures. The following example uses the MUSE Pi development board with the bianbu-linux system for a demo demonstration. Please refer to the DTS configuration example section for the DTS configuration.
 
-- 基于MUSE Pi连接can设备
+- Connecting CAN Devices to MUSE Pi
 
-![alt text](static/can_image_1.png)
+  ![alt text](static/can_image_1.png)
 
-pin脚方向如上图所示，从上往下的绿色箭头，分别为
-rcan tx(gpio47, 26 pin接口的8pin)、rcan rx(gpio48, 26 pin接口的10pin);
-can0 tx(gpio75, 26 pin接口的23pin)、can0 rx(gpio 76,26 pin接口的24pin)
+  The pin directions are indicated by the green arrows from top to bottom as shown in the figure above, which are as follows:
+  1. rcan tx: gpio47, pin 8 of the 26-pin interface
+  2. rcan rx: gpio48, pin 10 of the 26-pin interface
+  3. can0 tx: gpio75, pin 23 of the 26-pin interface
+  4. can0 rx: gpio76, pin 24 of the 26-pin interface
 
-- pc端安装can软件，以及接入pc can(可以接入两个can外设相互收发)。本次使用的是PEAK的PC can，[PEAK官网](https://www.peak-system.com)
-下图所示为rcan的接线，can0的接线类似。
+- Install CAN software on the PC and connect a PC CAN device (you can connect two CAN peripherals for mutual transmission and reception). In this example, we use PEAK's PCAN, which can be found on the [PEAK official website](https://www.peak-system.com). The wiring for rcan is shown in the figure below, and the wiring for can0 is similar.
 
-![alt text](static/can_image_2.jpg)
+  ![alt text](static/can_image_2.jpg)
 
-- 查看can设备是否加载成功
+- Check if the CAN device is loaded successfully.
 
-```shell
-# ifconfig -a
-can0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
-          NOARP  MTU:16  Metric:1
-          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:10 
-          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
-          Interrupt:77 
+  ```shell
+  # ifconfig -a
+  can0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+            NOARP  MTU:16  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:10 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+            Interrupt:77 
 
-can1      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
-          inet addr:169.254.185.103  Mask:255.255.0.0
-          UP RUNNING NOARP  MTU:72  Metric:1
-          RX packets:4226044 errors:1411370 dropped:0 overruns:0 frame:1411370
-          TX packets:1428220 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:10 
-          RX bytes:50946992 (48.5 MiB)  TX bytes:28564400 (27.2 MiB)
-          Interrupt:255 
+  can1      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+            inet addr:169.254.185.103  Mask:255.255.0.0
+            UP RUNNING NOARP  MTU:72  Metric:1
+            RX packets:4226044 errors:1411370 dropped:0 overruns:0 frame:1411370
+            TX packets:1428220 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:10 
+            RX bytes:50946992 (48.5 MiB)  TX bytes:28564400 (27.2 MiB)
+            Interrupt:255 
+  ```
 
+- The arbitration and data domain baud rates of CAN on the K1 platform must be configured to be the same for normal data transmission and reception.
 
-```
+  ```shell
+  ip link set can1 up type can bitrate 4000000 sample-point 0.75 dbitrate 8000000 sample-point 0.8 fd on
 
-- k1配置can的仲裁域和数据域波特率，两个can设备必须要配置成相同的仲裁、数据波特率才能正常收发数据。
+  # Receiving Data
+  candump can1
+  ```
 
-```shell
-ip link set can1 up type can bitrate 4000000 sample-point 0.75 dbitrate 8000000 sample-point 0.8 fd on
+- Open another CAN device as the data transmitter (it can be a PC CAN or another CAN device on the development board; here, we use another CAN device for sending data, and you can verify with PC CAN on your own).
 
-#接收数据
-candump can1
-```
+  ```shell
+   cansend can1 456##3.8877665544332211aabbccddeeffaabbaabb
+  ```
+- Stopping the CAN Device
 
-- 打开另外一个can设备作为数据发送端(可以是pc can，也可以是开发板的另外一个can设备，这里以另外一个can设备发送数据，PC can可自行验证)
-
-```shell
-cansend can1 456##3.8877665544332211aabbccddeeffaabbaabb
-```
-
-- 停止can设备
-
-```shell
-ifconfig can1 down
-```
+  ```shell
+  ifconfig can1 down
+  ```
 
 ## FAQ
 
-- 在MUSE-Pi开发版调试rcan，需要关闭以下的dts引脚配置
+- To debug the rcan on the MUSE-Pi development board, you need to disable the following DTS pin configurations.
 
-```dts
-diff --git a/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts b/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts
-index 9107d43c3091..a34272ce8318 100644
---- a/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts
-+++ b/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts
-@@ -578,12 +578,12 @@ &range GPIO_124 1 (MUX_MODE0 | EDGE_NONE | PULL_UP   | PAD_1V8_DS2)
-                &range GPIO_125 3 (MUX_MODE0 | EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)
-        >;
+  ```dts
+  diff --git a/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts b/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts
+  index 9107d43c3091..a34272ce8318 100644
+  --- a/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts
+  +++ b/arch/riscv/boot/dts/spacemit/k1-x_MUSE-Pi.dts
+  @@ -578,12 +578,12 @@ &range GPIO_124 1 (MUX_MODE0 | EDGE_NONE | PULL_UP   | PAD_1V8_DS2)
+                  &range GPIO_125 3 (MUX_MODE0 | EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)
+          >;
  
--       pinctrl_rcpu: pinctrl_rcpu_grp {
--               pinctrl-single,pins = <
--                       K1X_PADCONF(GPIO_47, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /* r_uart0_tx */
--                       K1X_PADCONF(GPIO_48, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /* r_uart0_rx */
--               >;
--       };
-+       /* pinctrl_rcpu: pinctrl_rcpu_grp { */
-+       /*      pinctrl-single,pins = < */
-+       /*              K1X_PADCONF(GPIO_47, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /1* r_uart0_tx *1/ */
-+       /*              K1X_PADCONF(GPIO_48, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /1* r_uart0_rx *1/ */
-+       /*      >; */
-+       /* }; */
+  -       pinctrl_rcpu: pinctrl_rcpu_grp {
+  -               pinctrl-single,pins = <
+  -                       K1X_PADCONF(GPIO_47, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /* r_uart0_tx */
+  -                       K1X_PADCONF(GPIO_48, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /* r_uart0_rx */
+  -               >;
+  -       };
+  +       /* pinctrl_rcpu: pinctrl_rcpu_grp { */
+  +       /*      pinctrl-single,pins = < */
+  +       /*              K1X_PADCONF(GPIO_47, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /1* r_uart0_tx *1/ */
+  +       /*              K1X_PADCONF(GPIO_48, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /1* r_uart0_rx *1/ */
+  +       /*      >; */
+  +       /* }; */
  
-        pinctrl_gmac0: gmac0_grp {
-                pinctrl-single,pins =<
-@@ -1062,7 +1062,7 @@ &vi {
+          pinctrl_gmac0: gmac0_grp {
+                  pinctrl-single,pins =<
+  @@ -1062,7 +1062,7 @@ &vi {
  
- &rcpu {
-        pinctrl-names = "default";
--       pinctrl-0 = <&pinctrl_rcpu>;
-+       /* pinctrl-0 = <&pinctrl_rcpu>; */
-        mboxes = <&mailbox 0>, <&mailbox 1>;
-        mbox-names = "vq0", "vq1";
-        memory-region = <&rcpu_mem_0>, <&vdev0vring0>, <&vdev0vring1>, <&vdev0buffer>, <&rsc_table>, <&rcpu_mem_snapshots>;
+   &rcpu {
+          pinctrl-names = "default";
+  -       pinctrl-0 = <&pinctrl_rcpu>;
+  +       /* pinctrl-0 = <&pinctrl_rcpu>; */
+          mboxes = <&mailbox 0>, <&mailbox 1>;
+          mbox-names = "vq0", "vq1";
+          memory-region = <&rcpu_mem_0>, <&vdev0vring0>, <&vdev0vring1>, <&vdev0buffer>, <&rsc_table>, <&rcpu_mem_snapshots>;
 
-```
+  ```

@@ -1,32 +1,79 @@
 ---
 sidebar_position: 6
-slug: /solution/peripheral_driver
+slug: /development_guide/peripheral_driver
 ---
 
-# Peripheral Driver
+# Peripheral Drivers
 
-介绍文档编写目的、使用范围和相关人员。
+This document introduces the purpose of writing, the scope of application, and the relevant personnel involved. It also provides a detailed explanation of the peripheral driver support for the SpacemiT K1 platform.
 
-## 编写目的
+## Purpose
 
-本文档介绍SpacemiT K1 CPU各接口和外设的板级配置、CONFIG配置、测试、调试接口和常见问题等信息，方便开发人员进行二次开发。
+This manual is designed to assist developers in understanding and quickly getting started with the peripheral drivers for the SpacemiT K1 CPU.
+It covers the board-level configuration of various interfaces, kernel configuration (CONFIG), driver testing methods, debugging interface descriptions, and common issue troubleshooting. This information is intended to facilitate secondary driver development and system integration for developers.
 
-## 使用范围
+## Scope of Usage
 
-适用于SpacemiT K1 CPU。
+This document is applicable to platforms based on the SpacemiT K1 CPU and their software development kits.
 
-## 相关人员
+## Relevant Personnel
 
-- 驱动工程师
-- 系统工程师
+- Driver Development Engineers
+- System Integration Engineers
 
-## 功能介绍
+## Functional Description
 
-外设驱动（或设备驱动）是控制硬件设备与操作系统之间的接口。Linux系统外设驱动是一个模块化的组件，它充当了硬件和操作系统之间的桥梁，负责对硬件进行初始化、配置、管理、数据传输和错误处理等工作。
+Peripheral drivers (or device drivers) act as interfaces between hardware devices and the operating system. In Linux systems, peripheral drivers are modular components that act as a bridge between hardware and the operating system. They are responsible for initializing, configuring, managing hardware, transferring data, and handling errors.
 
-SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SPI等接口，提供了全面的外设连接选型，该文档包含K1涉及到的高速扩展接口驱动、音视频接口驱动、工业扩展接口驱动、存储接口驱动等使用说明文档。
+The SpacemiT K1 features a wide range of IO capabilities, integrating multiple sets of interfaces such as PCIe, USB, GMAC, SPI, and more, providing comprehensive peripheral connection options. This document covers the usage instructions for the high-speed expansion interface drivers, audio/video interface drivers, industrial expansion interface drivers, and storage interface drivers involved in K1:
 
-- 高速扩展接口驱动：PCIe、USB、GMAC等 
-- 音视频接口驱动：DSI、HDMI、CSI等
-- 工业扩展接口驱动：CAN-FD、UART、I2C、SPI、PWM等
-- 存储接口驱动：SDHC、SPI-Flash等
+- **High-Speed Expansion Interface Drivers**: PCIe, USB, GMAC, etc.
+- **Audio/Video Interface Drivers**: DSI, HDMI, CSI, etc.
+- **Industrial Control Interface Drivers**: UART, CAN-FD, I2C, SPI, PWM, etc.
+- **Storage Interface Drivers**: SDHC, SPI-Flash, etc.
+
+## Quick Index
+
+High-Speed Expansion Interface Drivers
+- [GMAC](09-GMAC.md)
+- [EtherCAT](22-EtherCAT.md)
+- [USB](10-USB.md)  
+- [PCIe](11-PCIe.md)
+
+Audio/Video Interface Drivers
+- [Display](12-Display.md)  
+- [V2D](13-V2D.md)  
+- [Audio](17-Audio.md)
+
+Low-Speed Expansion Interface Drivers
+- [PWM](03-PWM.md)  
+- [IR-RX](04-IR-RX.md)
+- [UART](05-UART.md)
+- [I2C](06-I2C.md)  
+- [QSPI](07-QSPI.md)
+- [SPI](SPI.md)
+- [CAN](15-CAN.md)
+- [GPADC](gpadc.md)
+
+Storage Interface Drivers
+- [SDHC](08-SDHC.md)
+
+System Basic Drivers
+- [PINCTRL](01-PINCTRL.md)
+- [GPIO](02-GPIO.md)
+- [Clock](16-Clock.md)  
+- [DMA](21-DMA.md)
+- [RTC](rtc.md)
+
+Power Subsystem Drivers
+- [Thermal](thermal.md)  
+- [CPUFREQ](15-Cpufreq.md)  
+- [Standby](../standby.md)
+- [PMIC](14-PMIC.md)
+
+Third-Party Peripheral Drivers
+- [WIFI](WIFI.md)
+- [BT](BT.md)
+
+Other Drivers
+- [CRYPTO](18-CRYPTO.md)

@@ -1,158 +1,166 @@
 # EtherCAT
 
-介绍 EtherCAT 主站驱动的功能和使用方法。
+EtherCAT Master Functionality and Usage Guide.
 
-## 模块介绍
+## Overview
 
-EtherCAT 主站模块是一个高性能实时通信内核模块，支持总线自动扫描、分布式时钟同步和多从设备高效管理，适用于工业自动化领域。
+The IGH EtherCAT Master is a kernel module designed for high-performance real-time communication. It supports functions such as **slave scanning**, **configuration management**, and **distributed clock synchronization**. It can efficiently schedule and manage multiple Slave Devices and is widely used in industrial automation applications where high real-time performance and reliability are required.
 
-### 功能介绍
+### Functional Description
 
 ![](static/EtherCAT.png)  
 
-EtherCAT主站架构如上图所示，由四个部分构成：  
-应用层: 用户应用程序，负责实现工业控制逻辑，通过接口与 EtherCAT 主站驱动交互。  
-EtherCAT主站驱动层：实现核心协议、监测总线拓扑、自动配置从站、同步分布式时钟。  
-EtherCAT设备驱动层：由实时网卡驱动构成，负责ECAT数据帧收发。  
-物理层：网络硬件设备。
+The architecture of the EtherCAT Master is shown in the figure above and consists of four main components:
 
-### 源码结构介绍
+- **Application Layer**
+  
+  This is where user applications reside, responsible for implementing industrial control logic. It interacts with the EtherCAT Master driver through specific interfaces.
 
-EtherCAT主站驱动代码在drivers/net/ethercat目录下：  
+- **EtherCAT Master Driver Layer**
+  
+  This layer handles core protocol implementation, monitors the bus topology, automatically configures the slaves, and synchronizes distributed clocks.
+
+- **EtherCAT Device Driver Layer**
+  
+  Composed of real-time Ethernet interface drivers, this layer is responsible for the transmission and reception of ECAT data frames.
+
+- **Physical Layer**
+  
+  This encompasses the physical network hardware.
+
+### Source Code Structure
+
+The EtherCAT Master driver code is located in the `drivers/net/ethercat` directory:  
 
 ```c
-# 代码中出现大量配对的xxx.h + xxx.c文件，前者负责数据结构和接口定义，后者负责实现
-# 为了避免文件功能重复描述，我们仅对其中一者加以注释
-.
+# In the codebase, there are many paired xxx.h and xxx.c files. The former is responsible for defining data structures and interfaces, while the latter handles the implementation.
+
 ├── device                     # EtherCAT device driver
 │   ├── ecdev.h                
-│   ├── ec_generic.c           # 通用网络设备驱动实现
-│   ├── ec_k1x_emac.c          # 针对 K1 以太网控制器的专用驱动实现
+│   ├── ec_generic.c           # Generic network device driver
+│   ├── ec_k1x_emac.c          # Real-time network card driver for the K1 Ethernet controller
 │   ├── ec_k1x_emac.h          
-│   ├── Kconfig                # 定义内核配置选项，下同                
-│   └── Makefile               # 管理本目录下编译规则，下同
-├── include                   
-│   ├── config.h               # 全局配置选项和编译宏定义
-│   ├── ecrt.h                 # 提供用户态和内核态之间交互的核心接口
+│   ├── Kconfig               
+│   └── Makefile
+├── include                    # Include directory for global configurations and definitions
+│   ├── config.h               # Global configuration items and macro definitions
+│   ├── ecrt.h                 # User program interface
 │   ├── ectty.h                
-│   └── globals.h              # 全局变量
-├── Kconfig                  
-├── Makefile                  
-└── master                
-    ├── cdev.c                 # 实现字符设备接口
+│   └── globals.h              # Global variables
+├── Kconfig                    # Kernel configuration file
+├── Makefile                   # Main Makefile for building the project
+└── master                     # EtherCAT Master module
+    ├── cdev.c                 # Provides the EtherCAT character device initialization interface
     ├── cdev.h                 
-    ├── coe_emerg_ring.c       # 处理 CoE 紧急消息
+    ├── coe_emerg_ring.c       # Interface for handling CoE emergency messages
     ├── coe_emerg_ring.h       
-    ├── datagram.c             # 实现操作 ECAT 数据报接口
+    ├── datagram.c             # Interface for constructing ECAT datagrams
     ├── datagram.h             
-    ├── datagram_pair.c        # 提供操作 ECAT 数据报对的接口
+    ├── datagram_pair.c        # Interface for constructing ECAT datagram pairs
     ├── datagram_pair.h        
-    ├── debug.c                # 提供调试信息的输出功能
+    ├── debug.c                # Debugging interface
     ├── debug.h                
-    ├── device.c               # 为主站提供网卡设备抽象及管理设备的接口
+    ├── device.c               # Interface for network card device abstraction and management
     ├── device.h               
-    ├── domain.c               # 提供管理和操作 EtherCAT 域的接口
+    ├── domain.c               # Interface for EtherCAT domain-related functions
     ├── domain.h               
-    ├── doxygen.c              # 生成 Doxygen 文档的辅助文件
-    ├── eoe_request.c          # 处理 EoE（Ethernet over EtherCAT）请求
+    ├── doxygen.c              # Doxygen documentation source file
+    ├── eoe_request.c          
     ├── eoe_request.h          
-    ├── ethernet.c             # 以太网帧的管理与封装
+    ├── ethernet.c             # Core implementation of EoE functionality
     ├── ethernet.h             
-    ├── flag.c                 # 管理和操作协议标志位
+    ├── flag.c                 
     ├── flag.h                 
-    ├── fmmu_config.c          # 提供配置 FMMU（场可编程映射单元）接口
+    ├── fmmu_config.c          # Interface for constructing FMMU configuration messages
     ├── fmmu_config.h          
     ├── foe.h                  
-    ├── foe_request.c          # 实现 FoE 请求处理
+    ├── foe_request.c          # FoE request handling interface
     ├── foe_request.h          
-    ├── fsm_change.c           # 状态变更状态机实现
+    ├── fsm_change.c           # State transition state machine implementation
     ├── fsm_change.h           
-    ├── fsm_coe.c              # CoE 协议状态机实现
+    ├── fsm_coe.c              # CoE protocol state machine implementation
     ├── fsm_coe.h              
-    ├── fsm_eoe.c              # EoE 协议状态机实现
+    ├── fsm_eoe.c              # EoE protocol state machine implementation
     ├── fsm_eoe.h              
-    ├── fsm_foe.c              # FoE 协议状态机实现
+    ├── fsm_foe.c              # FoE protocol state machine implementation
     ├── fsm_foe.h              
-    ├── fsm_master.c           # 主状态机实现
+    ├── fsm_master.c           # Main state machine implementation
     ├── fsm_master.h           
-    ├── fsm_pdo.c              # PDO 读取状态机实现
-    ├── fsm_pdo_entry.c        # PDO 条目读取状态机实现
+    ├── fsm_pdo.c              # PDO read/write state machine implementation
+    ├── fsm_pdo_entry.c        # PDO entry read/write state machine implementation
     ├── fsm_pdo_entry.h        
     ├── fsm_pdo.h              
-    ├── fsm_sii.c              # 从站信息接口（SII）读写状态机实现
+    ├── fsm_sii.c              # Slave information interface read/write state machine implementation
     ├── fsm_sii.h              
-    ├── fsm_slave.c            # 从站管理状态机实现
-    ├── fsm_slave_config.c     # 从站配置状态机实现
+    ├── fsm_slave.c            # Slave state machine implementation
+    ├── fsm_slave_config.c     # Slave configuration state machine implementation
     ├── fsm_slave_config.h     
     ├── fsm_slave.h            
-    ├── fsm_slave_scan.c       # 从站扫描状态机实现
+    ├── fsm_slave_scan.c       # Slave scanning state machine implementation
     ├── fsm_slave_scan.h       
-    ├── fsm_soe.c              # SoE（Servo over EtherCAT）状态机实现
+    ├── fsm_soe.c              # SoE (Servo over EtherCAT) state machine implementation
     ├── fsm_soe.h              
     ├── globals.h              
-    ├── ioctl.c                # 提供 IOCTL 接口以支持用户态交互
+    ├── ioctl.c                # IOCTL interface for user-space interaction
     ├── ioctl.h               
     ├── Kconfig                
-    ├── mailbox.c              # ECAT 邮箱管理
+    ├── mailbox.c              # ECAT mailbox message interface
     ├── mailbox.h              
     ├── Makefile               
-    ├── master.c               # master 模块核心逻辑
+    ├── master.c               # Core logic of the EtherCAT master module
     ├── master.h               
-    ├── module.c               # master 模块的初始化和清理
-    ├── pdo.c                  # 提供 PDO 管理接口
-    ├── pdo_entry.c            # 提供 PDO 条目管理接口
+    ├── module.c               # Initialization and cleanup of the master module
+    ├── pdo.c                  # PDO management interface
+    ├── pdo_entry.c            # PDO entry management interface
     ├── pdo_entry.h            
     ├── pdo.h                  
-    ├── pdo_list.c             # 提供 PDO 链表管理方法
+    ├── pdo_list.c             # PDO list management interface
     ├── pdo_list.h             
-    ├── reg_request.c          # 实现寄存器请求处理
+    ├── reg_request.c          # Interface for slave register read/write requests
     ├── reg_request.h          
-    ├── rtdm.c                 # 实时驱动模型（RTDM）支持
+    ├── rtdm.c                 # RTDM (Real-Time Driver Model) support
     ├── rtdm_details.h         
     ├── rtdm.h                 
-    ├── rtdm-ioctl.c           # RTDM IOCTL 接口实现
-    ├── rtdm_xenomai_v3.c      # 支持 Xenomai v3 实时框架的接口
-    ├── rt_locks.h             # 实时锁实现
-    ├── sdo.c                  # 服务数据对象（SDO）管理
-    ├── sdo_entry.c            # SDO 条目管理
+    ├── rtdm-ioctl.c           # RTDM IOCTL interface implementation
+    ├── rtdm_xenomai_v3.c      # Interface for Xenomai v3 real-time framework support
+    ├── rt_locks.h             # Real-time lock implementation
+    ├── sdo.c                  # SDO (Service Data Object) management
+    ├── sdo_entry.c            # SDO entry management
     ├── sdo_entry.h            
     ├── sdo.h                  
-    ├── sdo_request.c          # SDO 请求处理逻辑
+    ├── sdo_request.c          # SDO request handling
     ├── sdo_request.h          
-    ├── slave.c                # 从站状态管理逻辑
-    ├── slave_config.c         # 从站配置实现
+    ├── slave.c                # Slave state management logic
+    ├── slave_config.c         # Interface for slave configuration
     ├── slave_config.h         
     ├── slave.h                
-    ├── soe_errors.c           # 处理 SoE 错误
-    ├── soe_request.c          # SoE 请求处理
+    ├── soe_errors.c           # Definitions for SoE protocol error codes
+    ├── soe_request.c          # SoE request-related interface
     ├── soe_request.h          
-    ├── sync.c                 # 分布式时钟（DC）功能实现
-    ├── sync_config.c          # 同步配置逻辑
+    ├── sync.c                 # Interface for synchronization manager
+    ├── sync_config.c          # Interface for configuring the synchronization manager
     ├── sync_config.h          
     ├── sync.h                 
-    ├── voe_handler.c          # 处理 VOE（Vendor-specific over EtherCAT）请求
-    └── voe_handler.h          
-
-  
+    ├── voe_handler.c          # VOE (Vendor-specific over EtherCAT) request interface
+    └── voe_handler.h  
 ```
 
-## 关键特性
+## Key Features
 
-| 特性 | 特性说明 |
+| Feature | Description |
 | :-----| :----|
-| 自动从站配置 | 支持自动扫描并配置连接的从站设备，简化网络配置 |
-| 分布式时钟同步 | 实现 \<1 µs 精度的分布式时钟（DC）同步 |
-| 多协议支持 | 支持 CoE、SoE、FoE 等协议 |
-| 高实时性能 | 支持 1 ms DC 周期，满足大部分工业应用的实时性要求 |
-| 多主站组合 | 支持配置多个主站，每个主站可管理两个网络设备：主设备和备用设备 |
+| Automatic Slave Configuration | Supports automatic scanning and configuration of connected Slave Devices, simplifying network setup |
+| Distributed Clock Synchronization | Achieves Distributed Clock (DC) synchronization with precision of less than 1 µs |
+| Multi-protocol Support | Supports protocols such as CoE, SoE, FoE, etc. |
+| High Real-time Performance | Supports a 1 ms DC cycle, meeting the real-time requirements of most industrial applications |
+| Multi-master Combination | Supports configuration of multiple masters, each managing two network devices: primary and backup |
 
-## 配置介绍
+## Configuration Introduction
 
-主要包括驱动CONFIG使能配置和dts配置
+It mainly includes driver enablement configuration and DTS configuration.
 
-### CONFIG配置
-
-ETHERCAT：如果要启用EtherCAT服务，首先将此选项配置为Y
+### CONFIG Configuration
+ETHERCAT: To enable EtherCAT services, first configure this option to `Y`.
 
 ```c
 menuconfig ETHERCAT
@@ -163,20 +171,20 @@ menuconfig ETHERCAT
           This section contains all the Ethercat drivers.
 ```
 
-EC_MASTER：启用master驱动
+EC_MASTER: Enable the master driver.
 
 ```c
 config EC_MASTER
-        tristate "Ethercat master driver support"
+        tristate "Ethercat Master driver support"
         depends on ETHERCAT
         default n
         help
-          Ethercat master driver support.
+          Ethercat Master driver support.
 
 ```
 
-EC_GENERIC：启用通用网卡驱动  
-EC_K1X_EMAC：启用实时网卡驱动  
+EC_GENERIC: Enable the generic network card driver.
+EC_K1X_EMAC: Enable the real-time network card driver.  
 
 ```c
 config EC_GENERIC
@@ -195,162 +203,163 @@ config EC_K1X_EMAC
 
 ```
 
-注：上面两个配置选项选一个即可
+**Note.** Generally, enabling the real-time network card driver provides better performance.
 
-### dts配置
+### DTS Configuration
 
-dts中可供配置的选项有：  
+The available configuration options in DTS are:
 
-1. run-on-cpu：可绑定的cpu选项有 1、2、3、4、5、6、7  
-2. debug-level：支持的debug-level有 0、1、2  
-3. master-count： 最多支持 32 个主站
-4. ec-devices： 用于 ethercat 的网络设备
-5. master-indexes：ethercat设备绑定的主站号，master-indexes 取值范围是 0 ~ master-count-1  
-6. modes：ethercat设备工作模式，支持ec_main和ec_backup两种选项
+1. run-on-cpu: The available CPUs to bind are 1, 2, 3, 4, 5, 6, 7.
+2. debug-level: The supported debug levels are 0, 1, 2.
+3. master-count: Up to 32 masters are supported.
+4. ec-devices: Network devices used for EtherCAT.
+5. master-indexes: The master indices bound to EtherCAT devices, with values ranging from 0 to master-count-1.
+6. modes: Working modes for EtherCAT devices, supporting two options: ec_main and ec_backup.
 
-目前支持三种配置模式：  
-一、配置两个主站，例如将eth0绑定到主站0、eth1绑定到主站1  
+Currently, three configuration modes are supported:
 
-```c
-ec_master: ethercat_master {
-        compatible = "igh,k1x-ec-master";
-        run-on-cpu = <1>;         
-        debug-level = <0>;
-        master-count = <2>;   
-        ec-devices = <&eth0>,<&eth1>;
-        master-indexes = <0>,<1>;
-        modes = "ec_main";
-        status = "okay";
-};
+- **Mode 1**: Configure two masters, for example, bind eth0 to master 0 and eth1 to master 1.
 
-eth0: ethernet@cac80000 {
-        compatible = "spacemit,k1x-ec-emac";
-        ...
+  ```c
+  ec_master: ethercat_master {
+          compatible = "igh,k1x-ec-master";
+          run-on-cpu = <1>;         
+          debug-level = <0>;
+          master-count = <2>;   
+          ec-devices = <&eth0>,<&eth1>;
+          master-indexes = <0>,<1>;
+          modes = "ec_main";
+          status = "okay";
+  };
 
-};
+  eth0: ethernet@cac80000 {
+          compatible = "spacemit,k1x-ec-emac";
+         ...
 
-eth1: ethernet@cac81000 {
-        compatible = "spacemit,k1x-ec-emac";
-        ...
+  };
 
-};
-```
+  eth1: ethernet@cac81000 {
+          compatible = "spacemit,k1x-ec-emac";
+          ...
 
-二、配置一个主站、一张网卡用于EtherCAT、一张网卡用于以太网，如eth0用于EtherCAT
+  };
+  ```
 
-```c
-ec_master: ethercat_master {
-        compatible = "igh,k1x-ec-master";
-        run-on-cpu = <1>;         
-        debug-level = <0>;
-        master-count = <1>;   
-        ec-devices = <&eth0>;
-        master-indexes = <0>;
-        modes = "ec_main";
-        status = "okay";
-};
+- **Mode 2**: Configure one master, with one network card used for EtherCAT and another for Ethernet, for example, using eth0 for EtherCAT.
 
-# 这里将eth0用于ethercat
-eth0: ethernet@cac80000 {
-        compatible = "spacemit,k1x-ec-emac";
-        ...
+  ```c
+  ec_master: ethercat_master {
+          compatible = "igh,k1x-ec-master";
+          run-on-cpu = <1>;         
+          debug-level = <0>;
+          master-count = <1>;   
+          ec-devices = <&eth0>;
+          master-indexes = <0>;
+          modes = "ec_main";
+          status = "okay";
+  };
 
-};
-```
+  # Here, eth0 is used for EtherCAT
+  eth0: ethernet@cac80000 {
+          compatible = "spacemit,k1x-ec-emac";
+          ...
 
-三、配置一个主站、绑定两张网卡。如eth0用于主设备、eth1用作备份设备
+  };
+  ```
 
-```c
-ec_master: ethercat_master {
-        compatible = "igh,k1x-ec-master";
-        run-on-cpu = <1>;         
-        debug-level = <0>;
-        master-count = <1>;   
-        ec-devices = <&eth0>,<&eth1>;
-        master-indexes = <0>,<0>;
-        modes = "ec_main","ec_backup";
-        status = "okay";
-};
+- **Mode 3**: Configure one master, binding two network cards. For example, eth0 is used as the primary device, and eth1 is used as the backup device.
 
-# 这里将eth0用于ethercat
-eth0: ethernet@cac80000 {
-        compatible = "spacemit,k1x-ec-emac";
-        ...
+  ```c
+  ec_master: ethercat_master {
+          compatible = "igh,k1x-ec-master";
+          run-on-cpu = <1>;         
+          debug-level = <0>;
+          master-count = <1>;   
+          ec-devices = <&eth0>,<&eth1>;
+          master-indexes = <0>,<0>;
+          modes = "ec_main","ec_backup";
+          status = "okay";
+  };
 
-};
+  # Here, eth0 is used for EtherCAT.
+  eth0: ethernet@cac80000 {
+          compatible = "spacemit,k1x-ec-emac";
+          ...
 
-eth1: ethernet@cac81000 {
-        compatible = "spacemit,k1x-ec-emac";
-        ...
+  };
 
-};
-```
+  eth1: ethernet@cac81000 {
+          compatible = "spacemit,k1x-ec-emac";
+          ...
 
-## 接口介绍
+  };
+  ```
 
-### API介绍
+## Interface
 
-请求主站实例
+### API
+
+Requesting a master instance.
 
 ```c
 ec_master_t *ecrt_request_master(unsigned int master_id);
 ```
 
-创建过程数据域
+Creating process data domains.
 
 ```c
 ec_domain_t *ecrt_master_create_domain(ec_master_t *master);
 ```
 
-激活主站
+Activating the master.
 
 ```c
 int ecrt_master_activate(ec_master_t *master);
 ```
 
-同步主站参考时钟
+Synchronizing the master's reference clock.
 
 ```c
 int ecrt_master_sync_reference_clock_to(ec_master_t *master, uint64_t ref_time);
 ```
 
-同步所有从站时钟
+Synchronizing all slave clocks.
 
 ```c
 void ecrt_master_sync_slave_clocks(ec_master_t *master);
 ```
 
-配置从站
+Configuring slaves.
 
 ```c
 ec_slave_config_t *ecrt_master_slave_config(ec_master_t *master, uint16_t alias, uint16_t position, uint32_t vendor_id, uint32_t product_code);
 
 ```
 
-为从站配置PDO映射
+Configure slave PDO mapping.
 
 ```c
 int ecrt_slave_config_pdos(ec_slave_config_t *sc, uint16_t sync_index, const ec_sync_info_t *syncs);
 ```
 
-注册PDO条目到指定数据域
+Register PDO entries to the specified data domain.
 
 ```c
 int ecrt_slave_config_reg_pdo_entry(ec_slave_config_t *sc, uint16_t index, uint8_t subindex， ec_domain_t *domain, unsigned int *offset);
 
 ```
 
-为从站配置分布式时钟
+Configure distributed clock for the slave.
 
 ```c
 int ecrt_slave_config_dc(ec_slave_config_t *sc, uint16_t assign_activate, uint32_t sync0_cycle_time, int32_t sync0_shift, uint32_t sync1_cycle_time, int32_t sync1_shift);
 ```
 
-## debug介绍
+## Debugging
 
 ### sysfs
 
-EtherCAT主站信息
+EtherCAT Master information.
 
 ```c
 /sys/class/EtherCAT/EtherCAT0
@@ -366,19 +375,14 @@ EtherCAT主站信息
 `-- uevent
 
 ```
+- **dev**: Provides the master device number information.
+- **power**: Manages the power state of the device.
+- **subsystem**: Link: Indicates that the device belongs to the EtherCAT subsystem.
+- **uevent**: Master device number and device name.
 
-- dev  
-提供主站设备号信息
-- power  
-管理设备的电源状态
-- subsystem
- 链接：表明设备属于 EtherCAT 子系统
-- uevent  
-主站设备号与设备名
+## Testing
 
-## 测试介绍
-
-测试EtherCAT主站需要从站，主从连接后会自动开始扫描从站，自动扫描成功后，主站处于PREOP状态，此时等待应用程序运行即可
+Testing the EtherCAT Master requires Slave Devices. Once the master and slaves are connected, the Master automatically initiates slave device scanning. After a successful automatic scan, the master will be in the PRE-OP (Pre-Operational) state, at which point it is ready for the application program to run.
 
 ```c
 [  966.525910] k1x_ec_emac cac80000.ethernet ecm0 (uninitialized): Link is Up - 100Mbps/Full - flow control off
@@ -388,8 +392,48 @@ EtherCAT主站信息
 [  966.564036] EtherCAT 0: Scanning bus.
 [  966.739197] EtherCAT 0: Bus scanning completed in 176 ms.
 [  966.745275] EtherCAT 0: Using slave 0 as DC reference clock.
-[  966.756564] EtherCAT 0: Slave states on main device: PREOP.
+[  966.756564] EtherCAT 0: Slave states on main device: PRE-OP.
 
 ```
+
+You can use the official demo provided (source code directory: https://gitlab.com/etherlab.org/ethercat, demo path: `examples/`) to perform performance testing on the master station. Here, we use `examples/dc_user/main.c` as a template, with a 1ms DC communication cycle and two connected slaves. The test results are as follows:
+
+```c
+period         995099 ...    1004890
+exec            14500 ...     106835
+latency          7227 ...      13169
+period         994556 ...    1005557
+exec            14625 ...     105543
+latency          7409 ...      13805
+period         995306 ...    1004974
+exec            14458 ...     105127
+latency          7269 ...      13205
+period         995390 ...    1004807
+exec            14583 ...     137586
+latency          7284 ...      13893
+period         995265 ...    1005516
+exec            14792 ...     108710
+latency          7460 ...      13658
+period         995598 ...    1004557
+exec            14458 ...     112502
+latency          7299 ...      12821
+period         994807 ...    1005056
+exec            14459 ...     105085
+latency          7428 ...      13340
+period         995390 ...    1005016
+exec            14792 ...     110502
+latency          7230 ...      13237
+period         994432 ...    1007265
+exec            14959 ...     110668
+latency          7199 ...      15479
+period         994848 ...    1004682
+exec            14709 ...     113544
+latency          7630 ...      13930
+```
+
+**Notes.**
+- The values in the period row represent the fluctuation range of the communication cycle within one second.
+- The values in the exec row represent the fluctuation range of the master's periodic task execution time within one second.
+- The values in the latency row represent the fluctuation range of the master's wake-up error within one second.
 
 ## FAQ

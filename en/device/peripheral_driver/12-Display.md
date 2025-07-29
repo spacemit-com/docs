@@ -1,51 +1,81 @@
-介绍spacemit平台Display模块的功能和使用方法。
-# 模块介绍
-spacemit平台Display模块使用DRM框架，DRM全称是Direct Rendering Manager，是Linux系统目前主流的显示框架，适应当前显示硬件的特性。
-## 功能介绍
+# Display
+
+The SpacemiT platform's Display module Functionality and Usage Guide.
+
+## Overview
+
+The Display module on the SpacemiT platform uses the DRM (Direct Rendering Manager) framework, which is the mainstream display framework in Linux systems and is well-suited to the characteristics of modern display hardware.
+
+### Function Description
+
 ![display-drm](static/display-drm.png)
 
-### 用户空间（Libdrm）：
-DRM框架在用户空间提供的Lib，用户或应用程序在用户空间调用libdrm提供的库函数， 即可访问到显示的资源，并对显示资源进行管理和使用。
+#### User Space: Libdrm
 
-### 内核空间(DRM driver )：
-DRM driver提供了一系列的 IOCTL 接口，可以分成两类：Graphics Execution Manager (GEM)、Kernel Mode-Setting (KMS)。
+Libdrm is the user-space library provided by the DRM framework. Users or applications can access and manage display resources by calling the functions provided by libdrm in user space.
 
-#### GEM
-GEM 主要是对 FrameBuffer 的管理，如显存的申请释放 (Framebuffer managing) ，显存共享机制 (Memory sharing objects)， 及显存同步机制 (Memory synchronization)；
+#### Kernel Space: DRM Driver
 
-#### KMS
-KMS 主要负责管理显示模式的设置和图像输出 。KMS模型由组件Framebuffer，CRTC，Planes，Encoder，Connector组成。 
+The DRM driver provides a set of IOCTL interfaces, which can be divided into two categories: Graphics Execution Manager (GEM) and Kernel Mode-Setting (KMS).
 
-##### Framebuffer:
-一块内存区域，驱动和应用层可访问，单个图层的显示内容。
+##### GEM
 
-##### CRTC:
-显示控制器，负责把要显示的图像，转化为底层硬件层面上的具体时序要求，还负责着帧切换、电源控制、色彩调整等等。
+GEM (Graphics Execution Manager) is mainly responsible for managing the framebuffer, including:
+- Allocation and release of video memory
+- Mechanism for shared memory objects
+- Mechanism for memory synchronization
 
-##### Plane:
-图层，每个图像拥有一个Planes，Planes的属性控制着图像的显示区域、图像翻转、色彩混合方式等， CRTC的显示图像实际上是Framebuffer和Planes的组合，得到多个图像的混合显示或单独显示。
-图层有以下三种类型：
-1) 主图层（primary plane），用于显示背景或者图像内容；
-2) 叠加图层（overlay plane），通常用于叠加，比如视频图层；
-3) 光标图层(cursor)，用于显示鼠标。
+##### KMS
 
-##### Encoder: 
-编码器，负责电源管理、视频输出格式封装，把时序转换为显示器所需要的信号，将画面显示到不同的显示设备，例如将视频输出到HDMI接口、MIPI DSI接口等。
+KMS (Kernel Mode-Setting) primarily handles display mode configuration and image output.
+The KMS model is composed of the following components:
+- Framebuffer
+- CRTC (Cathode Ray Tube Controller)
+- Planes
+- Encoder
+- Connector
 
-##### Connector：
-连接器，负责硬件显示设备的接入、屏参获取等，例如HDMI, MIPI DSI等。
+###### Framebuffer
 
-#### Panel
-显示面板，负责将接收的图像信号转换为显示图像。
+A memory region accessible by both the driver and user-space applications, used to hold the display content of a single layer.
 
-## 源码结构介绍
-spacemit平台DRM驱动源码结构：
+###### CRTC
+
+The display controller responsible for:
+- Converting images to timing signals required by the display hardware
+- Managing frame updates, power control, and color adjustments, among other tasks
+
+###### Plane
+
+A display layer. Each image is associated with a Plane. Plane attributes control display position, image flipping, color blending, etc.
+The actual image shown by the CRTC is a composition of the Framebuffer and Planes, allowing either layered or individual image display.
+There are three types of Planes:
+- Primary Plane – Displays the main content or background.
+- Overlay Plane – Used for layered content, such as video overlays.
+- Cursor Plane – Dedicated to displaying the mouse cursor.
+
+###### Encoder
+
+The Encoder handles power management and video signal formatting. It converts display timing signals into formats required by output devices. The processed signals are then transmitted to various display interfaces, such as HDMI, MIPI DSI, etc.
+
+###### Connector
+
+The Connector manages the physical connection to display hardware, including tasks like device detection and screen parameter retrieval. Examples include HDMI, MIPI DSI, and others.
+
+###### Panel
+
+The Panel is the display screen, which converts the incoming video signals into visible images.
+
+### Source Code Structure Introduction
+
+The source code structure of the SpacemiT platform's DRM driver is as follows:
+
 ```
 linux-6.6/drivers/gpu/drm$ tree spacemit
 spacemit
 |-- dphy
-|   `-- spacemit_dphy_drv.c                     // mipi dsi dphy驱动
-|-- dpu                                         // dpu 驱动
+|   `-- spacemit_dphy_drv.c                     // MIPI DSI DPHY driver
+|-- dpu                                         // DPU driver
 |   |-- dpu_debug.c
 |   |-- dpu_debug.h
 |   |-- dpu_saturn.c
@@ -69,14 +99,14 @@ spacemit
 |       |-- reg_map.h
 |       |-- scaler_x.h
 |       `-- wb_top.h
-|-- dsi                                         // mipi dsi 驱动
+|-- dsi                                         // MIPI DSI driver
 |   |-- spacemit_dptc_drv.c
 |   |-- spacemit_dptc_drv.h
 |   |-- spacemit_dsi_drv.c
 |   `-- spacemit_dsi_hw.h
 |-- Kconfig
-|-- lt8911exb.c                                 // lt8911exb mipi dsi转eDP panel驱动
-|-- lt9711.c                                    // lt9711 mipi dsi转DP panel驱动
+|-- lt8911exb.c                                 // lt8911exb MIPI DSI to eDP panel driver
+|-- lt9711.c                                    // lt9711 MIPI DSI to DP panel driver
 |-- Makefile
 |-- spacemit_bootloader.c
 |-- spacemit_bootloader.h
@@ -89,45 +119,48 @@ spacemit
 |-- spacemit_dpu.c
 |-- spacemit_dpu.h
 |-- spacemit_dpu_reg.h
-|-- spacemit_drm.c                             // DRM core 驱动
+|-- spacemit_drm.c                             // DRM core driver
 |-- spacemit_drm.h
 |-- spacemit_dsi.c
 |-- spacemit_dsi.h
-|-- spacemit_gem.c                             // GEM 驱动
+|-- spacemit_gem.c                             // GEM driver
 |-- spacemit_gem.h
-|-- spacemit_hdmi.c                            // HDMI 驱动
+|-- spacemit_hdmi.c                            // HDMI driver
 |-- spacemit_hdmi.h
 |-- spacemit_lib.c
 |-- spacemit_lib.h
-|-- spacemit_mipi_panel.c                      // panel 驱动
+|-- spacemit_mipi_panel.c                      // Panel driver
 |-- spacemit_mipi_panel.h
 |-- spacemit_planes.c
-|-- spacemit_wb.c                              // write back 驱动
+|-- spacemit_wb.c                              // Write back driver
 |-- spacemit_wb.h
 `-- sysfs
-    |-- sysfs_class.c                         
+    |-- sysfs_class.c                          
     |-- sysfs_display.h
     |-- sysfs_dphy.c
     |-- sysfs_dpu.c
     |-- sysfs_dsi.c
     `-- sysfs_mipi_panel.c
 ```
-# 关键特性
-## 特性
-| 特性 | 特性说明 |
-| :-----| :----|
-| 支持MIPI DSI | 支持MIPI DPHY v1.1, 支持DPHY 4 lane，最高速率1.2Gbps/lane |
-| 支持HDMI | 支持HDMI 1.4a |
 
-## 性能参数
-| 屏幕接口 | 性能规格 |
-| :-----| :----| 
+## Key Features
+
+| Feature | Description |
+| :-----| :----|
+| Supports MIPI DSI | Supports MIPI DPHY V1.1, supports DPHY 4 lanes, maximum rate 1.2Gbps per lane |
+| Supports HDMI | Supports HDMI 1.4a |
+
+### Performance Specifications
+
+| Screen Interface | Performance Specification |
+| :-----| :----|
 | MIPI DSI| 1920x1200@60FPS |
 | HDMI | 1920x1080@60FPS |
 
-**MIPI DSI屏幕帧率测试方法:**
+**MIPI DSI Screen Frame Rate Testing Method:**
 
-查看Connectors：
+To view Connectors:
+
 ```
 # modetest -M spacemit -D /dev/dri/card1 -c
 Connectors:
@@ -161,7 +194,8 @@ id      encoder status          name            size (mm)       modes   encoders
                 value:
 ```
 
-查看Encoders：
+To view Encoders:
+
 ```
 # modetest -M spacemit -D /dev/dri/card1 -e
 Encoders:
@@ -169,7 +203,8 @@ id      crtc    type    possible crtcs  possible clones
 129     127     DSI     0x00000001      0x00000001
 ```
 
-测试MIPI DSI屏幕帧率：
+Test the frame rate of the MIPI DSI screen:
+
 ```
 # modetest -M spacemit -D /dev/dri/card1 -s 130@127:1200x1920 -v
 setting mode 1200x1920-60.05Hz on connectors 130, crtc 127
@@ -178,9 +213,10 @@ freq: 60.28Hz
 freq: 60.28Hz
 ```
 
-**HDMI屏幕帧率测试方法:**
+**HDMI Screen Frame Rate Testing Method:**
 
-查看Connectors：
+To view Connectors:
+
 ```
 # modetest -M spacemit -D /dev/dri/card2 -c
 Connectors:
@@ -241,7 +277,8 @@ id      encoder status          name            size (mm)       modes   encoders
                 value:
 ```
 
-查看Encoders：
+To view Encoders:
+
 ```
 # modetest -M spacemit -D /dev/dri/card2 -e
 Encoders:
@@ -249,7 +286,8 @@ id      crtc    type    possible crtcs  possible clones
 129     127     TMDS    0x00000001      0x00000001
 ```
 
-测试HDMI屏幕帧率：
+Test the frame rate of the HDMI screen:
+
 ```
 # modetest -M spacemit -D /dev/dri/card2 -s 130@127:1920x1080 -v
 setting mode 1920x1080-60.00Hz on connectors 130, crtc 127
@@ -258,85 +296,98 @@ freq: 60.00Hz
 freq: 60.00Hz
 ```
 
-# 配置介绍
-主要包括Display驱动使能配置和dts配置，K1芯片支持1个MIPI DSI硬件接口和1个HDMI硬件接口。
+## Configuration
 
-## CONFIG配置
-CONFIG_DRM_SPACEMIT：spacemit平台DRM驱动配置选项，默认情况，此选项为Y，MIPI DSI驱动或HDMI驱动配置依赖此配置选项，可单独配置或同时配置MIPI DSI驱动和HDMI驱动。
+This mainly includes the display driver enablement configuration and DTS configuration. The K1 chip supports one MIPI DSI hardware interface and one HDMI hardware interface.
+
+## CONFIG Configuration
+
+CONFIG_DRM_SPACEMIT: This is the configuration option for the SpacemiT platform's DRM driver. By default, this option is set to `Y`. The configuration of the MIPI DSI driver or HDMI driver depends on this option, and you can configure either the MIPI DSI driver or the HDMI driver individually, or both simultaneously.
+
 ```
  Device Drivers  --->
- 	Graphics support  ---> 
- 	 <*> DRM Support for Spacemit
- 	 < >   MIPI Panel Support For Spacemit
- 	 < >   HDMI Support For Spacemit
+  Graphics support  ---> 
+   <*> DRM Support for Spacemit
+   < >   MIPI Panel Support For Spacemit
+   < >   HDMI Support For Spacemit
 ```
 
-### MIPI DSI CONFIG配置
-CONFIG_SPACEMIT_MIPI_PANEL：spacemit平台MIPI DSI驱动配置选项，具体方案根据需要进行配置。
-```
- Device Drivers  --->
- 	Graphics support  ---> 
- 	 <*> DRM Support for Spacemit
- 	 <*>   MIPI Panel Support For Spacemit
-```
+#### MIPI DSI CONFIG Configuration
 
-### HDMI CONFIG配置
-CONFIG_SPACEMIT_HDMI：spacemit平台HDMI驱动配置选项，具体方案根据需要进行配置。
+CONFIG_SPACEMIT_MIPI_PANEL: This is the configuration option for the MIPI DSI driver on the SpacemiT platform. Specific configurations should be made according to the needs of the particular scheme.
+
 ```
  Device Drivers  --->
- 	Graphics support  ---> 
- 	 <*> DRM Support for Spacemit
- 	 <*>   HDMI Support For Spacemit
+  Graphics support  ---> 
+   <*> DRM Support for Spacemit
+   <*>   MIPI Panel Support For Spacemit
 ```
 
-## dts配置
+#### HDMI CONFIG Configuration
 
-### MIPI DSI
+CONFIG_SPACEMIT_HDMI: This is the configuration option for the HDMI driver on the SpacemiT platform. Specific configurations should be made according to the needs of the particular scheme.
 
-#### gpio
+```
+ Device Drivers  --->
+  Graphics support  ---> 
+   <*> DRM Support for Spacemit
+   <*>   HDMI Support For Spacemit
+```
 
-MIPI DSI panel gpio相关配置，包括panel复位gpio配置和panel电源控制gpio配置。
+### DTS Configuration
 
-以k1-x_deb1方案为例：
-gpio81配置为panel复位pin，gpio82和gpio83配置为panel电源控制pin。
+#### MIPI DSI
+
+##### GPIO
+
+MIPI DSI panel GPIO configurations, including reset and power control pins.
+
+Taking the k1-x_deb1 scheme as an example:
+GPIO81 is configured as the panel reset pin, and GPIO82 and GPIO83 are configured as the panel power control pins.
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dsi2 {
-	status = "okay";
+        status = "okay";
 
-	panel2: panel2@0 {
-		status = "okay";
-		compatible = "spacemit,mipi-panel2";
-		reg = <0>;
+        panel2: panel2@0 {
+                status = "okay";
+                compatible = "spacemit,mipi-panel2";
+                reg = <0>;
 
-		gpios-reset = <81>;     // 配置panel 复位 gpio
-		gpios-dc = <82 83>;     // 配置panel 电源控制 gpio
-	};
+                gpios-reset = <81>;     // Configure panel reset GPIO
+                gpios-dc = <82 83>;     // Configure panel power control GPIO  
+        };
 };
 ```
-### 电源配置
 
-MIPI DSI电源配置，包括MIPI DSI 1.2v电源控制配置。
+#### Power Supply Configuration
 
-以k1-x_deb1方案为例：
-配置pmic ldo_5为MIPI DSI 1.2v。
+MIPI DSI power configuration, including the configuration for the MIPI DSI 1.2V power supply.
+
+Taking the k1-x_deb1 scheme as an example:
+Configure PMIC LDO_5 as the MIPI DSI 1.2V power supply.
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
-	status = "okay";
+        status = "okay";
 
-	dsi_1v2-supply = <&ldo_5>;      // 引用PMIC DLDO
-	vin-supply-names = "dsi_1v2";   // 配置MIPI DSI 1.2v电源
+        dsi_1v2-supply = <&ldo_5>;      // Reference to PMIC DLDO
+        vin-supply-names = "dsi_1v2";   // Configure MIPI DSI 1.2V power supply
 };
 ```
 
-### clock配置
+#### Clock Configuration
 
-MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，及MIPI DSI DPHY相关clock配置。其中pixel clock和 bit clock通过timing参数计算获取，具体计算方法请参见display timing配置章节。display-timings中的clock-frequency为pixel clock值，mipi dsi dpu中的spacemit-dpu-bitclk和mipi dsi dphy中的phy-bit-clock为bit clock值。mipi dsi dpu escclk及mipi dsi dphy escclk配置51200000或76800000（分辨率1920x1080以上推荐使用76800000），其它clock参数使用系统默认值，不需在dts文件中配置。
+MIPI DSI-related clock configurations include MIPI DSI DPU clock configurations, reset configurations, and MIPI DSI DPHY clock configurations. The system calculates the pixel clock and bit clock from timing parameters, and the specific calculation methods can be found in the **Display Timing Configuration** section. The clock-frequency in display-timings represents the pixel clock value, while spacemit-dpu-bitclk in MIPI DSI DPU and phy-bit-clock in MIPI DSI DPHY represent the bit clock value.
 
-配置平台MIPI DSI DPU相关clock和reset。
+The MIPI DSI DPU escclk and MIPI DSI DPHY escclk should be configured to 51200000 or 76800000 (for resolutions above 1920x1080, it is recommended to use 76800000). Other clock parameters should use the system default values without configuration in the DTS file.
+
+Here is an example of configuring the MIPI DSI DPU-related clocks and resets for the platform:
+
 ```c
-// linux-6.6\arch\riscv\boot\dts\spacemit\k1-x-lcd.dtsi
+// linux-6.6/arch/riscv/boot/dts/spacemit/k1-x-lcd.dtsi
 &soc {
 	display-subsystem-dsi {
 		compatible = "spacemit,saturn-le";
@@ -351,16 +402,16 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 		interrupt-parent = <&intc>;
 		interrupts = <90>, <89>;
 		interrupt-names = "ONLINE_IRQ", "OFFLINE_IRQ";
-		clocks = <&ccu CLK_DPU_PXCLK>,          // mipi dsi dpu pxclk 配置
-			 <&ccu CLK_DPU_MCLK>,           // mipi dsi dpu mclk 配置
-			 <&ccu CLK_DPU_HCLK>,           // mipi dsi dpu hclk 配置
-			 <&ccu CLK_DPU_ESC>,            // mipi dsi dpu escclk 配置
-			 <&ccu CLK_DPU_BIT>;            // mipi dsi dpu bitclk 配置
+		clocks = <&ccu CLK_DPU_PXCLK>,          // MIPI DSI DPU pxclk configuration
+			 <&ccu CLK_DPU_MCLK>,           // MIPI DSI DPU mclk configuration
+			 <&ccu CLK_DPU_HCLK>,           // MIPI DSI DPU hclk configuration
+			 <&ccu CLK_DPU_ESC>,            // MIPI DSI DPU escclk configuration
+			 <&ccu CLK_DPU_BIT>;            // MIPI DSI DPU bitclk configuration
 		clock-names = "pxclk", "mclk", "hclk", "escclk", "bitclk";
-		resets = <&reset RESET_MIPI>,           // mipi dsi dpu dsi reset 配置
-			 <&reset RESET_LCD_MCLK>,       // mipi dsi dpu mclk reset 配置
-			 <&reset RESET_LCD>,            // mipi dsi dpu lcd reset 配置
-			 <&reset RESET_DSI_ESC>;        // mipi dsi dpu esc reset 配置
+		resets = <&reset RESET_MIPI>,           // MIPI DSI DPU dsi reset configuration
+			 <&reset RESET_LCD_MCLK>,       // MIPI DSI DPU mclk reset configuration
+			 <&reset RESET_LCD>,            // MIPI DSI DPU lcd reset configuration
+			 <&reset RESET_DSI_ESC>;        // MIPI DSI DPU esc reset configuration
 		reset-names= "dsi_reset", "mclk_reset", "lcd_reset","esc_reset";
 		power-domains = <&power K1X_PMU_LCD_PWR_DOMAIN>;
 		pipeline-id = <ONLINE2>;
@@ -378,152 +429,158 @@ MIPI DSI相关clock配置，包括MIPI DSI DPU相关clock配置，reset配置，
 			remote-endpoint = <&wb0_in>;
 		};
 	};
-}
+};
 ```
 
-配置方案MIPI DSI DPU bitclk 及 escclk。
-以k1-x_deb1方案为例：
+To configure the MIPI DSI DPU bitclk and escclk for the k1-x_deb1 scheme, you can follow the example provided in the DTS configuration:
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
 	status = "okay";
 
-	spacemit-dpu-bitclk = <1000000000>;     // mipi dsi dpu bitclk 配置
-	spacemit-dpu-escclk = <76800000>;       // mipi dsi dpu escclk 配置
+	spacemit-dpu-bitclk = <1000000000>;     // mipi dsi dpu bitclk Configuration
+	spacemit-dpu-escclk = <76800000>;       // mipi dsi dpu escclk Configuration
 };
 ```
 
-配置Panel型号MIPI DSI DPHY bitclk 及 escclk。
-以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
+Configure the MIPI DSI DPHY bitclk and escclk for the panel model.
+For example, using the MIPI DSI panel model `lcd_gx09inx101_mipi`
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
 / { lcds: lcds {
 	lcd_gx09inx101_mipi: lcd_gx09inx101_mipi {
 
-		phy-bit-clock = <1000000000>;   // mipi dsi dphy bitclk 配置
-		phy-esc-clock = <76800000>;     // mipi dsi dphy escclk 配置
+		phy-bit-clock = <1000000000>;   // mipi dsi dphy bitclk Configuration
+		phy-esc-clock = <76800000>;     // mipi dsi dphy escclk Configuration
 	};
+
 };};
 ```
 
-### display timing配置
+#### Display Timing Configuration
 
-根据MIPI DSI panel提供规格书的timing信息填写dpu timing 配置，及mipi dsi timing 配置。其中pixel clock和 bit clock通过timing参数计算获取。
+Fill in the DPU timing configuration and MIPI DSI timing configuration based on the timing information provided in the MIPI DSI panel's specification. The pixel clock and bit clock are calculated from the timing parameters.
 
 ![display-timing](static/display-timing.png)
 
-#### display timing参数说明
+##### Display Timing Parameter Explanation
 
 **HFP:**
-hfront porch(horizon front porch): 水平前肩是指水平同步信号之前的空白时间，用于显示设备进行准备。
+Horizontal Front Porch (hfront porch): The horizontal front porch is the blanking time before the horizontal sync signal, used for the display device to prepare.
 
 **HBP:**
-hback porch(horizon back porch): 水平后肩是指水平同步信号之后的空白时间，用于显示设备进行复位和恢复。
+Horizontal Back Porch (hback porch): The horizontal back porch is the blanking time after the horizontal sync signal, used for the display device to reset and recover.
 
 **HSYNC:**
-hsync pulse: 水平同步信号用于同步显示设备的行扫描，水平同步脉冲宽度表示水平同步信号的持续时间。
+Horizontal Sync Pulse (hsync pulse): The horizontal sync signal is used to synchronize the row scanning of the display device. The horizontal sync pulse width indicates the duration of the horizontal sync signal.
 
 **VFP:**
-vfront porch(vertical front porch): 垂直前肩是指垂直同步信号之前的空白时间，用于显示设备进行准备。
+Vertical Front Porch (vfront porch): The vertical front porch is the blanking time before the vertical sync signal, used for the display device to prepare.
 
 **VBP:**
-vback porch(vertical back porch): 垂直后肩是指垂直同步信号之后的空白时间，用于显示设备进行复位和恢复。
+Vertical Back Porch (vback porch): The vertical back porch is the blanking time after the vertical sync signal, used for the display device to reset and recover.
 
 **VSYNC:**
-vsync pulse: 垂直同步信号用于同步显示设备的刷新率，垂直同步脉冲宽度表示垂直同步信号的持续时间。
+Vertical Sync Pulse (vsync pulse): The vertical sync signal is used to synchronize the refresh rate of the display device. The vertical sync pulse width indicates the duration of the vertical sync signal.
 
 **HACTIVE:**
-hactive(Horizon display period): 水平行中有效显示的行像素。
+Horizontal Active Display Period (hactive): The number of pixels in the horizontal line that are actively displayed.
 
-**VAVTIVE:**
-vactive(vertical display period): 垂直帧中有效显示的行数。
+**VACTIVE:**
+Vertical Active Display Period (vactive): The number of rows in the vertical frame that are actively displayed.
 
-#### display timing计算方法
+#### Display Timing Calculation Method
 
 **FPS:**
-帧率，每秒显示的帧数。
+Frame rate, the number of frames displayed per second.
 
 **Bpp:**
-位深，每个像素使用的 bit 位数。
+Bits per pixel, the number of bits used for each pixel.
 
-**htotal:**
-水平总像素。
+**Htotal:**
+Total horizontal pixels.
 
-Htotal = hactive + HFP + HSYNC pulse + HBP
+Htotal=hactive + HFP + HSYNC pulse + HBP
 
-**vtotal:**
-垂直总像素
+**Vtotal:**
+Total vertical pixels.
 
 vtotal = vactive + VFP + VSYNC pulse + VBP
 
 **Pixel clock:**
-每秒传输或处理像素数据的频率
+The frequency at which pixel data is transmitted or processed per second.
 
-像素时钟计算方法：
+Pixel clock calculation method:
 
 pixel clock = htotal \* vtotal \* fps  = (hactive + hfp + hbp + hsync) \* (vactive + vfp + vbp + vsync) \* fps
 
 **Bit clock:**
-MIPI DSI 数据传输过程中，每 Lane 的数据传输时钟
+The data transfer clock for each lane in the MIPI DSI data transmission process.
 
-Bit clock 计算方法：
+Bit clock calculation method:
 
 bit clock =  ((htotal \* vtotal \* fps  \* bpp) / lane bumber) \* 1.1 =   (((hactive + hfp + hbp + hsync) \* (vactive + vfp + vbp + vsync) \* fps  \* bpp) / lane bumber) \* 1.1
 
-**DSI clock:** 
-MIPI DSI 的 clock lane 实际时钟信号, 采用双边沿采样，一个时钟可以传两个 bit 数据。
+**DSI clock:**
+The actual clock signal of the MIPI DSI clock lane, which uses dual-edge sampling, allowing one clock to transmit two bits of data.
 
 dsi clock = bit clock / 2
 
-**注意：**
-spacemit 平台计算 MIPI DSI Bit clock 时, 需要乘以系数 1.1。
+**Note:**
+When calculating the MIPI DSI Bit clock on the SpacemiT platform, a factor of 1.1 is required.
 
-以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
-配置mipi dsi dpu timing及mipi dsi dphy timing。
+Taking the MIPI DSI panel model `lcd_gx09inx101_mipi` as an example:
+Configure the MIPI DSI DPU timing and MIPI DSI DPHY timing.
 
-pixel clock= (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ 
+Pixel clock = (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = (1200 + 50 + 40 + 10) * (1920 + 20 + 16 + 4) * 60 = 152,880,000 Hz
 
-bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ
+Bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps * bpp) / lane number) * 1.1 = (((1200 + 50 + 40 + 10) * (1920 + 20 + 16 + 4) * 60 * 24) / 4) * 1.1 = 1,009,008,000 Hz
 
-通过display timing计算，pixel clock值为152880000 HZ，系统可配置为153000000 HZ，bit clock值为1009008000 HZ，系统可配置为1000000000 HZ。
-dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clock配置为1000000000。
+With display timing calculations, the pixel clock value is 152,880,000 Hz, which can be configured in the system as 153,000,000 Hz, and the bit clock value is 1,009,008,000 Hz, which can be configured in the system as 1,000,000,000 Hz.
+
+In the DTS file, the clock-frequency is configured as 153,000,000, and `spacemit-dpu-bitclk` and `phy-bit-clock` are configured as 1,000,000,000.
+
 ```c
-// linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
-/ { lcds: lcds {
+// linux-6.6/arch/riscv/boot/dts/spacemit/lcd/lcd_gx09inx101_mipi.dtsi
+/ {
+    lcds: lcds {
         lcd_gx09inx101_mipi: lcd_gx09inx101_mipi {
 
-                // mipi dsi dphy中配置timing
-                height = <1920>;              // mipi dsi dphy中配置屏幕高
-                width = <1200>;               // mipi dsi dphy中配置屏幕宽
-                hfp = <50>;                   // mipi dsi dphy中配置水平前肩（Horizontal Front Porch）
-                hbp = <40>;                   // mipi dsi dphy中配置水平后肩（Horizontal Back Porch）
-                hsync = <10>;                 // mipi dsi dphy中配置水平同步信号（Horizontal Sync）
-                vfp = <20>;                   // mipi dsi dphy中配置垂直前肩（Vertical Front Porch）
-                vbp = <16>;                   // mipi dsi dphy中配置垂直后肩（Vertical Back Porch）
-                vsync = <4>;                  // mipi dsi dphy中配置垂直同步信号（Vertical Sync）
-                fps = <60>;                   // mipi dsi dphy中配置帧率
+            // Timing configuration in MIPI DSI DPHY
+            height = <1920>;              // Screen height configured in MIPI DSI DPHY
+            width = <1200>;               // Screen width configured in MIPI DSI DPHY
+            hfp = <50>;                   // Horizontal Front Porch configured in MIPI DSI DPHY
+            hbp = <40>;                   // Horizontal Back Porch configured in MIPI DSI DPHY
+            hsync = <10>;                 // Horizontal Sync configured in MIPI DSI DPHY
+            vfp = <20>;                   // Vertical Front Porch configured in MIPI DSI DPHY
+            vbp = <16>;                   // Vertical Back Porch configured in MIPI DSI DPHY
+            vsync = <4>;                  // Vertical Sync configured in MIPI DSI DPHY
+            fps = <60>;                   // Frame rate configured in MIPI DSI DPHY
 
-                // mipi dsi dpu中配置timing
-                display-timings {
-                        timing0 {
-                                clock-frequency = <153000000>;    // 像素时钟
-                                hactive = <1200>;                 // 有效显示区域水平像素
-                                hfront-porch = <50>;              // hfp
-                                hback-porch = <40>;               // hbp
-                                hsync-len = <10>;                 // hsync
-                                vactive = <1920>;                 // 有效显示区域垂直像素
-                                vfront-porch = <20>;              // vfp
-                                vback-porch = <16>;               // vbp
-                                vsync-len = <4>;                  // vsync
-                                vsync-active = <1>;               // vsync信号高电平触发
-                                hsync-active = <1>;               // hsync信号高电平触发
-                        };
+            // Timing configuration in MIPI DSI DPU
+            display-timings {
+                timing0 {
+                    clock-frequency = <153000000>;    // Pixel clock
+                    hactive = <1200>;                 // Horizontal active display pixels
+                    hfront-porch = <50>;              // hfp
+                    hback-porch = <40>;               // hbp
+                    hsync-len = <10>;                 // hsync
+                    vactive = <1920>;                 // Vertical active display pixels
+                    vfront-porch = <20>;              // vfp
+                    vback-porch = <16>;               // vbp
+                    vsync-len = <4>;                  // vsync
+                    vsync-active = <1>;               // vsync signal high-level trigger
+                    hsync-active = <1>;               // hsync signal high-level trigger
                 };
+            };
         };
-};};
+    };
+};
 ```
 
-已完成功能调试的MIPI DSI panel，相关dtsi文件放置lcd目录。
+The dtsi file for the MIPI DSI panel that has completed functional debugging is placed in the lcd directory.
 
 ```
 linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
@@ -540,85 +597,86 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 `-- lcd_orisetech_ota7290b_mipi.dtsi
 ```
 
-#### Panel配置
+##### Panel Configuration
 
-使能MIPI DSI Panel，需使能MIPI DSI dpu, MIPI DSI host, lcds，配置panel及pwm背光。
+To enable the MIPI DSI Panel, you need to enable the MIPI DSI DPU, MIPI DSI host, lcds, configure the panel, and set up the PWM backlight.
 
-以k1-x_deb1方案为例：
-使能dpu_online2_dsi，dsi2，lcds, 配置panel为型号lcd_gx09inx101_mipi，配置pwm背光。
+Taking the k1-x_deb1 solution as an example: enable dpu_online2_dsi, dsi2, lcds, set the panel model to `lcd_gx09inx101_mipi` and configure the PWM backlight.
+
 ```c
-// linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
+// linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
 &dpu_online2_dsi {
-	status = "okay";                                        // 使能MIPI DSI dpu
+	status = "okay";                                       // Enable MIPI DSI DPU
 };
 
 &dsi2 {
-	status = "okay";                                        // 使能MIPI DSI host
+	status = "okay";                                       // Enable MIPI DSI host
 	panel2: panel2@0 {
-		status = "okay";                                // 使能panel
+		status = "okay";                              // Enable panel
 		compatible = "spacemit,mipi-panel2";
 		reg = <0>;
 
-		gpios-reset = <81>;                             // 配置 panel 复位 gpio
-		gpios-dc = <82 83>;                             // 配置 panel 电源控制 gpio
-		id = <2>;                                       // 配置 panel id
-		delay-after-reset = <10>;                       // 配置 plane 复位延时时间（单位：ms）
-		force-attached = "lcd_gx09inx101_mipi";         // 配置 plane 型号
+		gpios-reset = <81>;                             // Configure panel reset GPIO
+		gpios-dc = <82 83>;                             // Configure panel power control GPIO
+		id = <2>;                                       // Configure panel ID
+		delay-after-reset = <10>;                       // Configure panel reset delay time (unit: ms)
+		force-attached = "lcd_gx09inx101_mipi";         // Configure panel model
 	};
+
 };
 
 &lcds {
-	status = "okay";                                        // 使能lcds
+	status = "okay";                                          // Enable lcds
 };
 
 &pwm14 {
-	status = "okay";                                        // 使能pwm
+	status = "okay";                                        // Enable PWM
 };
 
-&pwm_bl {                                                       // 使能背光
+&pwm_bl {                                                       // Enable backlight
 	status = "okay";
 };
 
 ```
 
-#### dts 配置示例
+##### DTS Configuration Example
 
-**MIPI DSI Panel配置示例：**
+**MIPI DSI Panel Configuration Example:**
 
-以MIPI DSI panel型号lcd_gx09inx101_mipi为例：
-配置MIPI DSI panel。
+Taking the MIPI DSI panel model `lcd_gx09inx101_mipi` as an example: Configure the MIPI DSI panel.
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\lcd\lcd_gx09inx101_mipi.dtsi
 / { lcds: lcds {
         lcd_gx09inx101_mipi: lcd_gx09inx101_mipi {
-                dsi-work-mode = <1>;          // panel中配置 mipi dsi工作模式：1 DSI_MODE_VIDEO_BURST；
-                dsi-lane-number = <4>;        // panel中配置mipi dsi lane数量
-                dsi-color-format = "rgb888";  // panel中配置mipi dsi 数据格式
-                width-mm = <142>;             // panel中配置屏幕active area
-                height-mm = <228>;            // panel中配置屏幕active area
-                use-dcs-write;                // panel中配置是否使用dcs命令模式
+                dsi-work-mode = <1>;          // Configure the MIPI DSI work mode in the panel: 1 DSI_MODE_VIDEO_BURST
+                dsi-lane-number = <4>;        // Configure the number of MIPI DSI lanes in the panel
+                dsi-color-format = "rgb888";  // Configure the MIPI DSI data format in the panel
+                width-mm = <142>;             // Configure the screen active area width in the panel
+                height-mm = <228>;            // Configure the screen active area height in the panel
+                use-dcs-write;                // Configure whether to use DCS command mode in the panel
 
-                // mipi dsi dphy中配置timing
-                height = <1920>;              // mipi dsi dphy中配置屏幕高
-                width = <1200>;               // mipi dsi dphy中配置屏幕宽
-                hfp = <50>;                   // mipi dsi dphy中配置水平前肩（Horizontal Front Porch）
-                hbp = <40>;                   // mipi dsi dphy中配置水平后肩（Horizontal Back Porch）
-                hsync = <10>;                 // mipi dsi dphy中配置水平同步信号（Horizontal Sync）
-                vfp = <20>;                   // mipi dsi dphy中配置垂直前肩（Vertical Front Porch）
-                vbp = <16>;                   // mipi dsi dphy中配置垂直后肩（Vertical Back Porch）
-                vsync = <4>;                  // mipi dsi dphy中配置垂直同步信号（Vertical Sync）
-                fps = <60>;                   // mipi dsi dphy中配置帧率
-                work-mode = <0>;              // mipi dsi dphy中配置mipi dsi工作模式：0 SPACEMIT_DSI_MODE_VIDEO；
-                rgb-mode = <3>;               // mipi dsi dphy中配置mipi dsi 数据格式：3 DSI_INPUT_DATA_RGB_MODE_888;
-                lane-number = <4>;            // mipi dsi dphy中配置mipi dsi lane数量
-                phy-bit-clock = <1000000000>; // mipi dsi dphy中配置mipi dsi dphy bit clock
-                phy-esc-clock = <76800000>;   // mipi dsi dphy中配置mipi dsi dphy esc clock
-                split-enable = <0>;           // mipi dsi dphy中配置mipi dsi使能split
-                eotp-enable = <0>;            // mipi dsi dphy中配置mipi dsi使能eotp
-                burst-mode = <2>;             // mipi dsi dphy中配置mipi dsi burst mode: 2 DSI_BURST_MODE_BURST;
-                esd-check-enable = <0>;       // panel中配置使能esd check
+                // Timing configuration in MIPI DSI DPHY
+                height = <1920>;              // Configure the screen height in MIPI DSI DPHY
+                width = <1200>;               // Configure the screen width in MIPI DSI DPHY
+                hfp = <50>;                   // Configure the horizontal front porch in MIPI DSI DPHY (Horizontal Front Porch)
+                hbp = <40>;                   // Configure the horizontal back porch in MIPI DSI DPHY (Horizontal Back Porch)
+                hsync = <10>;                 // Configure the horizontal sync signal in MIPI DSI DPHY (Horizontal Sync)
+                vfp = <20>;                   // Configure the vertical front porch in MIPI DSI DPHY (Vertical Front Porch)
+                vbp = <16>;                   // Configure the vertical back porch in MIPI DSI DPHY (Vertical Back Porch)
+                vsync = <4>;                  // Configure the vertical sync signal in MIPI DSI DPHY (Vertical Sync)
+                fps = <60>;                   // Configure the frame rate in MIPI DSI DPHY
+                work-mode = <0>;              // Configure the MIPI DSI work mode in MIPI DSI DPHY: 0 SPACEMIT_DSI_MODE_VIDEO
+                rgb-mode = <3>;               // Configure the MIPI DSI data format in MIPI DSI DPHY: 3 DSI_INPUT_DATA_RGB_MODE_888
+                lane-number = <4>;            // Configure the number of MIPI DSI lanes in MIPI DSI DPHY
+                phy-bit-clock = <1000000000>; // Configure the MIPI DSI DPHY bit clock in MIPI DSI DPHY
+                phy-esc-clock = <76800000>;   // Configure the MIPI DSI DPHY esc clock in MIPI DSI DPHY
+                split-enable = <0>;           // Configure the enablement of split in MIPI DSI DPHY
+                eotp-enable = <0>;            // Configure the enablement of EOTP in MIPI DSI DPHY
+                burst-mode = <2>;             // Configure the MIPI DSI burst mode in MIPI DSI DPHY: 2 DSI_BURST_MODE_BURST
+                esd-check-enable = <0>;       // Configure the enablement of ESD check in the panel
 
-                // mipi dsi初始化命令序列
+                // MIPI DSI initialization command sequence
                 /* DSI_CMD, DSI_MODE, timeout, len, cmd */
                 initial-command = [
                         39 01 00 02 B0 01
@@ -716,87 +774,90 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
                         39 01 28 01 29
                 ];
                 
-                // mipi dsi休眠命令序列
+                // MIPI DSI sleep-in command sequence
                 sleep-in-command = [
                         39 01 78 01 28
                         39 01 78 01 10
                 ];
                 
-                // mipi dsi唤醒命令序列
+                // MIPI DSI sleep-out command sequence
                 sleep-out-command = [
                         39 01 96 01 11
                         39 01 32 01 29
                 ];
                 
-                // mipi dsi read id命令序列
+                // MIPI DSI read ID command sequence
                 read-id-command = [
                         37 01 00 01 05
                         14 01 00 05 fb fc fd fe ff
                 ];
 
-                // mipi dsi dpu中配置timing
+                // Timing configuration in MIPI DSI DPU
                 display-timings {
                         timing0 {
-                                clock-frequency = <153000000>;    // 像素时钟
-                                hactive = <1200>;                 // 有效显示区域水平像素
-                                hfront-porch = <50>;              // hfp
-                                hback-porch = <40>;               // hbp
-                                hsync-len = <10>;                 // hsync
-                                vactive = <1920>;                 // 有效显示区域垂直像素
-                                vfront-porch = <20>;              // vfp
-                                vback-porch = <16>;               // vbp
-                                vsync-len = <4>;                  // vsync
-                                vsync-active = <1>;               // vsync信号高电平触发
-                                hsync-active = <1>;               // hsync信号高电平触发
+                                clock-frequency = <153000000>;    // Pixel clock
+                                hactive = <1200>;                 // Horizontal active pixels
+                                hfront-porch = <50>;              // Horizontal front porch
+                                hback-porch = <40>;               // Horizontal back porch
+                                hsync-len = <10>;                 // Horizontal sync length
+                                vactive = <1920>;                 // Vertical active pixels
+                                vfront-porch = <20>;              // Vertical front porch
+                                vback-porch = <16>;               // Vertical back porch
+                                vsync-len = <4>;                  // Vertical sync length
+                                vsync-active = <1>;               // Vsync signal is active high
+                                hsync-active = <1>;               // Hsync signal is active high
                         };
                 };
         };
 };};
 ```
 
-**方案配置示例：**
+**Configuration Example:**
 
-以k1-x_deb1方案为例：
-选择MIPI DSI panel型号lcd_gx09inx101_mipi，配置方案MIPI DSI panel。
+Using the k1-x_deb1 platform as an example: Select the MIPI DSI panel model lcd_gx09inx101_mipi, and configure the solution to use the MIPI DSI panel.
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_dsi {
-	status = "okay";                                // 使能mipi dsi dpu
-	memory-region = <&dpu_resv>;                    // 配置mipi dsi dpu预留内存
-	spacemit-dpu-bitclk = <1000000000>;             // mipi dsi dpu bitclk 配置
-	spacemit-dpu-escclk = <76800000>;               // mipi dsi dpu escclk 配置
-	dsi_1v2-supply = <&ldo_5>;                      // 引用PMIC DLDO
-	vin-supply-names = "dsi_1v2";                   // 配置MIPI DSI 1.2v电源
+        status = "okay";                                // Enable MIPI DSI DPU
+        memory-region = <&dpu_resv>;                    // Configure the reserved memory for MIPI DSI DPU
+        spacemit-dpu-bitclk = <1000000000>;             // Configure the MIPI DSI DPU bitclk
+        spacemit-dpu-escclk = <76800000>;               // Configure the MIPI DSI DPU escclk
+        dsi_1v2-supply = <&ldo_5>;                      // Reference the PMIC DLDO
+        vin-supply-names = "dsi_1v2";                   // Configure the MIPI DSI 1.2v power supply
 };
 
+
 &dsi2 {
-	status = "okay";                                // 使能mipi dsi host
+	status = "okay";                                // Enable the MIPI DSI host
 
 	panel2: panel2@0 {
-		status = "okay";                        // 使能panel
+		status = "okay";                        // Enable the pane
 		compatible = "spacemit,mipi-panel2";
 		reg = <0>;
 
-		gpios-reset = <81>;                     // panel 复位 gpio
-		gpios-dc = <82 83>;                     // panel 电源控制 gpio
-		id = <2>;                               // 配置 panel id
-		delay-after-reset = <10>;               // 配置 plane 复位延时时间（单位：ms）
-		force-attached = "lcd_gx09inx101_mipi"; // 配置 plane 型号
+		gpios-reset = <81>;                     // GPIO for panel reset
+		gpios-dc = <82 83>;                     // GPIO for panel power control
+		id = <2>;                               // Configure panel ID
+		delay-after-reset = <10>;               // Configure panel reset delay time
+		force-attached = "lcd_gx09inx101_mipi"; // Configure panel mode
 	};
+
 };
 
 &lcds {
-	status = "okay";                                // 使能lcds
+	status = "okay";                                 // Enable LCDs
 };
 
-&pwm14 {                                                // 配置pwm
+&pwm14 {                                                // Configure PWM
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm14_1>;
 	status = "okay";
+
 };
 
-&pwm_bl {                                               // 配置背光
-	pwms = <&pwm14 2000>;
+&pwm_bl {                                               // Configure backlight
+ 	pwms = <&pwm14 2000>;
 	brightness-levels = <
 		0   40  40  40  40  40  40  40  40  40  40  40  40  40  40  40
 		40  40  40  40  40  40  40  40  40  40  40  40  40  40  40  40
@@ -822,37 +883,39 @@ linux-6.6/arch/riscv/boot/dts/spacemit/lcd$ tree
 
 ```
 
-### HDMI
+#### HDMI
 
-### pinctrl
-支持两组 hdmi pinctrl: pinctrl_hdmi_0 和 pinctrl_hdmi_1，仅可选择其中任意一组。
+#### pinctrl
+
+Supports two sets of HDMI pinctrl: `pinctrl_hdmi_0` and `pinctrl_hdmi_1`, only one of them can be selected.
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_pinctrl.dtsi
 pinctrl_hdmi_0: hdmi_0_grp {
         pinctrl-single,pins = <
-                K1X_PADCONF(GPIO_86, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2))	/* hdmi_tx_hscl */
-                K1X_PADCONF(GPIO_87, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2))	/* hdmi_tx_hsda */
-                K1X_PADCONF(GPIO_88, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2))	/* hdmi_tx_hcec */
-                K1X_PADCONF(GPIO_89, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2))	/* hdmi_tx_pdp */
+                K1X_PADCONF(GPIO_86, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2)) /* hdmi_tx_hscl */
+                K1X_PADCONF(GPIO_87, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2)) /* hdmi_tx_hsda */
+                K1X_PADCONF(GPIO_88, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)) /* hdmi_tx_hcec */
+                K1X_PADCONF(GPIO_89, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)) /* hdmi_tx_pdp */
         >;
 };
 
 pinctrl_hdmi_1: hdmi_1_grp {
         pinctrl-single,pins = <
-                K1X_PADCONF(GPIO_59, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2))	/* hdmi_tx_hscl */
-                K1X_PADCONF(GPIO_60, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2))	/* hdmi_tx_hsda */
-                K1X_PADCONF(GPIO_61, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2))	/* hdmi_tx_hcec */
-                K1X_PADCONF(GPIO_62, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2))	/* hdmi_tx_pdp */
+                K1X_PADCONF(GPIO_59, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2)) /* hdmi_tx_hscl */
+                K1X_PADCONF(GPIO_60, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2)) /* hdmi_tx_hsda */
+                K1X_PADCONF(GPIO_61, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)) /* hdmi_tx_hcec */
+                K1X_PADCONF(GPIO_62, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)) /* hdmi_tx_pdp */
         >;
 };
 ```
 
-### clock配置
+#### Clock Configuration
 
-HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI相关clock配置, reset配置。相关clock参数使用系统默认值，不需在dts文件中配置。
+The clock configuration for HDMI includes the clock settings related to HDMI DPU, reset configurations, and other HDMI-related clock settings. The relevant clock parameters use the system default values without  configuration in the DTS file.
 
-配置平台HDMI DPU相关clock和reset，及HDMI相关clock和reset。
+Configure the platform's HDMI DPU-related clocks and resets, as well as the HDMI-related clocks and resets.
+
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x-hdmi.dtsi
 &soc {
@@ -871,9 +934,9 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
                 interrupt-names = "ONLINE_IRQ", "OFFLINE_IRQ";
                 interconnects = <&dram_range1>;
                 interconnect-names = "dma-mem";
-                clocks = <&ccu CLK_HDMI>;                               // hdmi dpu hmclk 配置
+                clocks = <&ccu CLK_HDMI>;                               // hdmi dpu hmclk configuration
                 clock-names = "hmclk";
-                resets = <&reset RESET_HDMI>;                           // hdmi dpu reset 配置
+                resets = <&reset RESET_HDMI>;                           // hdmi dpu reset configuration
                 reset-names= "hdmi_reset";
                 power-domains = <&power K1X_PMU_HDMI_PWR_DOMAIN>;
                 pipeline-id = <ONLINE2>;
@@ -895,9 +958,9 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
                 reg = <0 0xC0400500 0 0x200>;
                 interrupt-parent = <&intc>;
                 interrupts = <136>;
-                clocks = <&ccu CLK_HDMI>;                               // hdmi hmclk 配置
+                clocks = <&ccu CLK_HDMI>;                               // hdmi hmclk configuration
                 clock-names = "hmclk";
-                resets = <&reset RESET_HDMI>;                           // hdmi reset 配置
+                resets = <&reset RESET_HDMI>;                           // hdmi reset configuration
                 reset-names= "hdmi_reset";
                 power-domains = <&power K1X_PMU_HDMI_PWR_DOMAIN>;
                 clk,pm-runtime,no-sleep;
@@ -915,15 +978,14 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
 };
 ```
 
+#### DTS Configuration Example
 
-### dts 配置示例
-
-以k1-x_deb1方案为例，方案中配置HDMI。
+Taking the k1-x_deb1 solution as an example, HDMI is configured in the solution.
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_hdmi {
-	memory-region = <&dpu_resv>;                    // 配置hdmi dpu预留内存
+	memory-region = <&dpu_resv>;                    // Configuring HDMI DPU Reserved Memory
 	status = "okay";
 };
 
@@ -934,13 +996,156 @@ HDMI相关clock配置，包括HDMI DPU相关clock配置，reset配置，及HDMI�
 };
 ```
 
-# 接口描述
+## Interface Introduction
 
-## 测试介绍
+### API Introduction
 
- libdrm是一个用户空间库，提供了与 DRM 驱动进行交互的 API。通过libdrm开发者可以直接与 DRM 设备进行通信，执行各种操作，如创建和管理 framebuffer、设置显示模式、处理图层等。modetest 是一个使用 libdrm 库的测试工具，通常用于测试和验证 DRM 驱动的功能。
+For an introduction to the DRM driver API, please refer to the Linux kernel documentation [drm-kms](https://docs.kernel.org/gpu/drm-kms.html)
 
-通过modetest工具运行DRM驱动测试用例。
+## Debug Introduction
+
+### debugfs
+
+**MIPI DSI debugfs node**
+
+```
+# cd /sys/kernel/debug/dri/1
+# ls
+DSI-1             crtc-0            gem_names         state
+bridge_chains     dump              internal_clients
+clients           framebuffer       name
+```
+
+**HDMI debugfs node**
+
+```
+# cd /sys/kernel/debug/dri/2
+# ls
+HDMI-A-1          crtc-0            gem_names         state
+bridge_chains     dump              internal_clients
+clients           framebuffer       name
+```
+
+**View framebuffer information**
+
+```
+# cd /sys/kernel/debug/dri/1
+# cat framebuffer
+framebuffer[132]:
+        allocated by = weston
+        refcount=2
+        format=XR24 little-endian (0x34325258)
+        modifier=0x0
+        size=1200x1920
+        layers:
+                size[0]=1200x1920
+                pitch[0]=4800
+                offset[0]=0
+                obj[0]:
+                        name=0
+                        refcount=3
+                        start=0010119c
+                        size=9216000
+                        imported=no
+framebuffer[135]:
+        allocated by = weston
+        refcount=1
+        format=XR24 little-endian (0x34325258)
+        modifier=0x0
+        size=1200x1920
+        layers:
+                size[0]=1200x1920
+                pitch[0]=4800
+                offset[0]=0
+                obj[0]:
+                        name=0
+                        refcount=3
+                        start=001008d2
+                        size=9216000
+                        imported=no
+framebuffer[134]:
+        allocated by = weston
+        refcount=1
+        format=AR24 little-endian (0x34325241)
+        modifier=0x0
+        size=64x64
+        layers:
+                size[0]=64x64
+                pitch[0]=256
+                offset[0]=0
+                obj[0]:
+                        name=0
+                        refcount=3
+                        start=001008ce
+                        size=16384
+                        imported=no
+framebuffer[133]:
+        allocated by = weston
+        refcount=1
+        format=AR24 little-endian (0x34325241)
+        modifier=0x0
+        size=64x64
+        layers:
+                size[0]=64x64
+                pitch[0]=256
+                offset[0]=0
+                obj[0]:
+                        name=0
+                        refcount=3
+                        start=001008ca
+                        size=16384
+                        imported=no
+framebuffer[131]:
+        allocated by = [fbcon]
+        refcount=1
+        format=XR24 little-endian (0x34325258)
+        modifier=0x0
+        size=1200x1920
+        layers:
+                size[0]=1200x1920
+                pitch[0]=4800
+                offset[0]=0
+                obj[0]:
+                        name=0
+                        refcount=2
+                        start=00100000
+                        size=9216000
+                        imported=no
+```
+
+**Dump the currently displayed buffer**
+
+```
+# cd /sys/class/drm/card1-DSI-1
+# cat dump
+[  436.711209] [drm] framebuffer[135]
+[  436.752130] [drm] dump framebuffer: /tmp/plane31_fb135_XR24_planes0_1200x1920.rgb
+[  436.759796] [drm] framebuffer[134]
+[  436.763663] [drm] dump framebuffer: /tmp/plane43_fb134_AR24_planes0_64x64.rgb
+```
+
+**View the connection status**
+
+```
+# cd /sys/class/drm/card1-DSI-1
+# cat status
+connected
+```
+
+**View the supported display modes**
+
+```
+# cd /sys/class/drm/card1-DSI-1
+# cat modes
+1200x1920
+```
+
+## Test Introduction
+
+libdrm is a userspace library that provides an API for interacting with DRM drivers. Through libdrm, developers can directly communicate with DRM devices and perform various operations, such as creating and managing framebuffers, setting display modes, and handling layers. modetest is a test tool that uses the libdrm library and is commonly used to test and verify the functionality of DRM drivers.
+
+Run DRM driver test cases using the **modetest** tool.
+
 ```
 # modetest -M spacemit
 Encoders:
@@ -1525,146 +1730,4 @@ id      size    pitch
 setting mode 1200x1920-60.05Hz on connectors 130, crtc 127
 ```
 
-## API介绍
-
-DRM驱动API介绍请参考linux内核文档（https://docs.kernel.org/gpu/drm-kms.html）
-
-## Debug介绍
-
-### debugfs
-
-**MIPI DSI debugfs节点**
-
-```
-# cd /sys/kernel/debug/dri/1
-# ls
-DSI-1             crtc-0            gem_names         state
-bridge_chains     dump              internal_clients
-clients           framebuffer       name
-```
-
-**HDMI debugfs节点**
-
-```
-# cd /sys/kernel/debug/dri/2
-# ls
-HDMI-A-1          crtc-0            gem_names         state
-bridge_chains     dump              internal_clients
-clients           framebuffer       name
-```
-
-**查看framebuffer信息**
-
-```
-# cd /sys/kernel/debug/dri/1
-# cat framebuffer
-framebuffer[132]:
-        allocated by = weston
-        refcount=2
-        format=XR24 little-endian (0x34325258)
-        modifier=0x0
-        size=1200x1920
-        layers:
-                size[0]=1200x1920
-                pitch[0]=4800
-                offset[0]=0
-                obj[0]:
-                        name=0
-                        refcount=3
-                        start=0010119c
-                        size=9216000
-                        imported=no
-framebuffer[135]:
-        allocated by = weston
-        refcount=1
-        format=XR24 little-endian (0x34325258)
-        modifier=0x0
-        size=1200x1920
-        layers:
-                size[0]=1200x1920
-                pitch[0]=4800
-                offset[0]=0
-                obj[0]:
-                        name=0
-                        refcount=3
-                        start=001008d2
-                        size=9216000
-                        imported=no
-framebuffer[134]:
-        allocated by = weston
-        refcount=1
-        format=AR24 little-endian (0x34325241)
-        modifier=0x0
-        size=64x64
-        layers:
-                size[0]=64x64
-                pitch[0]=256
-                offset[0]=0
-                obj[0]:
-                        name=0
-                        refcount=3
-                        start=001008ce
-                        size=16384
-                        imported=no
-framebuffer[133]:
-        allocated by = weston
-        refcount=1
-        format=AR24 little-endian (0x34325241)
-        modifier=0x0
-        size=64x64
-        layers:
-                size[0]=64x64
-                pitch[0]=256
-                offset[0]=0
-                obj[0]:
-                        name=0
-                        refcount=3
-                        start=001008ca
-                        size=16384
-                        imported=no
-framebuffer[131]:
-        allocated by = [fbcon]
-        refcount=1
-        format=XR24 little-endian (0x34325258)
-        modifier=0x0
-        size=1200x1920
-        layers:
-                size[0]=1200x1920
-                pitch[0]=4800
-                offset[0]=0
-                obj[0]:
-                        name=0
-                        refcount=2
-                        start=00100000
-                        size=9216000
-                        imported=no
-```
-
-**dump当前显示的buffer**
-```
-# cd /sys/class/drm/card1-DSI-1
-# cat dump
-[  436.711209] [drm] framebuffer[135]
-[  436.752130] [drm] dump framebuffer: /tmp/plane31_fb135_XR24_planes0_1200x1920.rgb
-[  436.759796] [drm] framebuffer[134]
-[  436.763663] [drm] dump framebuffer: /tmp/plane43_fb134_AR24_planes0_64x64.rgb
-```
-
-**查看连接状态**
-
-```
-# cd /sys/class/drm/card1-DSI-1
-# cat status
-connected
-```
-
-**查看支持的显示模式**
-
-```
-# cd /sys/class/drm/card1-DSI-1
-# cat modes
-1200x1920
-```
-
-
-# FAQ
+## FAQ

@@ -1,72 +1,70 @@
 # SPI
 
-介绍 SPI 的功能和使用方法。
+SPI Functionality and Usage Guide.
 
-## 模块介绍
+## Overview
 
-**SPI（Serial Peripheral Interface）** 是一种 SoC 与外设之间的串行通信接口，仅支持 x1 模式。SPI 有主设备（Master）和从设备（Slave）两种模式，通常为一个主设备控制一个或多个从设备进行通信。主设备选择一个从设备进行通信，完成数据交互。主设备负责提供时钟，并发起读写操作。K1 SPI 当前仅支持主设备模式。
+**SPI (Serial Peripheral Interface)** is a serial communication interface between SoC (System on Chip) and peripherals, supporting only x1 (single-line) mode. SPI has two modes: **Master** and **Slave**. Typically, one master device controls one or more slave devices for communication. The master device selects a slave device for communication and completes data exchange. The master device is responsible for providing the clock and initiating read/write operations. The K1 SPI currently supports **Master mode only**.
 
-
-### 功能介绍
+### Function Description
 
 ![](static/linux_spi.png)  
 
-Linux SPI 驱动框架分为三层：**SPI Core**、**SPI 控制器驱动**、**SPI 设备驱动**。
-- **SPI Core** 主要作用：
-   - 负责 SPI 总线和 `spi_master` 类的注册  
-   - SPI 控制器添加和删除  
-   - SPI 设备添加和删除  
-   - SPI 设备驱动注册与注销  
+The Linux SPI driver framework consists of three layers: **SPI Core**, **SPI Controller Driver**, and **SPI Device Driver**.
 
-- **SPI 控制器驱动：**
-   - SPI Master 控制器驱动，对 SPI Master 控制器进行操作
+- The main functions of **SPI Core** are:
+   - Manages the registration of the SPI bus and the `spi_master` class.
+   - Handles the addition and removal of SPI controllers.
+   - Manages the addition and removal of SPI devices.
+   - Registers and unregisters SPI device drivers.
 
-- **SPI 设备驱动：**
-   - 实现与具体 SPI 外设的通信。
+- **SPI Controller Driver:**
+   - This is the SPI Master controller driver, responsible for operating the SPI Master controller.
 
-### 源码结构介绍
+- **SPI Device Drive:**
+   - Implements communication with specific SPI peripherals.
 
-控制器驱动代码位于 `drivers/spi` 目录下:  
+### Source Code Structure
+
+The controller driver code is located in the `drivers/spi` directory:
 
 ```
-|-- spi-k1x.c              #K1 SPI 驱动
+|-- spi-k1x.c              # K1 SPI driver
 ```
 
-## 关键特性
+## Key Features
 
-### 特性
-
-| 特性 | 特性说明 |
+| Feature | Description|
 | :-----| :----|
-| 通信协议 | 支持 SSP/SPI/MicroWire/PSP 协议 |
-| 通信频率 | 最高频率支持 53MHz, 最低频率支持 6.3kbps |
-| 通信倍数 | x1 | 
-| 支持外设 | 支持 SPI-NOR 和 SPI-NAND 闪存 | 
+| Communication Protocol | Supports SSP/SPI/MicroWire/PSP protocols |
+| Communication Frequency | Maximum frequency supported is 53MHz; Minimum frequency supported is 6.3kbps |
+| Bus Width| x1 (single-line mode)| 
+| Supported Peripherals | Supports SPI-NOR and SPI-NAND flash memory | 
 
-### 性能参数
+### Performance Parameters
 
-- **通信频率**
-通讯频率只支持 51.2M / 25.6M / 12.8M / 6.4M / 3.2M / 1.6M / 1M / 200k
+- **Communication Frequency**
+The supported communication frequencies are 51.2M / 25.6M / 12.8M / 6.4M / 3.2M / 1.6M / 1M / 200k.
 
-- **通信倍速**
-SPI 通信倍速支持 x1。
+- **Bus Width**
+SPI Bus Width supports x1.
 
-**测试方法**  
-使用示波器或逻辑分析仪检测 SCK 信号频率。
+**Testing Method**  
+Use an oscilloscope or logic analyzer to measure the SCK (Serial Clock) frequency。
 
-## 配置介绍
+## Configuration Introduction
 
-主要包括 **驱动使能配置** 和 **DTS 配置**
+This mainly includes **Driver Enable Configuration** and **DTS Configuration**.
 
-### CONFIG 配置
+### CONFIG Configuration
 
-`CONFIG_SPI`：为 SPI 总线协议提供支持，默认情况，此选项为 `Y`
+`CONFIG_SPI`: Provides support for the SPI bus protocol. By default, this option is set to `Y`.
 ```
 Device Drivers
         SPI support (SPI [=y])
 ```
 
-`CONFIG_SPI_K1X`：为 K1 SPI 控制器驱动提供支持，默认情况下，此选型为 `Y`
+`CONFIG_SPI_K1X`: Provides support for the K1 SPI controller driver. By default, this option is also set to `Y`.
 ```
 Device Drivers
         SPI support (SPI [=y])
@@ -74,29 +72,29 @@ Device Drivers
 
 ```
 
-### DTS 配置
+### DTS Configuration
 
 #### pinctrl
 
-参考方案原理图，查找 SPI 所使用的引脚组。参考 [PINCTRL](01-PINCTRL.md)，确认所使用的引脚配置，例如：
+Refer to the schematic diagram of the reference design to identify the pin group used by the SPI. For more details on pin configuration, refer to the [PINCTRL](01-PINCTRL.md) documentation. For example:
 
-假设 spi3 可以直接采用 `k1-x_pinctrl.dtsi` 中定义 `pinctrl_ssp3_0` 组。
+SPI3 can use the `pinctrl_ssp3_0` group defined in `k1-x_pinctrl.dtsi`.
 
-#### SPI 设备配置
+#### SPI Device Configuration
 
-配置 SPI 设备时需要确认**设备类型**以及**通信频率**相关参数。
+When configuring an SPI device, you need to confirm the **device type** and the **communication frequency** parameters.
 
-- **设备类型**
-确认挂载在 SPI 总线下的设备类型，如 SPI-NOR 或 SPI-NAND。
+- **Device Type**
+Identify the type of device connected to the SPI bus, such as SPI-NOR or SPI-NAND.
 
-- **通信频率**
-明确 SPI 控制器与 SPI 设备之间的最大通信速率。 
+- **Communication Frequency**
+Specify the maximum communication rate between the SPI controller and the SPI device.
 
-- **通信倍速**
-QSPI 通信倍速支持 x1 模式。
+- **Communication Width**
+QSPI communication width supports x1 mode.
 
-SPI 设备 DTS 配置示例：
-以 SPI NOR 为例，配置最大通信频率为 26 MHz，收发均采用 x1 模式。
+**SPI Device DTS Configuration Example:**
+For an SPI NOR device, configure the maximum communication frequency to 26 MHz, with both transmit and receive operations in x1 mode.
 
 ```c
 &spi3 {
@@ -117,59 +115,59 @@ SPI 设备 DTS 配置示例：
 };
 ```
 
-## 接口介绍
+## Interface
 
-### API 介绍
+### API
 
-**设备驱动注册与注销**
+**Device Driver Registration and Unregistration**
 
 ```
 int __spi_register_driver(struct module *owner, struct spi_driver *sdrv);  
 void spi_unregister_driver(struct spi_driver *sdrv);
 ```
 
-**数据传输 API**
+**Data Transfer APIs**
 
-- 初始化 `spi_message`
+-  Initializing `spi_message`
 
 ```
 void spi_message_init(struct spi_message *m);
 ```
 
-- 添加 `spi_transfer` 到 `spi_message` 的 transfer 列表
+- Add s`spi_transfer` to the transfer list of `spi_message`
 
 ```
 void spi_message_add_tail(struct spi_transfer *t, struct spi_message *m);
 ```
 
-- 写数据
+- Writing Data
 
 ```
 int spi_write(struct spi_device *spi, const void *buf, size_t len);
 ```
 
-- 读数据
+- Reading Data
 
 ```
 int spi_read(struct spi_device *spi, void *buf, size_t len);
 ```
 
-- 同步传输 `spi_message`
+- Synchronous transfer of `spi_message`
 
 ```
 int spi_sync(struct spi_device *spi, struct spi_message *message);
 ```
 
-## Debug 介绍
+## Debugging
 
 ### sysfs
 
-查看系统 SPI 总线设备和驱动信息
+View SPI bus device and driver information in the system.
 `/sys/bus/spi`
 
 ```
-|-- devices                 //spi总线上的设备
-|-- drivers                 //spi总线上注册的设备驱动
+|-- devices                 // Devices on the SPI bus
+|-- drivers                 // Drivers registered on the SPI bus
 |-- drivers_autoprobe
 |-- drivers_probe
 `-- uevent
@@ -177,25 +175,25 @@ int spi_sync(struct spi_device *spi, struct spi_message *message);
 
 ### debugfs
 
-用于查看系统中 SPI 设备信息
+Used to view information about SPI devices in the system.
 `/sys/kernel/debug/spi-nor/spi3.0`
 
-## 测试介绍
+## Testing
 
-### SPI NAND/NOR 读写速率测试
+### SPI NAND/NOR Read/Write Speed Test
 
-1. 打开 `CONFIG_MTD_TESTS`
+1. Enable  `CONFIG_MTD_TESTS`
 
-```
-Device Drivers
-         Memory Technology Device (MTD) support (MTD [=y])
-                MTD tests support (DANGEROUS) (MTD_TESTS [=m])   
-```
+   ```
+   Device Drivers
+            Memory Technology Device (MTD) support (MTD [=y])
+                   MTD tests support (DANGEROUS) (MTD_TESTS [=m])   
+   ```
 
-2. 运行测试命令
+2. Run the test command
 
-```
-insmod mtd_speedtest.ko dev=0   #0表示spi-nand/nor的mtd设备号
-```
+   ```
+   insmod mtd_speedtest.ko dev=0   # 0 indicates the MTD device number for SPI-NAND/NOR
+   ```
 
 ## FAQ

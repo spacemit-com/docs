@@ -1,79 +1,106 @@
-介绍IR的配置和调试方式
+# IR-RX
 
-# 模块介绍  
-红外接收模块主要功能是接收红外信号。  
+IR Functionality and Usage Guide.
 
-## 功能介绍  
+## Overview
+
+The Infrared Receiver (IR-RX) module captures and processes IR signals from remotes or other sources.
+
+### Functional Description
+
 ![](static/ir.jpg)
-在k1平台中外接红外接收头(解调器)收到解调后的电信号在驱动和内核IR框架中进行解码并上报事件。 
-## 源码结构介绍
-IR-RX控制器驱动代码在drivers/media/rc目录下：  
+On the K1 platform, an external infrared receiver (demodulator) receives the demodulated electrical signal, which is then decoded and reported as events within the driver and the kernel IR framework.
+
+### Source Code Structure
+  
+The IR-RX controller driver code is located in the `drivers/media/rc` directory:
+
 ```  
 drivers/media/rc  
-|--rc-ir-raw.c            #内核ir框架接口代码
-|--ir-nec-decoder.c       #内核ir解码电信号代码
-|--ir-spacemit.c          #k1 ir驱动  
+|--rc-ir-raw.c            # Kernel IR framework interface code
+|--ir-nec-decoder.c       # Kernel IR decoder for NEC signal protocol  
+|--ir-spacemit.c          # K1 IR driver 
 ```  
-# 关键特性  
-| 特性 |
-| :-----|
-| 可配置噪声阈值 |
-| 32Bytes大小RX FIFO |
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
-## CONFIG配置
+## Key Features
+
+- Configurable noise threshold
+- 32Bytes RX FIFO size
+
+## Configuration
+
+It mainly includes driver enablement configuration and dts configuration.
+
+### CONFIG Configuration
+
 CONFIG_IR_SPACEMIT=y
+
 ```
 Symbol: IR_SPACEMIT [=y]
 Device Drivers
     -> Remote Controller support (RC_CORE [=y])
-		-> Remote Controller devices (RC_DEVICES [=y])
-			-> SPACEMIT IR remote Recriver control (IR_SPACEMIT [=y])
-``` 
-
-## dts配置
-### pinctrl
-可查看linux仓库的arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi，参考已配置好的pwm节点配置，如下：
-```dts
-	pinctrl_ir_rx_1: ir_rx_1_grp {
-		pinctrl-single,pins = <
-			K1X_PADCONF(GPIO_79, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /* ir_rx */
-		>;
-	};
-```
-### dtsi配置示例
-dtsi中配置IR控制器基地址和时钟复位资源，正常情况无需改动
-```dts
-	ircrx: irc-rx@d4017f00 {
-		compatible = "spacemit,k1x-irc";
-		reg = <0x0 0xd4017f00 0x0 0x100>;
-		interrupts = <69>;
-		interrupt-parent = <&intc>;
-		clocks = <&ccu CLK_IR>;
-		resets = <&reset RESET_IR>;
-		clock-frequency = <102400000>;
-		status = "disabled";
-	};
+  -> Remote Controller devices (RC_DEVICES [=y])
+   -> SPACEMIT IR remote Recriver control (IR_SPACEMIT [=y])
 ```
 
-### dts配置示例
-dts完整配置，如下所示
+### DTS Configuration
+
+#### pinctrl
+
+You can refer to the PWM node configuration already set up in the Linux repository at:
+`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi` as shown below:
+
 ```dts
-	&ircrx {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ir_rx_1>;
-		status = "okay";
-	};
+ pinctrl_ir_rx_1: ir_rx_1_grp {
+  pinctrl-single,pins = <
+   K1X_PADCONF(GPIO_79, MUX_MODE1, (EDGE_NONE | PULL_UP | PAD_3V_DS4))     /* ir_rx */
+  >;
+ };
 ```
 
-# 接口描述
-## 测试介绍
-可基于k1平台外接红外解调器，连接到上述ir配置的pin上，通过遥控器向解调器发送信号，并在应用层接收码值。
-## API介绍
-常用：
+#### dtsi Configuration Example
+
+Configure the base address of the IR controller and the clock reset resources in the dtsi file. Typically, these settings stay unchanged.
+
+```dts
+ ircrx: irc-rx@d4017f00 {
+  compatible = "spacemit,k1x-irc";
+  reg = <0x0 0xd4017f00 0x0 0x100>;
+  interrupts = <69>;
+  interrupt-parent = <&intc>;
+  clocks = <&ccu CLK_IR>;
+  resets = <&reset RESET_IR>;
+  clock-frequency = <102400000>;
+  status = "disabled";
+ };
+```
+
+#### dts Configuration Example
+
+The complete DTS configuration is shown below.
+
+```dts
+ &ircrx {
+  pinctrl-names = "default";
+  pinctrl-0 = <&pinctrl_ir_rx_1>;
+  status = "okay";
+ };
+```
+
+## Interface
+
+### API
+
+Commonly used:
+
 ```
 int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
-驱动中调用ir框架实现的接口在中断回调函数中完成信号的存储解码和事件上报。
 ```
-# FAQ
+
+The driver calls the interface implemented by the IR framework to complete signal storage, decoding, and event reporting in the interrupt callback function.
+
+## Testing
+
+You can use an external infrared demodulator connected to the K1 platform, link it to the IR-configured pin as mentioned above, send signals to the demodulator using a remote control, and receive the code values at the application layer.
+
+## FAQ
