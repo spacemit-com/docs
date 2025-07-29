@@ -8,7 +8,8 @@
 
 ### 功能介绍  
 
-![pwm](static/pwm.png)
+![pwm](static/pwm.png) 
+
 内核通过 **PWM框架层接口** 使其他模块可以申请PWM控制器，并控制PWM信号的输出高低。
 如：**内核的风扇调速和背光亮度**都可以用PWM来控制。  
 
@@ -71,15 +72,15 @@ Symbol: PWM_PXA [=y]
 dtsi中配置PWM控制器基地址和时钟复位资源，正常情况无需改动
 
 ```dts
-1351         pwm0: pwm@d401a000 {
-1352             compatible = "spacemit,k1x-pwm";
-1353             reg = <0x0 0xd401a000 0x0 0x10>;
-1354             #pwm-cells = <1>;
-1355             clocks = <&ccu CLK_PWM0>;
-1356             resets = <&reset RESET_PWM0>;
-1357             k1x,pwm-disable-fd;
-1358             status = "disabled";
-1359         };
+pwm0: pwm@d401a000 {
+       compatible = "spacemit,k1x-pwm";
+       reg = <0x0 0xd401a000 0x0 0x10>;
+       #pwm-cells = <1>;
+       clocks = <&ccu CLK_PWM0>;
+       resets = <&reset RESET_PWM0>;
+       k1x,pwm-disable-fd;
+       status = "disabled";
+};
 ```
 
 #### dts配置示例
@@ -87,11 +88,11 @@ dtsi中配置PWM控制器基地址和时钟复位资源，正常情况无需改�
 dts完整配置，如下所示
 
 ```dts
-807 &pwm0 {
-808     pinctrl-names = "default";
-809     pinctrl-0 = <&pinctrl_pwm0_1>;
-810     status = "okay";
-811 };
+ &pwm0 {
+     pinctrl-names = "default";
+     pinctrl-0 = <&pinctrl_pwm0_1>;
+     status = "okay";
+ };
 ```
 
 ## 接口介绍

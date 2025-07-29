@@ -31,7 +31,7 @@ drivers/tty/serial
 - 支持中断模式 
 - 支持RS485/RS232串口协议 
 - 支持64B RX/TX fifo 
-- K1平台支持9路可配置的UART
+- 支持9路可配置的UART
 
 ### 性能参数
 
@@ -39,12 +39,12 @@ drivers/tty/serial
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括驱动使能配置和 dts 配置
 
 ### CONFIG配置
 
-CONFIG_SERIAL_PXA_SPACEMIT_K1X=y
-此为K1 UART驱动config配置
+CONFIG_SERIAL_PXA_SPACEMIT_K1X=y 
+
 
 ```
 Symbol: SERIAL_PXA_SPACEMIT_K1X [=y]
@@ -61,7 +61,7 @@ Device Drivers
 
 #### pinctrl
 
-可查看linux仓库的`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`，参考已配置好的UART节点配置，如下：
+可查看 linux 仓库的`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`，参考已配置好的UART节点配置，如下：
 
 ```dts
  pinctrl_uart2: uart2_grp {
@@ -76,27 +76,27 @@ Device Drivers
 
 #### dtsi配置示例
 
-dtsi中配置UART控制器基地址和时钟复位资源，正常情况无需改动
+dtsi 中配置 UART 控制器基地址和时钟复位资源，正常情况无需改动
 
 ```dts
  uart2: uart@d4017100 {
-  compatible = "spacemit,pxa-uart";
-  reg = <0x0 0xd4017100 0x0 0x100>;
-  interrupt-parent = <&intc>;
-  interrupts = <44>;
-  clocks = <&ccu CLK_UART2>, <&ccu CLK_SLOW_UART>;
-  clock-names = "func", "gate";
-  clk-fpga = <14750000>;
-  resets = <&reset RESET_UART2>;
-  /*dmas = <&pdma0 DMA_UART2_RX 1
-    &pdma0 DMA_UART2_TX 1>;
-  dma-names = "rx", "tx";*/
-  power-domains = <&power K1X_PMU_BUS_PWR_DOMAIN>;
-  clk,pm-runtime,no-sleep;
-  cpuidle,pm-runtime,sleep;
-  interconnects = <&dram_range4>;
-  interconnect-names = "dma-mem";
-  status = "disabled";
+          compatible = "spacemit,pxa-uart";
+          reg = <0x0 0xd4017100 0x0 0x100>;
+          interrupt-parent = <&intc>;
+          interrupts = <44>;
+          clocks = <&ccu CLK_UART2>, <&ccu CLK_SLOW_UART>;
+          clock-names = "func", "gate";
+          clk-fpga = <14750000>;
+          resets = <&reset RESET_UART2>;
+          /*dmas = <&pdma0 DMA_UART2_RX 1
+            &pdma0 DMA_UART2_TX 1>;
+          dma-names = "rx", "tx";*/
+          power-domains = <&power K1X_PMU_BUS_PWR_DOMAIN>;
+          clk,pm-runtime,no-sleep;
+          cpuidle,pm-runtime,sleep;
+          interconnects = <&dram_range4>;
+          interconnect-names = "dma-mem";
+          status = "disabled";
  }
 ```
 

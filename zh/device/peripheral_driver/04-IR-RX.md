@@ -8,7 +8,8 @@
 
 ### 功能介绍  
 
-![](static/ir.jpg)
+![](static/ir.jpg) 
+
 在 K1 平台中外接红外接收头(解调器)收到解调后的电信号在驱动和内核IR框架中进行解码并上报事件。
 
 ### 源码结构介绍
@@ -47,7 +48,7 @@ Device Drivers
 
 #### pinctrl
 
-可查看linux仓库的`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`，参考已配置好的pwm节点配置，如下：
+可查看 linux 仓库的`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`，参考已配置好的 ir 节点配置，如下：
 
 ```dts
  pinctrl_ir_rx_1: ir_rx_1_grp {
@@ -63,14 +64,14 @@ dtsi中配置IR控制器基地址和时钟复位资源，正常情况无需改�
 
 ```dts
  ircrx: irc-rx@d4017f00 {
-  compatible = "spacemit,k1x-irc";
-  reg = <0x0 0xd4017f00 0x0 0x100>;
-  interrupts = <69>;
-  interrupt-parent = <&intc>;
-  clocks = <&ccu CLK_IR>;
-  resets = <&reset RESET_IR>;
-  clock-frequency = <102400000>;
-  status = "disabled";
+        compatible = "spacemit,k1x-irc";
+        reg = <0x0 0xd4017f00 0x0 0x100>;
+        interrupts = <69>;
+        interrupt-parent = <&intc>;
+        clocks = <&ccu CLK_IR>;
+        resets = <&reset RESET_IR>;
+        clock-frequency = <102400000>;
+        status = "disabled";
  };
 ```
 
@@ -80,9 +81,9 @@ dts完整配置，如下所示
 
 ```dts
  &ircrx {
-  pinctrl-names = "default";
-  pinctrl-0 = <&pinctrl_ir_rx_1>;
-  status = "okay";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_ir_rx_1>;
+        status = "okay";
  };
 ```
 
