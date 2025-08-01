@@ -80,7 +80,7 @@ Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 
 **注意事项：**
 
-由于 Gitee 单仓库容量限制，linux-6.6 仓库的 bl-v2.0.y 和 k1-bl-v2.1.y 分支分别被移动 [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) 和 [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.2.y) 仓库，如果您在使用 v2.0 或 v2.1，将无法 repo sync 或 git pull linux-6.6 仓库，只能重新下载，给您造成的不便，敬请原谅。
+由于 Gitee 单仓库容量限制，linux-6.6 仓库的 bl-v2.0.y 和 k1-bl-v2.1.y 分支分别被移动 [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) 和 [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y) 仓库，如果您在使用 v2.0 或 v2.1，将无法 repo sync 或 git pull linux-6.6 仓库，只能重新下载，给您造成的不便，敬请原谅。
 
 ### 下载代码
 
