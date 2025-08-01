@@ -2,7 +2,9 @@
 sidebar_position: 3
 ---
 
-# Bianbu Linux 2.1更新说明
+# Bianbu Linux 2.1更新说明 [已停服]
+
+Bianbu Linux 2.0 于 2025年7月31日 停止维护，推荐使用 2.2 或后续版本，如有疑问，请联系我们。
 
 ## v2.1更新说明
 

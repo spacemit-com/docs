@@ -1,70 +1,105 @@
-介绍Audio的功能和使用方法。
+# Audio
 
-# 模块介绍
-Audio模块包含2个I2S，1个HDMIAUDIO。
+Audio Functionality and Usage Guide.
 
-## 功能介绍
+## Overview
+
+The Audio module includes 2 I2S interfaces and 1 HDMI audio interface.
+
+### Functional Description
+
 ![](static/AUDIO.png)
 
-ALSA音频框架可以分为以下几个层次：  
-- ALSA Library  
-对应用程序提供统一的API接口，各个APP应用程序只要调用 alsa-lib 提供的 API接口来实现放音、录音、控制。现在提供了两套基本的库，tinyalsa是一个简化的alsa-lib库，Android系统主要使用
-- ALSA CORE  
-ALSA核心层，向上提供逻辑设备（PCM/CTL/MIDI/TIMER/…）系统调用，向下驱动硬件设备（Machine/I2S/DMA/CODEC）
-- ASoC Core  
-ALSA 的标准框架，是 ALSA-driver 的核心部分，提供了各种音频设备驱动的通用方法和数据结构
-- Hardware driver  
-音频硬件设备驱动，由三大部分组成，分别是 Machine、Platform、Codec，提供的 ALSA Driver API 和相应音频设备的初始化及工作流程，实现具体的功能组件，这是驱动开发人员需要具体实现的部分。  
-**Machine**：一般是指某款单板，包含特定的外设，为CPU、Codec提供了一个载体，Machine驱动几乎是不可重用的。Machine驱动将Platform驱动和Codec驱动关联在一起，通过snd_soc_dai_link指定使用哪个Platform驱动，使用哪个Soc端的dai（digital audio interface）接口，使用哪个Codec驱动，使用Codec上的哪个dai接口，同时也做一些特定于单板的操作。  
-**Platform**：一般是指某一个SoC平台，可以理解为某款Soc，具有I2S，AC97音频接口等，内部有时钟，DMA单元用于传输音频数据。Platform驱动只与特定的Soc有关，实现Soc的音频DMA驱动和Soc端的dai接口驱动，它只与SoC相关，与Machine无关，这样我们就可以把Platform抽象出来，使得同一款SoC不用做任何的改动，就可以用在不同的Machine中。  
-**Codec**：音频编解码器，Codec里面包含了I2S接口、D/A、A/D、Mixer、PA(功放)，通常包含多种输入（Mic、Line-in、I2S、PCM）和多个输出（耳机、喇叭、听筒，Line-out），一般Soc可通过I2C来控制codec芯片。Codec驱动只与Codec编解码器驱动有关，与Soc和Machine无关。Codec和Platform一样，要实现为可重用的部件，同一个Codec可以被不同的Machine使用。
+The ALSA audio framework can be divided into several layers:
 
-### k1 Audio功能介绍
+- **ALSA Library**
+  
+  Provides a unified API interface to applications. Various applications can achieve playback, recording, and control by calling the APIs provided by the ALSA library. Two basic libraries are currently provided: tinyalsa, which is a simplified version of the ALSA library, is mainly used in Android systems.
 
-K1目前支持两种音频声卡方案  
-方案一：HDMIAUDIO，支持播放
-方案二：I2S0搭配一个I2C外挂的Codec ES8326B，支持播放和录制
+- **ALSA CORE**
+  
+  The core layer of ALSA, which provides logical devices (PCM, CTL, MIDI, TIMER, etc.) for system calls and drives hardware devices (Machine, I2S, DMA, CODEC).
+ 
+- **ASoC Core**
 
-## 源码结构介绍
-I2S/HDMIAUDIO控制器驱动代码在sound/soc/spacemit目录下：
+  The standard framework of ALSA, which is the core part of the ALSA-driver. It provides general methods and data structures for various audio device drivers.
+
+- **Hardware Driver**
+
+  The audio hardware device driver, which consists of three main parts: Machine, Platform, and Codec. It provides the ALSA Driver API and the initialization and workflow of the corresponding audio devices, implementing specific functional components. This is the part that driver developers need to implement specifically.
+
+- **Machine**
+
+  Typically refers to a specific single board that includes particular peripherals, providing a carrier for the CPU and Codec. Machine drivers are almost non-reusable. The Machine driver links the Platform driver and the Codec driver together, specifying which Platform driver to use, which SoC-side DAI (Digital Audio Interface) to use, which Codec driver to use, and which DAI interface on the Codec to use, while also performing operations specific to the single board.
+
+- **Platform**
+  
+  Generally refers to a specific SoC platform, which can be understood as a particular SoC with I2S, AC97 audio interfaces, internal clocks, and DMA units for audio data transfer. The Platform driver is only related to a specific SoC, implementing the SoC's audio DMA driver and the DAI interface driver on the SoC side. It is only related to the SoC and not to the Machine, allowing the Platform to be abstracted out so that the same SoC can be used in different Machines without any modifications.
+
+- **Codec**
+
+  The audio codec, which includes I2S interfaces, D/A, A/D, Mixer, and PA (Power Amplifier). It typically contains multiple inputs (Mic, Line-in, I2S, PCM) and several outputs (headphones, speakers, earpiece, Line-out). The SoC usually controls the codec chip via I2C. The Codec driver is only related to the Codec and is independent of the SoC and Machine. Like the Platform, the Codec should be implemented as a reusable component, allowing the same Codec to be used in different Machines.
+
+### Audio Solution
+
+K1 currently supports two sound card solutions:
+**Solution 1: HDMI Audio**, which supports playback.
+**Solution 2: I2S0 paired with an external I2C Codec ES8326B**, which supports both playback and recording.
+
+### Source Code Structure
+
+The I2S/HDMIAUDIO controller driver code is located in the `sound/soc/spacemit` directory:
+
 ```
 sound/soc/spacemit
 ├── Kconfig
 ├── Makefile
-├── spacemit-dummy-codec.c    #dummy codec，配合hdmiaudio创建声卡
-├── spacemit-snd-card.c       #声卡驱动
-├── spacemit-snd-i2s.c        #i2s驱动
+├── spacemit-dummy-codec.c    # Dummy codec, used with HDMI audio to create a sound card
+├── spacemit-snd-card.c       # Sound card driver
+├── spacemit-snd-i2s.c        # I2S driver
 ├── spacemit-snd-i2s.h
-├── spacemit-snd-pcm-dma.c    #platform驱动，主要是pcm相关
-├── spacemit-snd-sspa.c       #hdmiaudio驱动
+├── spacemit-snd-pcm-dma.c    # Platform driver, mainly related to PCM
+├── spacemit-snd-sspa.c       # HDMI audio driver
 ├── spacemit-snd-sspa.h
 ```
-Codec ES8326B驱动代码在sound/soc/codec目录下：
+
+The driver code for the Codec ES8326B is located in the `sound/soc/codec` directory:
+
 ```
 sound/soc/codec
 ├── es8326.c
 ├── es8326.h
 ```
-# I2S
 
-## 关键特性
-  支持48000采样率，16bit采样深度，2声道  
-  支持播放和录制功能  
-  支持全双工  
+## I2S
 
-## 配置介绍
-主要包括驱动使能配置和dts配置
-### CONFIG配置
-#### 音频功能支持
-CONFIG_SOUND、CONFIG_SND、CONFIG_SND_SOC为ALSA音频驱动框架提供支持，默认情况，此选项为Y
+### Key Features
+
+- Supports a sampling rate of 48000, with a 16-bit sampling depth and 2 channels.
+- Supports playback and recording functions.
+- Supports full-duplex operation.
+
+### Configuration
+
+The configuration mainly includes driver enabling and DTS (Device Tree Source) configuration
+
+#### CONFIG Configuration
+
+##### Audio Function Support
+
+CONFIG_SOUND, CONFIG_SND, and CONFIG_SND_SOC provide support for the ALSA audio driver framework. By default, these options are enabled (`y`).
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
                 Advanced Linux Sound Architecture (SND [=y])
                         ALSA for SoC audio support (SND_SOC [=y])
 ```
-#### K1音频功能支持
-CONFIG_SND_SOC_SPACEMIT、CONFIG_SPACEMIT_CARD、CONFIG_SPACEMIT_PCM为K1音频功能提供支持，默认情况下，此选项为Y
+
+#### Audio Function Support
+
+CONFIG_SND_SOC_SPACEMIT, CONFIG_SPACEMIT_CARD, and CONFIG_SPACEMIT_PCM provide support for the K1 audio functionality. By default, these options are enabled (`y`)
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -74,8 +109,11 @@ Device Drivers
                                         Audio Simple Card (SPACEMIT_CARD [=y])
                                         Audio Platform Pcm (SPACEMIT_PCM [=y])
 ```
-#### I2S功能支持
-CONFIG_SPACEMIT_I2S为I2S功能提供支持，默认情况下，此选项为Y
+
+#### I2S Function Support
+
+CONFIG_SPACEMIT_I2S provides support for the I2S functionality. By default, this option is enabled (`y`).
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -86,10 +124,14 @@ Device Drivers
                                         Audio Platform Pcm (SPACEMIT_PCM [=y])
                                         Audio Cpudai I2S (SPACEMIT_I2S [=y])
 ```
-### DTS配置
-#### pinctrl
-- i2s0 pinctrl配置  
-有两组pinctrol配置，根据实际情况硬件设计进行配置
+
+#### DTS Configuration
+
+##### pinctrl
+
+- i2s0 pinctrl configuration
+  There are two sets of pinctrl configurations, which should be configured according to the actual hardware design.
+
 ```
         pinctrl_sspa0_0: sspa0_0_grp {
                 pinctrl-single,pins =<
@@ -113,14 +155,15 @@ Device Drivers
 
 &i2s0 {
         pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_sspa0_0>;         #使用pinctrl_sspa0_0这组pin
+        pinctrl-0 = <&pinctrl_sspa0_0>;         # Using the pin set pinctrl_sspa0_0.
         status = "okay";
 };
 
 ```
 
-- i2s1 pinctrl配置  
-```
+- i2s1 pinctrl configuration
+
+  ```
         pinctrl_sspa1: sspa1_grp {
                 pinctrl-single,pins =<
                         K1X_PADCONF(GPIO_24, MUX_MODE3, (EDGE_NONE | PULL_UP | PAD_1V8_DS0))    /* sspa1_sysclk */
@@ -131,19 +174,24 @@ Device Drivers
                 >;
         };
 
-&i2s1 {
+  &i2s1 {
         pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_sspa1>;          #使用pinctrl_sspa1这组pin
+        pinctrl-0 = <&pinctrl_sspa1>;          #Using the pin set pinctrl_sspa1.
         status = "okay";
-};
+  };
 
-```
+  ```
 
-### I2S-Codec声卡配置
-#### Codec配置
-以Codec ES8326B为例，进行完整声卡配置
-##### Config配置
-打开ES8326B配置
+#### I2S-Codec Sound Card Configuration
+
+##### Codec Configuration
+
+Using the ES8326B Codec as an example for a complete sound card configuration.
+
+###### Config Configuration
+
+Enable the ES8326B configuration.
+
 ```
 Device Drivers│
         Sound card support (SOUND [=y])
@@ -153,21 +201,23 @@ Device Drivers│
                                         Everest Semi ES8326 CODEC (SND_SOC_ES8326 [=y])
 ```
 
-##### dts配置
-- gpio  
-需要按实际硬件设计来配置，例如K1某些开发板上，ES8326B通过gpio129完成耳机插拔检测，通过gpio127控制板级扬声器。
-```
+###### DTS Configuration
+
+- GPIO
+  Configure according to the actual hardware design. For example, on some K1 development boards, the ES8326B uses GPIO129 for headphone detection and GPIO127 for speaker control.
+
+  ```
         es8326: es8326@19{
                 interrupt-parent = <&gpio>;
-                interrupts = <126 1>;                 #耳机插拔检测
-                spk-ctl-gpio = <&gpio 127 0>;         #板级扬声器控制gpio
+                interrupts = <126 1>;                 # Headphone insertion and removal detection
+                spk-ctl-gpio = <&gpio 127 0>;         # Board-level speaker control GPIO
         };
 
-```
+  ```
 
-##### dts 配置示例
+###### DTS Configuration Example
 
-Codec ES8236B的完整方案配置如下：
+The complete configuration for the ES8236B codec is as follows:
 
 ```
         es8326: es8326@19{
@@ -175,31 +225,38 @@ Codec ES8236B的完整方案配置如下：
                 reg = <0x19>;
                 #sound-dai-cells = <0>;
                 interrupt-parent = <&gpio>;
-                interrupts = <126 1>;                 #耳机插拔检测
-                spk-ctl-gpio = <&gpio 127 0>;         #板级扬声器控制gpio
-                everest,mic1-src = [44];              #ADC sourcs配置
+                interrupts = <126 1>;                 # Headphone plug detection
+                spk-ctl-gpio = <&gpio 127 0>;         # Board-level speaker control GPIO
+                everest,mic1-src = [44];              # ADC source configuration
                 everest,mic2-src = [66];
                 status = "okay";
         };
 ```
-##### mclk配置
-Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
+
+###### MCLK Configuration
+
+The ES8326B codec's MCLK is provided by I2S0 and is configured in the sound card node sound_codec
+
 ```
 
 &sound_codec {
         status = "okay";
         simple-audio-card,name = "snd-es8326";
-        spacemit,mclk-fs = <64>;                      #配置mclk = 64 * fs，即3.072MHz
+        spacemit,mclk-fs = <64>;                      # Configure mclk = 64 * fs, i.e., 3.072MHz
+    simple-audio-card,codec {
         simple-audio-card,codec {
                 sound-dai = <&es8326>;
+                };
         };
 };
 
 ```
-注意：spacemit,mclk-fs只支持配置成64/128/256，即3.072/6.144/12.288MHz
+**Note.** The `spacemit,mclk-fs` only supports configurations of 64, 128, or 256, which correspond to 3.072MHz, 6.144MHz, and 12.288MHz respectively.
 
-#### 声卡配置
-##### dts配置
+##### Sound Card Configuration
+
+###### DTS Configuration
+
 
 ```
         sound_codec: snd-card@1 {
@@ -209,11 +266,11 @@ Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
                 interconnects = <&dram_range4>;
                 interconnect-names = "dma-mem";
                 spacemit,init-jack;
-                simple-audio-card,cpu {                      #cpudai配置
+                simple-audio-card,cpu {                      # CPU DAI Configuration
                         sound-dai = <&i2s0>;
                 };
                 simple-audio-card,plat {
-                        sound-dai = <&i2s0_dma>;             #platform pcm配置
+                        sound-dai = <&i2s0_dma>;             # Platform PCM Configuration
                 };
         };
 
@@ -222,31 +279,40 @@ Codec ES8326B的mclk由I2S0提供，在声卡节点sound_codec中进行配置
         simple-audio-card,name = "snd-es8326";
         spacemit,mclk-fs = <64>;
         simple-audio-card,codec {
-                sound-dai = <&es8326>;                       #codecdai配置
+                sound-dai = <&es8326>;                       # Codec DAI Configuration
         };
 };
 
 ```
 
-# HDMIAUDIO
+## HDMIAUDIO
 
-## 关键特性
-  支持48000采样率，16bit采样深度，2声道  
-  只支持播放
+### Key Features
 
-## 配置介绍
-主要包括驱动使能配置和dts配置。因为HDMIAUDIO依赖于HDMI显示功能，需要确保HDMI显示已支持，请参考对应的文档。
-### CONFIG配置
-#### 音频功能支持
-CONFIG_SOUND、CONFIG_SND、CONFIG_SND_SOC为ALSA音频驱动框架提供支持，默认情况，此选项为Y
+- Supports a sample rate of 48,000 Hz, 16-bit sample depth, and 2 channels.
+- Supports playback only
+
+### Configuration
+
+The configuration mainly consists of driver enablement and DTS settings. Since HDMIAUDIO relies on the HDMI display function, it is necessary to ensure that HDMI display is supported. Please refer to the corresponding documentation.
+
+#### CONFIG Configuration
+
+##### Audio Function Support
+
+CONFIG_SOUND, CONFIG_SND, and CONFIG_SND_SOC provide support for the ALSA audio driver framework. By default, this option is set to `Y`.
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
                 Advanced Linux Sound Architecture (SND [=y])
                         ALSA for SoC audio support (SND_SOC [=y])
 ```
-#### K1音频功能支持
-CONFIG_SND_SOC_SPACEMIT、CONFIG_SPACEMIT_CARD、CONFIG_SPACEMIT_PCM为K1音频功能提供支持，默认情况下，此选项为Y
+
+##### K1 Audio Function Support
+
+CONFIG_SND_SOC_SPACEMIT, CONFIG_SPACEMIT_CARD, and CONFIG_SPACEMIT_PCM provide support for K1 audio functions. By default, this option is set to `Y`.
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -256,8 +322,11 @@ Device Drivers
                                         Audio Simple Card (SPACEMIT_CARD [=y])
                                         Audio Platform Pcm (SPACEMIT_PCM [=y])
 ```
-#### HDMIAUDIO功能支持
-CONFIG_SPACEMIT_HDMIAUDIO、CONFIG_SPACEMIT_DUMMYCODEC为HDMIAUDIO功能提供支持，默认情况下，此选项为Y
+
+##### HDMIAUDIO Function Support
+
+CONFIG_SPACEMIT_HDMIAUDIO and CONFIG_SPACEMIT_DUMMYCODEC provide support for the HDMIAUDIO function. By default, this option is set to `Y`.
+
 ```
 Device Drivers
         Sound card support (SOUND [=y])
@@ -269,15 +338,18 @@ Device Drivers
                                         Audio Cpudai HDMI Audio (SPACEMIT_HDMIAUDIO [=y])
                                         Audio CodecDai Dummy Codec (SPACEMIT_DUMMYCODEC [=y]) 
 ```
-### DTS配置
+
+#### DTS Configuration
+
 ```
 &hdmiaudio {
         status = "okay";
 };
 ```
 
-### HDMIAUDIO声卡配置
-#### dts配置
+#### HDMIAUDIO Sound Card Configuration
+
+##### DTS Configuration
 
 ```
 
@@ -287,10 +359,10 @@ Device Drivers
                 status = "disabled";
                 interconnects = <&dram_range4>;
                 interconnect-names = "dma-mem";
-                simple-audio-card,plat {                        #platform pcm配置
+                simple-audio-card,plat {                        # Platform PCM Configuration
                         sound-dai = <&hdmi_dma>;
                 };
-                simple-audio-card,codec {                       #codecdai配置
+                simple-audio-card,codec {                       # Codec DAI Configuration
                         sound-dai = <&dummy_codec>;
                 };
         };
@@ -298,107 +370,142 @@ Device Drivers
 &sound_hdmi {
         status = "okay";
         simple-audio-card,cpu {
-                sound-dai = <&hdmiaudio>;                       #cpudai配置
+                sound-dai = <&hdmiaudio>;                       # CPU DAI Configuration
         };
 };
 
 ```
 
-# 接口描述
-## 测试介绍
-音频功能可以通过alsa-utils/tinyalsa工具完成功能测试，目前bianbu-linux上已集成alsa-utils工具。
-### 播放测试
-- 查看playback设备
-```
-//aplay-l查看播放设备，可以看到有两个播放设备
-root:/# aplay -l
-**** PLAYBACK 硬體裝置清單 ****
-card 0: sndhdmi [snd-hdmi], device 0: SSPA2-dummy_codec dummy_codec-0 []
-  子设备: 1/1
-  子设备 #0: subdevice #0
-card 1: sndes8326 [snd-es8326], device 0: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 []
-  子设备: 1/1
-  子设备 #0: subdevice #0
-root:/#
-//hdmiaudio播放设备，cardid为0，deviceid为0
-//I2S-Codec播放设备，cardid为1，deviceid为0
-```
-- 播放测试  
-选择设备进行播放，通过cardid和deviceid进行指定
-```
-//选择hdmiaudio声卡进行播放
-aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.way
-//选择I2S-Codec声卡进行播放
-aplay -Dhw:1,0 -r 48000 -f S16_LE --periopd-size=1024 --buffer-size=4096 xxx.way
+## Interface
 
-```
-### 录音测试
-- 查看capture设备
-```
-//arecord-l查看播放设备，可以看到有一个录制设备
-root@spacemit-k1-x-deb1-board:~# arecord -1
-****
-CAPTURE硬體裝置清單
-****
-card 1: sndes8326 [snd-es8326], device 0: i2s-daai0-ES8326 HiFi ES8326 HiFi-@
-子设备:1/1
-子设备 #0: subdevice #0
-root@spacemit-k1-x-deb1-board:~#
-//I2S-Codec录制设备，cardid为1，deviceid为0
-```
-- 录音测试  
-选择设备进行录制，通过cardid和deviceid进行指定
-```
-//选择I2S-Codec声卡进行录制
-arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
-```
-## API介绍
+### API
 
-请参阅相关的Linux官方文档。
+Please refer to the relevant official Linux documentation.
 
-## Debug介绍
+## Debugging
 
-可以通过/proc/asound/下的节点进行debug
-- 查看声卡设备
+You can perform debugging through the nodes under /proc/asound/.
+
+### View Sound Card Devices
+
 ```
 root:/# cat /proc/asound/pcm
 00-00: SSPA2-dummy_codec dummy_codec-0 :  : playback 1
 01-00: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 :  : playback 1 : capture 1
 root:/#
 ```
-- 查看声卡状态等信息
+
+### Viewing Sound Card Status and Other Information
+
+- CLOSED, the sound card is in a closed state.
+  ```
+  root:/# cat /proc/asound/card1/pcm0p/sub0/status
+  closed
+  root:/# cat /proc/asound/card1/pcm0p/sub0/hw_params
+  closed
+  root:/#
+  ```
+
+- RUNNING, the sound card is in a running state, either playing or recording. You can view the status and parameters of the sound card.
+  ```
+  root:/# cat /proc/asound/card1/pcm0p/sub0/status
+  state: RUNNING
+  owner_pid   : 3767
+  trigger_time: 224110.719883196
+  tstamp      : 224164.735391138
+  delay       : 2048
+  avail       : 2048
+  avail_max   : 2048
+  -----
+  hw_ptr      : 2592768
+  appl_ptr    : 2594816
+  root:/# cat /proc/asound/card1/pcm0p/sub0/status
+  state: RUNNING
+  owner_pid   : 3767
+  trigger_time: 224110.719883196
+  tstamp      : 224166.975406348
+  delay       : 3072
+  avail       : 1024
+  avail_max   : 2048
+  -----
+  hw_ptr      : 2700288
+  appl_ptr    : 2703360
+  root:/# cat /proc/asound/card1/pcm0p/sub0/hw_params
+  access: RW_INTERLEAVED
+  format: S16_LE
+  subformat: STD
+  channels: 2
+  rate: 48000 (48000/1)
+  period_size: 1024
+  buffer_size: 4096
+  root:/# 
+  ```
+
+## Testing
+
+Audio functionality can be tested using the **alsa-utils** or **tinyalsa** tools, which are already integrated into bianbu-linux.
+
+### Playback Test
+
+#### Viewing Playback Devices
+
+aplay-l // List playback devices
+
 ```
-root:/# cat /proc/asound/card1/pcm0p/sub0/status
-state: RUNNING
-owner_pid   : 3767
-trigger_time: 224110.719883196
-tstamp      : 224164.735391138
-delay       : 2048
-avail       : 2048
-avail_max   : 2048
------
-hw_ptr      : 2592768
-appl_ptr    : 2594816
-root:/# cat /proc/asound/card1/pcm0p/sub0/status
-state: RUNNING
-owner_pid   : 3767
-trigger_time: 224110.719883196
-tstamp      : 224166.975406348
-delay       : 3072
-avail       : 1024
-avail_max   : 2048
------
-hw_ptr      : 2700288
-appl_ptr    : 2703360
-root:/# cat /proc/asound/card1/pcm0p/sub0/hw_params
-access: RW_INTERLEAVED
-format: S16_LE
-subformat: STD
-channels: 2
-rate: 48000 (48000/1)
-period_size: 1024
-buffer_size: 4096
-root:/# 
+root:/# aplay -l
+**** PLAYBACK Hardware Devices ****
+card 0: sndhdmi [snd-hdmi], device 0: SSPA2-dummy_codec dummy_codec-0 []
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: sndes8326 [snd-es8326], device 0: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 []
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+root:/#
 ```
 
-# FAQ
+There are two playback devices visible:
+- The HDMIAUDIO playback device has a card ID of 0 and a device ID of 0.
+- The I2S-Codec playback device has a card ID of 1 and a device ID of 0.
+
+#### Playback
+
+Specify the card and device IDs to select a playback device
+
+Example: Select the HDMIAUDIO sound card for playback.
+```
+aplay -Dhw:0,0 -r 48000 -f S16_LE --period-size=480 --buffer-size=1920 xxx.wav
+
+```
+Example: Select the I2S-Codec sound card for playback.
+```
+aplay -Dhw:1,0 -r 48000 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
+```
+
+### Recording Test
+
+#### Viewing Capture Devices
+
+`arecord -l` to view the capture devices
+
+```
+root@spacemit-k1-x-deb1-board:~# arecord -l
+**** CAPTURE Hardware Devices ****
+card 1: sndes8326 [snd-es8326], device 0: i2s-dai0-ES8326 HiFi ES8326 HiFi-0 []
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+root@spacemit-k1-x-deb1-board:~#
+```
+
+There is one capture device visible:
+- The I2S-Codec capture device has a card ID of 1 and a device ID of 0.
+
+#### Recording
+
+Select a device for recording by specifying the card ID and device ID.
+
+Example: Select the I2S-Codec sound card for recording.
+```
+arecord -Dhw:1,0 -r 48000 -c 2 -f S16_LE --period-size=1024 --buffer-size=4096 xxx.wav
+```
+
+## FAQ

@@ -4,26 +4,26 @@
 
 ## 模块介绍
 
-GMAC（Gigabit Media Access Controller）模块是一种用于支持千兆以太网通信的控制器，负责数据帧的发送、接收和网络流量管理。
+GMAC（Gigabit Media Access Controller）模块是一个支持千兆以太网通信的控制器，负责数据帧的发送、接收及网络流量的管理。
 
 ### 功能介绍
 
 ![](static/net.png)   
-应用层：面向用户提供应用服务。  
-协议栈层：实现网络协议，为应用层提供系统调用接口。  
-网络设备抽象层：屏蔽驱动实现细节，为协议栈提供统一接口。  
-网络设备驱动层：实现数据传输和设备管理。  
-物理层：网络硬件设备。
+- **应用层：** 面向用户提供应用服务。  
+- **协议栈层：** 实现网络协议，为应用层提供系统调用接口。  
+- **网络设备抽象层：** 屏蔽驱动实现细节，为协议栈提供统一接口。  
+- **网络设备驱动层：** 负责实现数据传输和设备管理。  
+- **物理层：** 网络硬件设备。
 
 ### 源码结构介绍
 
-gmac驱动代码在drivers\net\ethernet\spacemit目录下：
+GMAC 驱动代码位于 `drivers\net\ethernet\spacemit` 目录下：
 
 ```
 drivers\net\ethernet\spacemit
-|-- emac-ptp.c          #提供PTP协议支持
-|-- k1x-emac.c          #k1 gmac驱动代码
-|-- k1x-emac.h          #k1 gmac驱动头文件
+|-- emac-ptp.c          #提供 PTP 协议支持
+|-- k1x-emac.c          #K1 GMAC 驱动代码
+|-- k1x-emac.h          #K1 GMAC 驱动头文件
 ```
 
 ## 关键特性
@@ -46,15 +46,18 @@ drivers\net\ethernet\spacemit
 | :---: | :---: | :---: | :---: | :---: |
 | TX速率 (Mbps) | 942 | 930 | 942 | 797 |
 | RX速率 (Mbps) | 941 | 940 | 941 | 881 |  
-注：双工情形下测试带宽具有一定波动    
+
+**注：** 双工情形下测试带宽具有一定波动    
 
 ### 性能测试
 #### 测试环境
-测试物料：一块k1-deb1板；一台PC，型号：HP ProBook 450 15.6 inch G10 Notebook PC、系统：Ubuntu 22.04.4 LTS    
 
-网络拓扑：k1-deb1 eth0口与PC以太网口直连；k1-deb1 eth1口经2.5G usb转以太网连接器与PC直连  
+**测试设备：** 一块 K1-DEB1 板卡；一台 PC（型号：HP ProBook 450 G10，操作系统：Ubuntu 22.04.4 LTS）
 
-IP设置：直连网口IP设置在同一个网段，PC端开启两个iperf服务端
+**网络拓扑：** K1-DEB1 eth0 口与 PC 以太网口直连；K1-DEB1 eth1 口经 2.5G USB 转以太网连接器 与 PC直连  
+
+**IP设置：** 直连网口 IP 设置在同一个网段，PC 端开启两个 iperf 服务端
+
 ```
 # Set IP for the PC
 ifconfig <ethernet-interface> 192.168.1.100 netmask 255.255.255.0
@@ -68,21 +71,24 @@ ifconfig eth1 192.168.2.200 netmask 255.255.255.0
 iperf3 -s -B 192.168.1.100 -A 10 -D
 iperf3 -s -B 192.168.2.100 -A 11 -D
 ```
-#### 性能优化
-为最大化网络吞吐量，在测试前先对k1-deb1板网口中断进行合理的CPU绑定和分配，以充分利用多核资源
 
-第一步：通过以下命令查看当前中断分配情况，确认两个网卡对应的中断号：
+#### 性能优化
+为最大化网络吞吐量，在测试前先对 K1-DEB1 板网口中断进行合理的 CPU 绑定和分配，以充分利用多核资源
+
+**第一步：** 通过以下命令查看当前中断分配情况，确认两个网卡对应的中断号：
  ```
 cat /proc/interrupts | grep eth*
  85:      11041    2332003          0          0          0          0          0          0  SiFive PLIC 131 Edge      eth0
  86:        234          0     409744          0          0          0          0          0  SiFive PLIC 133 Edge      eth1
  ```
-第二步：将网口硬件中断绑定到不同CPU核，例如eth0绑定至CPU1、eth1绑定至CPU2
+
+**第二步：** 将网口硬件中断绑定到不同 CPU 核，例如 eth0 绑定至 CPU1、eth1 绑定至 CPU2
 ```
 echo 02 > /proc/irq/85/smp_affinity
 echo 04 > /proc/irq/86/smp_affinity
 ```
-第三步：启用 RPS（Receive Packet Steering）进行接收端的软中断负载均衡。例如下面命令允许CPU4处理eth0上接收数据包、CPU5处理eth1接收数据包，充分利用多核优势。
+
+**第三步：** 启用 RPS（Receive Packet Steering）进行接收端的软中断负载均衡。例如下面命令允许 CPU4 处理 eth0 上接收数据包、CPU5 处理 eth1 接收数据包，充分利用多核优势。
 ```
 echo 10 > /sys/devices/platform/soc/cac80000.ethernet/net/eth0/queues/rx-0/rps_cpus
 echo 4096 > /sys/devices/platform/soc/cac80000.ethernet/net/eth0/queues/rx-0/rps_flow_cnt
@@ -92,7 +98,7 @@ echo 4096 > /sys/devices/platform/soc/cac81000.ethernet/net/eth1/queues/rx-0/rps
  ```
 
 #### 单网卡测试
-使用eth0口进行单网卡测试，并将当前iperf3进程绑定到CPU6
+使用 eth0 口进行单网卡测试，并将当前 iperf3 进程绑定到 CPU6
 
 ##### 单工/TX
 
@@ -113,7 +119,8 @@ iperf3 -c 192.168.1.100 -B 192.168.1.200 -t 100 -A 6 --bidir
 ```
 
 #### 双网卡测试
-双网卡测试中将两个iperf3进程分别绑定到CPU6、CPU7
+双网卡测试中将两个 iperf3 进程分别绑定到CPU6、CPU7
+
 ##### 单工/TX
 
 ```
@@ -148,11 +155,11 @@ cat 2.txt
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括 **驱动使能配置** 和 **dts配置**
 
 ### CONFIG配置
 
-NET_VENDOR_SPACEMIT：如果使用的是 Spacemit 类型的以太网芯片，请将此选项设置 Y
+`NET_VENDOR_SPACEMIT`：如果使用的是 SpacemiT 类型的以太网芯片，请将此选项设置 `Y`
 
 ```
 config NET_VENDOR_SPACEMIT
@@ -170,7 +177,7 @@ config NET_VENDOR_SPACEMIT
      
 ```
 
-K1X_EMAC：启用 Spacemit的GMAC驱动
+`K1X_EMAC`：启用 SpacemiT 的 GMAC 驱动
 
 ```
 config K1X_EMAC
@@ -185,13 +192,13 @@ config K1X_EMAC
 
 ### dts配置
 
-gmac dts 配置，需要确定以太网使用的 pin 组，phy 复位 gpio，phy 型号及地址。tx phase 和 rx phase 一般采用默认值。
+GMAC dts 配置，需要确定以太网使用的 pin 组，phy 复位 GPIO，phy 型号及地址。TX phase 和 RX phase 一般采用默认值。
 
 #### pinctrl
 
-查看开发板原理图，找到 gmac 使用的 pin 组。
+查看开发板原理图，找到 GMAC 使用的 pin 组。
 
-假设 eth0 使用 GPIO00~GPIO14、GPIO45 pin 组，且配置可以采用 k1-x_pinctrl.dtsi 中 pinctrl_gmac0 组配置。
+假设 eth0 所使用的引脚为 GPIO00 至 GPIO14 以及 GPIO45，对应 pinctrl 配置可使用 `k1-x_pinctrl.dtsi` 中的 `pinctrl_gmac0`。
 
 方案 dts 中 eth0 使用 gmac0 pinctrl 如下
 
@@ -250,9 +257,9 @@ Phy id 信息可以查找 phy spec 或联系 phy 厂商提供。
 };
 ```
 
-#### tx phase 和 rx phase
+#### TX phase 和 RX phase
 
-Tx-phase 默认值为 90，rx-phase 为 73。
+tx-phase 默认值为 `90`，rx-phase 为 `73`。
 
 不同的板子 tx-phase 和 rx-phase 可能需要调整。如果 eth0 端口可以 up，但是分配不到 ip 地址，需要联系进迭时空调整 tx-phase 和 rx-phase。
 
@@ -313,11 +320,11 @@ Tx-phase 默认值为 90，rx-phase 为 73。
 
 #### emac_ioctl
 
-`emac_ioctl`用于访问`PHY`（物理层）设备寄存器和配置硬件时间戳功能，各命令含义如下：  
-`SIOCGMIIPHY`：获取 `PHY` 设备地址。  
-`SIOCGMIIREG`：读取指定的 `PHY` 寄存器。  
-`SIOCSMIIREG`：写入指定的 `PHY` 寄存器。  
-`SIOCSHWTSTAMP`：配置设备的硬件时间戳。  
+`emac_ioctl` 用于访问 `PHY`（物理层）设备寄存器和配置硬件时间戳功能，各命令含义如下：  
+- `SIOCGMIIPHY`：获取 `PHY` 设备地址。  
+- `SIOCGMIIREG`：读取指定的 `PHY` 寄存器。  
+- `SIOCSMIIREG`：写入指定的 `PHY` 寄存器。  
+- `SIOCSHWTSTAMP`：配置设备的硬件时间戳。  
 
 ```c
 static int emac_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
@@ -348,7 +355,7 @@ static int emac_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 
 #### emac_get_link_ksettings
 
-`emac_get_link_ksettings` 函数用于获取网络设备的速度、双工模式、自协商状态等链路信息，用户使用`ethtool <INTERFACE>`命令时该函数会被调用：
+`emac_get_link_ksettings` 函数用于获取网络设备的速度、双工模式、自协商状态等链路信息，用户使用 `ethtool <INTERFACE>` 命令时该函数会被调用：
 
 ```
 # ethtool eth0
@@ -414,7 +421,7 @@ static int emac_set_link_ksettings(struct net_device *ndev,
 
 #### emac_get_ethtool_stats
 
-`emac_get_ethtool_stats`用于获取GMAC统计信息，所有的统计项目如下：
+`emac_get_ethtool_stats` 用于获取GMAC统计信息，所有的统计项目如下：
 
 ```c
 struct emac_hw_stats {
@@ -641,13 +648,13 @@ ifconfig <INTERFACE> up
 ifconfig <INTERFACE> down
 ```
 
-测试和另一台主机的连通性，假设其IP地址为192.168.0.1
+测试和另一台主机的连通性，假设其IP地址为 `192.168.0.1`
 
 ```c
 ping 192.168.0.1 
 ```
 
-采用DHCP协议分配IP地址
+采用 DHCP 协议分配IP地址
 
 ```c
 udhcpc

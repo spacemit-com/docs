@@ -4,6 +4,25 @@ sidebar_position: 3
 
 # Bianbu Linux 2.2 Release Notes
 
+## v2.2.6 release note
+
+Release date: 2025-7-17
+
+Compared to 2.2.4, 2.2.6 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+
+### Major Updates
+
+- Added support for small memory solution
+- Added support for spi nand boot solution
+- Added support for the MUSE-Pi-Pro board-level LED mode as heartbeat mode 
+- Added support for remoteproc VIRTIO_F_ACCESS_PLATFORM functionality
+- Fixed the issue of display freezing during hibernation wake-up aging
+- Fixed the maximum execution jitter delay of emac
+- Fixed the i2s system clock divider parameters to reduce sysclk jitter 
+- Fixed the issue where multiple sensors of the camera could not be powered on simultaneously
+- Fixed the issue where some husb239 adapters were unable to negotiate 12V
+- Fixed the warning of uninitialized lock in rtl8852bs rg_interface and the oops issue during stanby test
+
 ## v2.2.4 release note
 
 Release date: 2025-6-25
@@ -12,11 +31,11 @@ Compared to 2.2.2, 2.2.4 fixes several issues and provides a new kernel branch k
 
 ### Major Updates
 
-- Support MMC to adjust tx delaycode according to cpufreq to improve data transmission stability 
-- Supports the WOL wake-up function of the RTL8211F network interface card
-- Supports es8316/es8375 codec 
-- Supports i2s dsp_a/b format 
-- Supports MOTORCOMM PHY driver 
+- Added support for MMC to adjust tx delaycode according to cpufreq to improve data transmission stability 
+- Added support for WOL wake-up function of the RTL8211F network interface card
+- Added support for es8316/es8375 codec 
+- Added support for i2s dsp_a/b format 
+- Added support for MOTORCOMM PHY driver 
 - Fixed the issue that the rapid change of UART CTS state fails to generate an interrupt
 - Fixed the retransmission issue caused by the probabilistic failure of i2c transmission 
 - Fixed the system panic issue caused by global out-of-bounds / slab out-of-bounds memory access in rtl8852bs

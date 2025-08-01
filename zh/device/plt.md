@@ -8,9 +8,7 @@ sidebar_position: 9
 
 ## 简介
 
-产测工具是一个用于测试板卡或整机硬件接口连通性的系统，基于bianbu linux裁剪，集成factorytest应用。
-
-该系统通常运行在sdcard上。
+产测工具是一个用于测试板卡或整机硬件接口连通性的系统，基于 Bianbu Linux 裁剪，集成 factorytest 应用。该系统通常运行在 SD 卡上。
 
 ## 编译
 
@@ -29,7 +27,7 @@ your choice (1-3):
 
 选择`3`，然后回车即开始编译。
 
-编译完成，可以看到：
+编译完成，可以看到以下输出：
 
 ```shell
 Images successfully packed into /path/to/bianbu-linux/output/k1_plt/images/bianbu-linux-k1_plt.zip
@@ -56,7 +54,9 @@ INFO: hdimage(sdcard.img): writing MBR
 Successfully generated at /path/to/bianbu-linux/output/k1_plt/images/bianbu-linux-k1_plt-sdcard.img
 ```
 
-其中`bianbu-linux-k1_plt.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1_plt-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
+其中：
+- `bianbu-linux-k1_plt.zip` 适用于 Titan Flasher，或者解压后用 fastboot 刷机。
+- `bianbu-linux-k1_plt-sdcard.img` 为 SD 卡固件，解压后可以用 `dd` 命令或者 [balenaEtcher](https://etcher.balena.io/) 写入sdcard。
 
 固件默认用户名：`root`，密码：`bianbu`。
 
@@ -68,17 +68,17 @@ Successfully generated at /path/to/bianbu-linux/output/k1_plt/images/bianbu-linu
 
 - deb1
 
-产测工具的系统通常不直接使用板型在u-boot和内核的dts，而是基于它定制。
+产测工具的系统通常不直接使用板型在 U-Boot 和内核的 DTS，而是基于它定制。
 
-添加新板型的步骤：
+添加新板型的步骤如下：
 
-1. 拷贝u-boot的dts到`buildroot-ext/board/spacemit/k1/plt_dts/u-boot`，例如k1-x_deb2.dts
+1. 将 U-Boot 的 DTS 拷贝到 `buildroot-ext/board/spacemit/k1/plt_dts/u-boot`，例如k1-x_deb2.dts
 
-2. 定制
+2. 根据需要对 DTS 文件进行定制。
 
-3. 拷贝内核的dts到`buildroot-ext/board/spacemit/k1/plt_dts/kernel`，例如k1-x_deb2.dts
+3. 将内核的 DTS 拷贝到 `buildroot-ext/board/spacemit/k1/plt_dts/kernel`，例如k1-x_deb2.dts
 
-4. 修改dtsi路径
+4. 修改 DTS 文件中的 DTSI 路径，确保路径正确。例如：
 
    ```diff
    -#include "k1-x.dtsi"
@@ -95,9 +95,9 @@ Successfully generated at /path/to/bianbu-linux/output/k1_plt/images/bianbu-linu
    +#include "spacemit/k1-x-camera-sdk.dtsi"
    ```
 
-5. 修改其他配置
+5. 根据需要修改其他相关配置。
 
-6. 修改`output/k1_plt/.config`，添加新板型的dts
+6. 修改 `output/k1_plt/.config`，添加新板型的 DTS。例如：
 
    ```diff
    -BR2_LINUX_KERNEL_INTREE_DTS_NAME="k1-x_deb1"
@@ -108,7 +108,7 @@ Successfully generated at /path/to/bianbu-linux/output/k1_plt/images/bianbu-linu
    +BR2_TARGET_UBOOT_CUSTOM_DTS_PATH="$(BR2_EXTERNAL_Bianbu_PATH)/board/spacemit/k1/plt_dts/u-boot/k1-x_deb1.dts $(BR2_EXTERNAL_Bianbu_PATH)/board/spacemit/k1/plt_dts/u-boot/k1-x_deb2.dts"
    ```
 
-7. 重新编译u-boot、内核和固件即可
+7. 重新编译 U-Boot、内核和固件：
 
    ```shell
    make uboot-rebuild
@@ -122,6 +122,6 @@ Successfully generated at /path/to/bianbu-linux/output/k1_plt/images/bianbu-linu
    make savedefconfig
    ```
 
-### 定制rootfs
+### 定制 rootfs
 
-通过`buildroot-ext/board/spacemit/k1/plt_overlay`定制rootfs，该目录下的文件会在制作镜像前拷贝到`output/k1_plt/target`目录。
+通过 `buildroot-ext/board/spacemit/k1/plt_overlay` 定制 rootfs。该目录下的文件会在制作镜像前拷贝到 `output/k1_plt/target` 目录。

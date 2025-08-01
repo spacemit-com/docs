@@ -4,104 +4,185 @@ sidebar_position: 1
 
 # Camera Development Guide
 
-本篇主要介绍 Spacemit K1 平台 Camera 模块的快速上手开发。
+This document provides quick start development for the SpacemiT K1 platform's Camera module.
 
-K1 仅支持 MIPI 类型接口，使用 Spacemit camera 驱动框架。
+The K1 only supports MIPI type interfaces and uses the SpacemiT camera driver framework.
 
-## Revision History
+## Camera Quick Bring Up Guide
 
-| Revision | Date      | Author | Description   |
-| ----------------- | ------------------ | --------------- | ---------------------- |
-| 1.0      | 2024-8-29 | lizhirong  | Initial draft |
+### Bring Up a Supported Camera (Two Steps)
 
-## Camera 快速点亮导览
+**Step 1: Identify the Camera Interface and Run the Command**  
 
-* **点亮一款已支持的摄像头，只需两步：**
-1. 确定摄像头是接在开发板的哪个MIPI CSI接口上，假如是接在了MIPI CSI1硬件接口，则运行以下命令（假如是接在了MIPI CSI1硬件接口则使用csi1_camera_auto.json）
+Identify the MIPI CSI interface that the camera is connected to (for example, CSI1).
+Then, run the following command (example shows CSI1):
+
 ```
 cam-test /usr/share/camera_json/csi1_camera_detect.json
 ```
-运行结果如下，cam-test将会自动探测mipi csi1上已支持的摄像头id，如果成功探测到将生成可用的json文件到/usr/share/camera_json/目录。如果没有探测到，说明没有支持此摄像头，或者硬件有问题，此情况下建议请求进迭工程师提供支持。
+
+If successful, you will see output like the example below. The system will automatically generate a usable JSON file in the `/usr/share/camera_json/` directory.  
+If unsuccessful, it indicates that this camera is not supported or there is a hardware issue. In that case, please contact SpacemiT technical support.
+
 ```
-......
 I: ./sensors/cam_sensors_module.c(235): "detect ov16a10_spm sensors in csi1: success, set 3840x2160 to 1920x1080"
 I: auto_detect_camera(1401): "auto detect sensor ===================== finish "
 I: update_json_file(672): "save json to /usr/share/camera_json/csi1_camera_auto.json success"
 ```
-从上述运行log还可以得出，ov16a10 sensor生成的json默认使用模式0，sensor输出分辨率为3840x2160，isp输出分辨率为1920x1080。json配置文件的更多描述，请参阅下文的JSON 参数说明。
 
-2. 运行下列命令，启动摄像头出图500帧，并保存第250帧。正常运行的输出log请参阅 正常运行单路在线测试 log章节。如果运行失败，建议请求进迭工程师提供支持。
+From the above log output, we can also determine:
+
+- The `ov16a10` sensor generates a JSON file using **mode 0** by default  
+- The sensor output resolution is **3840x2160**  
+- The ISP output resolution is **1920x1080**  
+
+For more details about the JSON configuration file, please refer to the section **"JSON Parameter Description"** below.
+
+
+**Step 2: Start Camera Output Test**  
+Run the following command to start the camera output for 500 frames and save frame 250 for verification:
+
 ```
 cam-test /usr/share/camera_json/csi1_camera_auto.json
 ```
-3. 如果摄像头需要实现屏幕预览，可以参考gstreamer_user_guide文档里的摄像头应用章节里的MIPI摄像头说明。
 
+- For expected output logs during normal operation, refer to the section **"Normal Operation – Single Channel Online Test Log"**  
+- If the command fails to execute, it is recommended to contact SpacemiT technical support
 
-* **点亮一款新的摄像头，通常仅需要调整 cam-test 应用层的代码即可快速支持上，所有camera相关的内核配置，dts不用修改。**
+**Step 3 (Optional): Screen Preview**  
+To enable display preview for the camera, please refer to the **gstreamer_user_guide** document, specifically the section about MIPI camera usage under the camera application chapter.
 
-因为点亮 sensor 所依赖的上下电 GPIO，MCLK 时钟，MIPI lane 配置等硬件功能配置，在方案对外发布前就已经由内部工程师提前开发验证完毕，极少数情况下需要修改配置 dts 和驱动。比如：由于外部不可抗拒原因，必须要对主板的 MIPI CSI 接口电路进行更改，上电 GPIOA 更改为 GPIOB，MCLKA 更改为 MCLKB 等，此情况下建议请求进迭工程师提供支持。
+### Bring Up a New Camera Module
 
-如果不考虑特殊情况，点亮一款新摄像头，建议按照以下步骤展开：
+Usually, it only requires modifications to the `cam-test` application layer code for quick support. No kernel configuration or DTS changes are normally required.
 
-1. 根据当前摄像头型号，复用列表中已支持的相近型号的应用代码（主要是复用摄像头应用的代码结构排布，减少开发工作量），修改函数名称，结构体名称等为当前摄像头型号，详情参阅 [4.4 bring up 章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#WyFfdSraRon43ox45NrcJNkLn0c)。
-2. 阅读摄像头的数据手册，确定摄像头的寄存器位数，I2C 地址，上电流程，ID 寄存器以及 ID 值，并修改 sensor 应用代码，其中，上电流程可以参阅 [3.4 sensor 驱动章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#FDqvd68hQo5zwZxTDVTclr26nTg).
-3. 配置摄像头的 setting tab 寄存器数组，并根据原厂提供的信息，或计算出来的数值，确定配置所使用的 lane 数/HTS/VTS/MCLK/FPS/PCLK/分辨率/data Lane 等信息，并完善函数内容（主要关注 xxx_spm_get_sensor_capbility 和 xxx_spm_get_sensor_work_info 函数）。
-4. 调整 xxx_sensor.c 源文件中使用到的曝光增益等寄存器地址。
-5. 尝试上电读 ID 测试，如果读 ID 失败，请重新检查步骤 1。
-6. 尝试出图测试，出图测试可以选用 single online test，详情参阅 [5.3 场景介绍章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#WP0wdBFKcomb5bxp5BkcLjbMndb)。如果出图失败，可以使用 only viisp case 再测试。如果仍旧失败，请认真检查步骤 3，步骤 4，或寻求工程师协助分析。
-7. Single online test 正常出图的 log，可以参阅 [6.2 章节内容](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#EtjKd2NkDofQOSxLWv8cX6KLngd)。
+> The hardware functions required to bring up the sensor — including power sequencing GPIOs, MCLK clock signals, and MIPI lane configurations — have been fully validated by internal engineers prior to the solution’s release.
+> In rare cases where modifications to the Device Tree (DTS) or drivers are necessary (e.g., due to unavoidable hardware changes such as MIPI CSI interface circuit adjustments, GPIO power pin remapping (GPIOA → GPIOB), or MCLK clock source switching (MCLKA → MCLKB)), we recommend consulting SpacemiT hardware adaptation engineers for support.
 
-备注：关于测试应用以及各个 test 的介绍，可以参阅[第 5 章节](https://spacemit.feishu.cn/wiki/SQxSwlUJKiNwWGk3ldkcLzaenyh#BaRbd8qCdoM9W2xMrUJcGGimnSh)内容。
+#### Steps to Bring Up a New Camera
 
-另外：
-关于camera模块的规格特性，请参考进迭时空开发者社区的 芯片规格说明书：https://developer.spacemit.com/documentation?token=BWbGwbx7liGW21kq9lucSA6Vnpb#part779
+If no special conditions apply, it is recommended to follow the steps below to bring up a new camera:
 
-关于camera模块的ISP效果调试，请参考进迭时空开发者社区的 ISP PQ工具用户指南：https://bianbu-linux.spacemit.com/development_guide/isp_pq_tools_user_guide
+1. **Reuse Code from a Similar Model**  
+   - Based on the current camera model, reuse the application code from a similar model already supported in the list  
+   - Focus on reusing the structure and layout of the camera application code (to reduce development workload)  
+   - Modify function names and structure names to match the current camera model  
+   - For more details, refer to the **Bring up** section in this document
 
-关于camera模块的ISP API开发，请参考进迭时空开发者社区的 ISP API开发指导手册：https://bianbu-linux.spacemit.com/development_guide/isp_api_development_guide
+2. **Configure Sensor Parameters**  
+   - Read the camera datasheet to determine:  
+     - Register bit width  
+     - I2C address  
+     - Power-on sequence  
+     - ID register and ID value  
+   - Modify the sensor application code accordingly  
+   - For the power-on sequence, refer to the **[Sensor Driver]** section in this document
 
-## Camera 子系统硬件框图
+3. **Configure Register Parameters**  
+   - Configure the register array in the setting tab  
+   - Based on information provided by the manufacturer or calculated values, determine:  
+     - Number of lanes / HTS / VTS / MCLK / FPS / PCLK / resolution / data lanes, etc.  
+   - Complete the function implementations (pay particular attention to `xxx_spm_get_sensor_capbility` and `xxx_spm_get_sensor_work_info` functions)  
+
+4. **Adjust Register Addresses**  
+   - Modify exposure, gain, and other register addresses in `xxx_sensor.c`  
+
+5. **ID Read Test**  
+   - Attempt to power on the sensor and read its ID  
+   - If it fails, revisit and verify Step 1  
+
+6. **Image Output Test**  
+   - Use `single online test` (refer to the **Scene Description** section in this document)  
+   - If it fails, try testing again with `only viisp case`  
+   - If it still fails, check Step 3 and Step 4, or contact engineering support for analysis  
+
+7. **Log Verification**  
+   - For normal image output logs from `single online test`, refer to the **Practical Log** section in this document  
+
+> **Note.**  
+> For information about the test applications and test cases, refer to the **Scene Description** section in this document.  
+  
+**Reference Documents**  
+
+- **Camera Module Specifications**  
+  [Chip Specification Manual](https://developer.spacemit.com/documentation?token=BWbGwbx7liGW21kq9lucSA6Vnpb#part779)  
+
+- **ISP Image Quality Tuning**  
+  [ISP PQ Tool User Guide](isp_api_development_guide.md)  
+
+- **ISP API Development**  
+  [ISP API Development Guide](isp_api_development_guide.md)  
+
+## Camera Subsystem Hardware Block Diagram
 
 ![](./static/FpucbLemHoe37vxj8jIcaTeBn6O.png)
 
-**Figure - camera 硬件子系统示意图**
+Description of Core Functional Modules:
 
-各个模块的功能如下：
+1. **SENSOR (Image Sensor)**  
+   - Converts light from the lens into electrical signals, then uses internal AD conversion to generate digital signals, and finally outputs MIPI RAW data.
 
-1. **SENSOR：** 将从镜头传导过来的光线转换为电信号，再通过内部的 AD 转换为数字信号，最终输出 mipi raw 数据。
-2. **CCIC：** cmos camera image controller 的简称，解析接收 sensor 发送的 mipi 数据。
-3. **IDI：** ISP 硬件内部模块，接收 ccic 发送的数据或者从 ddr 读取数据，发送到 ISP Pipeline；同时可以将 ccic 发送的数据 dump 到 DDR。
-4. **ISP-PIPE：** ISP 硬件内部 pipeline，进行一系列图像相关算法的处理。
-5. **ISP-FORMAT：** ISP 硬件内部模块，控制输出的图像格式。
-6. **ISP-DMA：** ISP 硬件内部模块，将图像输出到 DDR 中。
-7. **CPP：** 图像降噪处理和边缘增强。
+2. **CCIC (CMOS Camera Image Controller)**  
+   - Parses and receives the MIPI data sent from the sensor.
 
-## Camera 驱动框架
+3. **IDI (ISP Data Input Module)**  
+   - Receives data from CCIC or reads data from DDR and sends it to the ISP Pipeline  
+   - Also stores CCIC data into DDR
 
-本章节内容仅学习了解即可，除了 sensor 驱动部分内容，其余在 bring up senosr 基本不会使用到。
+4. **ISP-PIPE (Image Processing Pipeline)**  
+   - Internal ISP hardware pipeline  
+   - Performs a series of image-related algorithm processing
 
-### 框架简介
+5. **ISP-FORMAT (Output Format Control)**  
+   - Internal ISP hardware module  
+   - Controls the output image format
 
-Spacemit camera 驱动框架是基于 linux 内核 v4l2 框架实现的，主要提供如下功能：
+6. **ISP-DMA (Direct Memory Access)**  
+   - Internal ISP hardware module  
+   - Writes image data into DDR
 
-- 访问 camera 各个模块的硬件寄存器
-- 响应中断
-- buffer 和 event 的管理
-- 给 user space sdk 提供调用接口
+7. **CPP (Post-Processing Unit)**  
+   - Performs image noise reduction and edge enhancement.
 
-在 camera 子系统中各个模块之间的关系如下图所示：
+> **System Data Flow Description**  
+> Raw light signal → SENSOR (photoelectric conversion) → CCIC (data reception) → IDI (data routing) → ISP-PIPE (image processing) → ISP-FORMAT (format conversion) → ISP-DMA (memory write) → CPP (post-processing) → Final output
 
-![](./static/XbxNb2iVrot5nuxcYyicYn0onff.png)
+## Camera Driver Framework
 
-从软件调用关系来看，从上到下依次分为以下三层：
+> **Note:**  
+> This section is for informational purposes only. During actual development, except for the sensor driver part, the rest of the content is typically not involved in the sensor bring-up process.
 
-- **userspace**：运行在用户空间。主要包括 ISP，CPP，VI 和 tuningtools 软件库，ISP， CPP firmware 库及 sensor 模块源码。用户主要通过调用 ISP，CPP，VI 和 sensor 模块的接口来实现 camera 应用场景。firmware 库中的接口会由 ISP 和 CPP 软件库进行内部调用。另外，如果用户需要使用 ASR 的 tuning tool 来调试 ISP/CPP 的输出图像效果，需要在应用程序中调用 libtuningtools.so 的接口创建 tuning server。
-- **kernel space**：运行在内核空间。主要提供 ISP，CPP，VI，CCIC 及 sensor 的驱动。
-- **hardware layer**：驱动实际调用的硬件模块。
+### Framework Overview
 
-对于用户 bring up sensor 需求而言，主要关注 userspace 的代码，重点是 APP demo 部分，即如何根据场景需求调用 SDK 动态库的接口。
+The SpacemiT camera driver is implemented based on the Linux kernel V4L2 framework. Its main functionalities include:
 
-### 源码结构
+- Hardware register access  
+- Interrupt handling  
+- Buffer and event management  
+- Providing SDK interfaces to user space
+
+The relationships among the various modules within the Camera subsystem are shown in the diagram below:
+
+![Camera Subsystem Software Architecture](./static/XbxNb2iVrot5nuxcYyicYn0onff.png)
+
+From a software call perspective, the architecture is divided into the following three layers from top to bottom:
+
+- **Userspace**: Runs in user space.  
+  - Includes ISP, CPP, VI, and tuning tools software libraries, firmware libraries for ISP and CPP, and sensor module source code.
+  - Users primarily interact with camera applications by calling the interfaces of the ISP, CPP, VI, and sensor modules. Interfaces in the firmware libraries are called internally by the ISP and CPP software libraries.  
+  - Additionally, if users need to use ASR's tuning tool to adjust the image quality of ISP/CPP output, they must call the interfaces of `libtuningtools.so` in their application to create a tuning server.
+
+- **Kernel Space**:  
+  - Runs in kernel space.  
+  - Primarily provides drivers for ISP, CPP, VI, CCIC, and sensors.
+
+- **Hardware Layer**:  
+  - The hardware modules that are directly accessed by the drivers.
+
+> For sensor bring-up needs, the main focus should be on the APP demo implementation in userspace, i.e., how to call SDK interfaces to fulfill specific application scenarios.
+
+
+### Source Code Structure
 
 ```
 ~/k1x/linux-6.6/drivers/media/platform/spacemit/camera$ tree
@@ -184,9 +265,15 @@ Spacemit camera 驱动框架是基于 linux 内核 v4l2 框架实现的，主要
 
 ```
 
-### 驱动配置
+### Driver Configuration
 
-执行 make linux-menuconfig 命令进入 bianbu-linux 的内核配置，找到对应的宏配置，依次打开即可。
+Run the following command to enter the kernel configuration menu of bianbu-linux:
+
+```bash
+make linux-menuconfig
+```
+
+Locate the corresponding macro configurations and enable them one by one.
 
 ```bash
  Symbol: SPACEMIT_K1X_CAMERA_V2 [=y]                                                                                                                                                                                                                                                   │
@@ -203,7 +290,9 @@ Spacemit camera 驱动框架是基于 linux 内核 v4l2 框架实现的，主要
   │ Selects: MEDIA_CONTROLLER [=y] && VIDEO_V4L2_SUBDEV_API [=y]
 ```
 
-上面是 CONFIG_SPACEMIT_K1X_CAMERA_V2 配置的路径，选择打开之后，在把剩余的 camera 相关配置打开即可。打开并保存完毕后，可以通过输出保存的 ./output/k1/build/linux-custom/.config 文件确认，如下所示。
+The above shows the path for the `CONFIG_SPACEMIT_K1X_CAMERA_V2` configuration. After selecting and enabling it, enable the remaining Camera-related configurations as well. 
+
+Once all configurations are enabled and saved, you can verify them by checking the `./output/k1/build/linux-custom/.config` file, as shown below.
 
 ```bash
 #
@@ -219,44 +308,58 @@ CONFIG_SPACEMIT_K1X_SENSOR_V2=y
 
 ```
 
-### Sensor 驱动
+### Sensor Driver
 
-Sensor 相关的驱动代码位于 linux/drivers/media/platform/spacemit/camera/cam_sensor 目录，驱动加载后生成设备节点/dev/cam_sensorX（’X’为 sensor device ID，即下文提到的 camera ID）。
+Sensor-related driver code is located in the `linux/drivers/media/platform/spacemit/camera/cam_sensor` directory. After loading the driver, device nodes `/dev/cam_sensorX` will be created in the system, where `X` is the sensor device ID, also referred to as the camera ID below.
 
-Sensor 驱动是个轻量级的字符串驱动，驱动内主要是来控制 power 以及封装 I2C 的 read/write 操作。在 bring up 时要特别注意：
+The Sensor driver is a lightweight character driver, mainly providing the following functions:
 
-- camsnr_of_parse() 函数表明了当前支持解析的 sensor dts 节点中的属性内容。
-- cam_sensor_power_set()函数内定义的 power on/off 流程是否和新 sensor 操作流程一致。
+- Controlling the sensor power.
+- Encapsulating I2C read/write operations.
 
-  - 如果操作一致，像 imx135 sensor。直接调用 ioctl CAM_SENSOR_UNRESET 即可，在 imx135_init 函数调用 sensor_hw_unreset 函数完成了上电操作，在 imx135_deinit 函数调用 sensor_hw_reset 函数完成了下电操作。
-  - 如果操作不一致，像 gc2375h sensor。需要结合 sensor 字符串驱动透出的 ioctl 接口，自定义 gc2375h_power_on 函数组合出满足 gc2375h sensor 上电要求的操作。下电同理。
+During the bring-up process (initial startup or initialization), pay special attention to the following two functions:
 
-（sensor 的上下电要求在 sensor datasheet 中有篇章说明）
+- The `camsnr_of_parse()` function indicates the supported properties parsed from the sensor DTS node.
+- The `cam_sensor_power_set()` function defines the power on/off sequence and checks whether it matches the new sensor's operation process.
 
-### **DTS 介绍**
+In practice, the power-on and power-off sequences should be adjusted based on the specific sensor hardware design and datasheet:
 
-和 camera 相关的 dts 配置主要分布在以下几个文件(方案间可能会有细微差别)：
+- **When operations are consistent**  
+  If the new sensor's power-on/off sequences are consistent with existing code (e.g., `imx135` sensor), you can directly call `ioctl CAM_SENSOR_UNRESET` to complete power-on. For example:  
+  - Call `sensor_hw_unreset` in the `imx135_init` function to power on.  
+  - Call `sensor_hw_reset` in the `imx135_deinit` function to power off.
+
+- **When operations differ**  
+  If the new sensor's power-on/off sequences differ from existing code (e.g., `gc2375h` sensor), you need to define custom power-on/off functions by leveraging the sensor character driver's `ioctl` interface. For example:  
+  - Define `gc2375h_power_on` function to implement the power-on procedure required by the `gc2375h` sensor.  
+  - Define `gc2375h_power_off` function to implement the power-off procedure required by the `gc2375h` sensor.
+
+
+### DTS Introduction
+
+The DTS configurations related to the Camera are mainly distributed across the following files (there may be slight differences between different solutions):
+
 
 ```bash
-路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
-作用:各类sensor的配置信息
+Path: arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
+Purpose: Configuration information for various sensors
 
-路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sdk.dtsi
-作用:ccic、csiphy、isp、vi、cpp的配置信息
+Path: arch/riscv/boot/dts/spacemit/k1-x-camera-sdk.dtsi
+Purpose: Configuration information for CCIC, CSIPHY, ISP, VI, and CPP
 
-路径:arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi
-作用:camera所依赖的pinctr1配置信息
+Path: arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi
+Purpose: Pinctrl configuration information required by the camera
 
-路径:arch/riscv/boot/dts/spacemit/k1-xxxx.dts
-作用:不同方案的board相关配置
+Path: arch/riscv/boot/dts/spacemit/k1-xxxx.dts
+Purpose: Board-related configuration for different solutions
 ```
 
 #### Pinctrl
 
-目前仅有 camera mclk 引脚的配置是通过 pinctrl 进行定义的。
+Currently, only the camera MCLK pin configuration is defined through pinctrl.
 
 ```
-路径:arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi
+路径: arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi
 
 pinctrl_camera0: camera0_grp {
     pinctrl-single,pins =<
@@ -276,7 +379,7 @@ pinctrl_camera2: camera2_grp {
     >;
 };
 
-路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
+Path: arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
 
 /* imx315 */
 backsensor: cam_sensor@0 {
@@ -293,15 +396,16 @@ backsensor: cam_sensor@0 {
 
 #### GPIO
 
-查看开发板原理图，找到 mipi csi(0/1/2)硬件接口的复位信号 gpio 和上下电信号 gpio，通常至少会有一组 GPIO。假设 mipi csi0 硬件接口复位 gpio 为 gpio 111，上下电信号 gpio 为 gpio 113，且接入为 camera0:imx135 mipi。(建议 camera ID 和 mipi csi 的编号对应)
+**Refer to the development board schematic**  
+On the development board, MIPI CSI interfaces (such as CSI0, CSI1, CSI2) typically use GPIOs to control the camera module's reset and power signals. Usually, at least one set of GPIOs is assigned for these functions. For example, assume the reset GPIO for the MIPI CSI0 interface is GPIO 111, the power GPIO is GPIO 113, and this interface connects to the `camera0:imx135` camera module (it is recommended that the camera ID matches the MIPI CSI interface number).
 
-方案 dts 中 backsensor 配置如下。
+The backsensor configuration in the solution DTS is as follows.
 
 ```bash
-路径:arch/riscv/boot/dts/spacemit/k1-xxxx.dts
+Path: arch/riscv/boot/dts/spacemit/k1-xxxx.dts
 
-//为了提高效率，需要如下使用GPIO
-//GPIO_111 后边的2表示连续要配置的GPIO，示例中表示GPIO_111，GPIO_112。
+// To improve efficiency, GPIO should be used as follows
+// The '2' following GPIO_111 indicates the number of consecutive GPIOs to configure; in this example, it means GPIO_111 and GPIO_112.
 &pinctrl {
         pinctrl-single,gpio-range = <
                 &range GPIO_111 2 (MUX_MODE0 | EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)
@@ -323,8 +427,8 @@ backsensor: cam_sensor@0 {
         status = "okay";
 };
 
-路径:arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
-//camera ID0对应imx135
+Path: arch/riscv/boot/dts/spacemit/k1-x-camera-sensor.dtsi
+//camera ID0 corresponds to imx135
 &soc {
 
     /*imx315 */
@@ -335,11 +439,12 @@ backsensor: cam_sensor@0 {
 };
 ```
 
-pwdn-gpios,reset-gpios 跟 sensor 模组的供电配置有关，sensor 驱动中使用这组配置完成 sensor 的上、下电和 reset 操作。不同的 sensor 模组配置可能不一样，bring up 时需要仔细修改。
+`pwdn-gpios` and `reset-gpios` relate to the power supply configuration of the sensor module. The sensor driver uses these configurations to perform sensor power on/off and reset operations. Different sensor modules may have different configurations, so careful modification is required during bring up.
 
-#### Sesnor dts 配置
 
-k1-x-camera-sensor.dtsi 内定义的 sensor 配置如下
+#### Sensor DTS Configuration
+
+The sensor configurations defined inside `k1-x-camera-sensor.dtsi` are as follows:
 
 ```bash
         /* imx315 */
@@ -351,7 +456,7 @@ k1-x-camera-sensor.dtsi 内定义的 sensor 配置如下
                 clocks = <&ccu CLK_CAMM0>;
                 clock-names = "cam_mclk0";
 
-                /* 该部分内容已经被移动到顶层的dts
+                /* This section has been moved to the top-level DTS.
                 afvdd28-supply = <&ldo_12>;
                 avdd28-supply = <&ldo_10>;
                 dvdd12-supply = <&ldo_20>;
@@ -364,218 +469,187 @@ k1-x-camera-sensor.dtsi 内定义的 sensor 配置如下
         };
 ```
 
-- cell-index 表示整个 sensor 所在的 device ID，这个 device ID 和上层使用的 sensor device ID 完全匹配
-- twsi-index 表示 sensor 使用的 I2C core 的 ID，使用前要确保对应的 i2c bus dts 配置已经开启，具体请参阅 i2c 章节。
-- dphy-index 表示 sensor 使用的 PHY ID。
-- clocks/clock-names 表示 sensor 使用的 mclk 的时钟源。
+- `cell-index` specifies the device ID of the sensor, which must exactly match the sensor device ID used by the upper layers.
+- `twsi-index` specifies the ID of the I2C core used by the sensor. Before use, ensure the corresponding I2C bus DTS configuration is enabled. For details, please refer to the [I2C](../device/peripheral_driver/06-I2C.md) section.
+- `dphy-index` indicates the PHY ID used by the sensor.
+- `clocks/clock-names` indicates the clock source of the MCLK used by the sensor.
 
-### Bring up 总结
 
-在 bring up 过程中，对驱动的修改主要有以下几步：
+### Bring up Summary
 
-1. 如果是硬件平台当前位置的 sensor 模组第一次 bring up，则需要检查 k1-x--camera-sdk.dtsi
+During the bring up process, driver modifications mainly involve the following steps:
 
-内定义的 csiphy 和 ccic 配置是否正确；如果不是，则本步骤可忽略。
+1. **Check the hardware platform’s CSI PHY and CCIC configuration**  
+   If this is the first time bringing up the sensor module on the hardware platform, check whether the `csiphy` and `ccic` configurations defined in `k1-x-camera-sdk.dtsi` are correct.  If the module has already been brought up before, or the configurations are correct, this step can be skipped.
 
-1. 修改 k1-x-camera-sensor.dtsi 或顶层的 dts 内定义的 sensor 配置适配新的 sensor。
-2. 检查 sensor 驱动中 power on/off 流程是否适配新的 sensor，如果不适配，可能需要修改 sensor 驱动。
+2. **Modify sensor configuration**  
+   Modify the sensor configuration defined in `k1-x-camera-sensor.dtsi` or the top-level DTS file according to the requirements of the new sensor to adapt to the new sensor.
 
-## User 层 cam_sensors 库
+3. **Check and adjust sensor driver’s power management flow**  
+   Verify whether the power on/off flow in the sensor driver fits the new sensor. If not, modify the sensor driver code as needed to ensure the power management process complies with the new sensor’s requirements.
 
-在 User 层，对于 sensor 模组的操作经过编译后，会封装在 libcam_sensors 库中，该模块源码目录位于 xxxx/package-src/k1x-cam/sensors。
+## User Layer cam_sensors Library
 
-### 公共操作
+In the user layer, operations on sensor modules are compiled and encapsulated in the `libcam_sensors` library. The source code of this module is located at `xxxx/package-src/k1x-cam/sensors`.
 
-Sensor 的公共操作代码位于 sensor 子目录内，cam_sensor.c 文件定义的是所有 sensor 的 common 操作，该文件不用修改。xxx_sensor.c 对应的是某个具体型号 sensor 的 common 操作，如果 sensor 子目录下有待 bring up sensor 的 xxx_sensor.c 文件，则当前子目录不需要修改；如果没有的话，需要为新的 sensor 添加 xxx_sensor.c 文件。
+### Common Operations
 
-我们对 xxx_sensor.c 文件定义的功能做简单说明。
+The common sensor operation code resides in the `sensor` subdirectory. The `cam_sensor.c` file defines operations shared by all sensors and usually does not require modification. For specific sensor models, the `xxx_sensor.c` file defines that sensor’s operations.
 
-#### 操作函数集
+- If the `sensor` subdirectory already contains the `xxx_sensor.c` file for the sensor to be brought up, no modification is needed;  
+- If not, a new `xxx_sensor.c` file needs to be added for the new sensor.
 
-文件定义 struct SENSOR_OBJ 结构体作为 sensor 对外的操作函数集。结构体包含以下成员变量：
 
-- const char* name;
+#### Operation Function Set
 
-sensor 名字。
+The `xxx_sensor.c` file defines the `struct SENSOR_OBJ` structure, which serves as the external operation function set for the sensor. This structure contains the following members:
 
-- int (*pfnInit)(void** pHandle, int sns_id, uint8_t sns_addr);
+- `const char* name;`  
+  The name of the sensor.
 
-sensor 初始化。
+- `int (*pfnInit)(void** pHandle, int sns_id, uint8_t sns_addr);`  
+  Sensor initialization.
 
-- int (*pfnDeinit)(void* handle);
+- `int (*pfnDeinit)(void* handle);`  
+  Sensor deinitialization.
 
-sensor 清除初始化。
+- `int (*pfnGlobalConfig)(void* handle, SENSOR_WORK_INFO_S* work_info);`  
+  Globally configure the sensor according to the input work info.
 
-- int (*pfnGloablConfig)(void* handle, SENSOR_WORK_INFO_S* work_info);
+- `int (*pfnSetParam)(void* handle, const SENSOR_INIT_ATTR_S* init_attr);`  
+  Set sensor 3A parameters before initialization.
 
-根据输入的 work info 全局配置 sensor。
+- `int (*pfnStreamOn)(void* handle);`  
+  Start the sensor data stream.
 
-- int (*pfnSetParam)(void* handle, const SENSOR_INIT_ATTR_S* init_attr);
+- `int (*pfnStreamOff)(void* handle);`  
+  Stop the sensor data stream.
 
-在初始化前设置 sensor 的 3A 参数。
+- `int (*pfnGetSensorOps)(void* handle, ISP_SENSOR_REGISTER_S* pSensorFuncOps);`  
+  Get the callback operation function set that the sensor registers to the ISP.
 
-- int (*pfnStreamOn)(void* handle);
+- `int (*pfnDetectSns)(void* handle, SENSOR_VENDOR_ID_S* vendor_id);`  
+  Detect the sensor.
 
-sensor streamOn。
+- `int (*pfnWriteReg)(void* handle, uint16_t regAddr, uint16_t value);`  
+  Write to a register.
 
-- int (*pfnStreamOff)(void* handle);
+- `int (*pfnReadReg)(void* handle, uint16_t regAddr, uint16_t* value);`  
+  Read from a register.
 
-sensor streamOff。
+##### ISP Callback Operation Function Set
 
-- int (*pfnGetSensorOps)(void* handle, ISP_SENSOR_REGISTER_S* pSensorFuncOps);
+The `xxx_sensor.c` file defines the `struct spmISP_SENSOR_FUNC_S` structure, which serves as the callback function set that the sensor registers to the ISP. This structure contains the following members:
 
-获取 sensor 注册给 ISP 的回调操作函数集。
+- `int (*pfn_sensor_write_reg)(void*snsHandle, uint32_t regAddr, uint32_t value);`  
+  Write to sensor register.
 
-- int (*pfnDetectSns)(void* handle, SENSOR_VENDOR_ID_S* vendor_id);
+- `int (*pfn_sensor_get_isp_default)(void*snsHandle, uint32_t u32ChanelId, uint32_t camScene, ISP_SENSOR_DEFAULT_S *pstDef);`  
+  Get the tuning data parameters used by the ISP.
 
-Detect sensor。
+- `int (*pfn_sensor_get_isp_black_level)(void*snsHandle, uint32_t u32ChanelId, ISP_SENSOR_BLACK_LEVEL_S *pstBlackLevel);`  
+  Get the sensor’s default black level.
 
-- int (*pfnWriteReg)(void* handle, uint16_t regAddr, uint16_t value);
+- `int (*pfn_sensor_get_reg_info)(void*snsHandle, ISP_SENSOR_REGS_INFO_S *pstSensorRegsInfo);`  
+  Get the basic configuration for sensor register operations.
 
-写寄存器。
+- `int (*pfn_sensor_dump_info)(void*snsHandle);`  
+  Dump sensor information required for debugging.
 
-- int (*pfnReadReg)(void* handle, uint16_t regAddr, uint16_t* value);
+- `int (*pfn_sensor_group_regs_start)(void*snsHandle);`  
+  Start operation for the sensor group writer.
 
-读寄存器。
+- `int (*pfn_sensor_group_regs_done)(void*snsHandle);`  
+  End operation for sensor group writer.
 
-##### ISP 回调操作函数集
+##### ISP AE Callback Operation Function Set
 
-文件定义 struct spmISP_SENSOR_FUNC_S 结构体作为 sensor 注册给 ISP 的回调函数集。结构体包含以下成员变量：
+The `xxx_sensor.c` file defines the `struct spmISP_SENSOR_AE_FUNC_S` structure as the callback function set that the sensor registers to the ISP AE algorithm. The structure contains the following members:
 
-- int (*pfn_sensor_write_reg)(void *snsHandle, uint32_t regAddr, uint32_t value);
+- `int (*pfn_sensor_get_ae_default)(void* snsHandle, uint32_t u32ChanelId, ISP_SENSOR_AE_DEFAULT_S *pstSensorAeDft);`  
+  Get the sensor's default AE (Auto Exposure) parameters.
 
-写 sensor 寄存器。
+- `int (*pfn_sensor_fps_set)(void* snsHandle, float f32Fps);`  
+  Set the sensor's frames per second (fps).
 
-- int (*pfn_sensor_get_isp_default)(void *snsHandle, uint32_t u32ChanelId, uint32_t camScene, ISP_SENSOR_DEFAULT_S *pstDef);
+- `int (*pfn_sensor_get_expotime_by_fps)(void* snsHandle, float f32Fps);`  
+  Retrieve the maximum exposure time based on the configured fp.
 
-获取 ISP 使用的 Tuning data 参数。
+- `int (*pfn_sensor_expotime_update)(void* snsHandle, uint32_t u32ChanelId, uint32_t u32ExpoTime, ISP_SENSOR_VTS_INFO_S *pstSensorVtsInfo);`  
+  Update sensor and exposure time related register values, only updating software values without writing to registers physically.
 
-- int (*pfn_sensor_get_isp_black_level)(void *snsHandle, uint32_t u32ChanelId, ISP_SENSOR_BLACK_LEVEL_S *pstBlackLevel);
+- `int (*pfn_sensor_gain_update)(void* snsHandle, uint32_t u32ChanelId, uint32_t *pAgainVal, uint32_t *pDgainVal);`  
+  Update sensor and gain related register values, only updating software values without writing to registers physically.
 
-获取 sensor 默认的 Black level。
+- `int (*pfn_get_aelib_default_settings)(void* snsHandle, uint32_t u32ChanelId, AE_LIB_DEFAULT_SETTING_S **ppstAeLibDefault);`  
+  Get the tuning data parameters used by the AE algorithm of the specified ISP pipeline.
 
-- int (*pfn_sensor_get_reg_info)(void *snsHandle, ISP_SENSOR_REGS_INFO_S *pstSensorRegsInfo);
+##### ISP AWB Callback Operation Function Set
 
-获取 sensor 寄存器操作的基本配置。
+The `xxx_sensor.c` file defines the `struct spmISP_SENSOR_AWB_FUNC_S` structure as the callback function set that the sensor registers to the ISP AWB algorithm. The structure contains the following members:
 
-- int (*pfn_sensor_dump_info)(void *snsHandle);
+- `int (*pfn_sensor_get_awb_default)(void* snsHandle, uint32_t u32ChanelId, ISP_SENSOR_AWB_DEFAULT_S *pstSensorAwbDft);`  
+  Get the sensor's default AWB (Auto White Balance) parameters.
 
-在 debug 时 dump 需要的 sensor 信息。
+- `int (*pfn_get_awblib_default_settings)(void* snsHandle, uint32_t u32ChanelId, AWB_LIB_DEFAULT_SETTING_S **ppstAwbLibDefault);`  
+  Get the tuning data parameters used by the AWB algorithm of the specified ISP pipeline.
 
-- int (*pfn_sensor_group_regs_start)(void *snsHandle);
+### Differentiated Operations
 
-sensor group writer 的 start 操作。
+Even when the same sensor is used, different modules in different projects may require various differentiated configurations, such as sensor settings or adapted ISP tuning data. These differentiated codes reside in the `module` subdirectory. For a new sensor module, you need to create a subdirectory to define related operations.
 
-- int (*pfn_sensor_group_regs_done)(void *snsHandle);
+Inside the subdirectory, the `xxx_setting.h` file defines several sets of sensor settings supported by the current module sensor.
 
-sensor group writer 的 end 操作。
+The `xxx.c` file in the subdirectory defines the `struct MODULE_OBJ` structure, which serves as the operation function set exposed by the module. This structure contains the following members:
 
-##### ISP AE 回调操作函数集
+- `const char* name;`  
+  The module name.
 
-文件定义 struct spmISP_SENSOR_AE_FUNC_S 结构体作为 sensor 注册给 ISP AE 算法的回调函数集。结构体包含以下成员变量：
+- `int (*pfnGetsnrCapSize)(int32_t* capArraySize);`  
+  Get the number of working modes of the module sensor (corresponding one-to-one with sensor settings).
 
-- int (*pfn_sensor_get_ae_default)(void *snsHandle, uint32_t u32ChanelId, ISP_SENSOR_AE_DEFAULT_S *pstSensorAeDft);
+- `int (*pfnGetsnrCapbility)(int32_t capArraySize, SENSOR_CAPABILITY_S* sensor_capability);`  
+  Get the capabilities of all working modes of the module sensor (corresponding one-to-one with sensor settings).
 
-获取 sensor 默认的 AE 参数。
+- `int (*pfnGetSnrWorkInfo)(int32_t work_mode, SENSOR_WORK_INFO_S* snr_info);`  
+  Get the capability of the specified working mode of the module sensor (corresponding one-to-one with sensor settings).
 
-- int (*pfn_sensor_fps_set)(void *snsHandle, float f32Fps);
+- `int (*pfnGetSnrVendorId)(SENSOR_VENDOR_ID_S* vendor_id);`  
+  Get the vendor ID of the module sensor.
 
-设置 sensor 的 fps。
-
-- int (*pfn_sensor_get_expotime_by_fps)(void *snsHandle, float f32Fps);
-
-根据设置的 fps 获取 sensor 的最大曝光时间。
-
-- int (*pfn_sensor_expotime_update)(void *snsHandle, uint32_t u32ChanelId, uint32_t u32ExpoTime, ISP_SENSOR_VTS_INFO_S *pstSensorVtsInfo);
-
-更新 sensor 和 exposure time 相关的寄存器值，仅更新软件的值，不实际写寄存器。
-
-- int (*pfn_sensor_gain_update)(void *snsHandle, uint32_t u32ChanelId, uint32_t *pAgainVal, uint32_t *pDgainVal);
-
-更新 sensor 和 gain 相关的寄存器值，仅更新软件的值，不实际写寄存器。
-
-- int (*pfn_get_aelib_default_settings)(void *snsHandle, uint32_t u32ChanelId, AE_LIB_DEFAULT_SETTING_S **ppstAeLibDefault);
-
-获取指定 ISP pipeline AE 算法使用的 Tuning data 参数。
-
-##### ISP AWB 回调操作函数集
-
-文件定义 struct spmISP_SENSOR_AWB_FUNC_S 结构体作为 sensor 注册给 ISP AWB 算法的回调函数集。结构体包含以下成员变量：
-
-- int(*pfn_sensor_get_awb_default)(void*snsHandle,uint32_tu32ChanelId, ISP_SENSOR_AWB_DEFAULT_S *pstSensorAwbDft);
-
-获取 sensor 默认的 AWB 参数。
-
-- int(*pfn_get_awblib_default_settings)(void*snsHandle,uint32_tu32ChanelId, AWB_LIB_DEFAULT_SETTING_S **ppstAwbLibDefault);
-
-获取指定 ISP pipeline AWB 算法使用的 Tuning data 参数。
-
-### 差异化操作
-
-对于一个 sensor 模组来说，即使使用的是同一个 sensor，不同的模组在不同项目上 sensor 都有很多差异化的配置，比如 sensor setting，或者适配的 ISP tuning data。sensor 差异化代码位于 module 子目录内，对于一个新的 sensor 模组需要创建一个子目录来定义相关操作。
-
-子目录内 xxx_setting.h 文件定义的是当前模组 sensor 支持的几组 sensor setting 配置。
-
-子目录内 xxx.c 文件定义 struct MODULE_OBJ 结构体为模组对外部的操作函数集，结构体包含如下变量：
-
-- const char* name;
-
-模组名字。
-
-- int (*pfnGetsnrCapSize)(int32_t* capArraySize);
-
-获取模组 sensor 的工作模式（和 sensor setting 一一对应）个数
-
-- int (*pfnGetsnrCapbility)(int32_t capArraySize, SENSOR_CAPABILITY_S* sensor_capability);
-
-获取模组 sensor 的所有工作模式（和 sensor setting 一一对应）的 capability。
-
-- int (*pfnGetSnrWorkInfo)(int32_t work_mode, SENSOR_WORK_INFO_S* snr_info);
-
-获取模组 sensor 的指定工作模式（和 sensor setting 一一对应）的 capability。
-
-- int (*pfnGetSnrVendorId)(SENSOR_VENDOR_ID_S* vendor_id);
-
-获取模组 sensor 的 vendor ID。
-
-- int (*pfnGetSnrI2cAddr)(uint8_t* i2c_addr);
-
-获取模组 sensor 的 I2C 地址。
+- `int (*pfnGetSnrI2cAddr)(uint8_t* i2c_addr);`  
+  Get the I2C address of the module sensor.
 
 ### SENSORS_MODULE_OBJ_S
 
-每个 sensor 模组包含 sensor、镜头马达，以及 Flash（闪光灯）。在 cam_sensors_module_list.h 头文件中定义了 struct SENSORS_MODULE_OBJ 结构体，这个结构体定义了一个 sensor 模组具体的组成部分，包含以下 4 个部分：
+Each sensor module consists of the sensor, lens motor, and flash. In the header file `cam_sensors_module_list.h`, the structure `struct SENSORS_MODULE_OBJ` is defined, which specifies the components of a sensor module and contains the following four parts:
 
-- MODULE_OBJ_S* module_obj_p;
+- `MODULE_OBJ_S* module_obj_p;`  
+  The module sensor, corresponding to the `module` subdirectory. The module sensor's name is the overall name of the sensor module.
 
-模组 sensor，对应 module 子目录。模组 sensor 的 name 就是整个 sensor 模组的 name。
+- `SENSOR_OBJ_S* sensor_obj_p;`  
+  The common sensor operations set, corresponding to the `sensor` subdirectory.
 
-- SENSOR_OBJ_S* sensor_obj_p;
+- `VCM_OBJ_S* vcm_obj_p;`  
+  The motor, corresponding to the `vcm` subdirectory.
 
-sensor 公共操作集，对应 sensor 子目录。
+- `FLASH_OBJ_S* flash_obj_p;`  
+  The flash, corresponding to the `flash` subdirectory.
 
-- VCM_OBJ_S* vcm_obj_p;
+Whenever adding a new sensor module, you need to add it into the `SENSORS_MODULE_OBJ_S sensors_module_list[]` array. This list represents all the sensor modules currently supported by the software.
 
-马达，对应 vcm 子目录。
+### Bring up Summary
 
-- FLASH_OBJ_S* flash_obj_p;
+During the bring-up process, the modifications to the User-level `cam_sensors` library mainly include the following steps:
 
-Flash（闪光灯），对应 flash 子目录。
+1. Check within the `sensor` subdirectory whether the files related to the sensor to be brought up already exist. If not, add the common operation code for the new sensor.
+2. In the `module` subdirectory, add a subdirectory for the differentiated operations of the new sensor, primarily for its sensor settings and tuning data.
+3. Add the new module to the `SENSORS_MODULE_OBJ_S sensors_module_list[]` array.
+4. (If applicable) Add the new source files to the `CUR_SOURCE` variable in the Makefile.
 
-每添加一个新的 sensor 模组，都需要在 SENSORS_MODULE_OBJ_S sensors_module_list[]数组中添加这个新的 sensor 模组，这个 list 就代表目前软件支持的 sensor 模组列表。
+## User-Level Demo Examples
 
-### Bring up 总结
-
-在 bring up 过程中，对 Use 层 cam_sensors 库的修改主要有以下几步：
-
-1. 在 sensor 子目录内查询是否已经定义了待 bring up sensor 的相关文件，如果没有的话，需要添加新 sensor 的公共操作代码。
-2. 在 module 子目录内添加待 bring up sensor 的差异化操作的子目录，主要是针对需要支持的 sensor setting，以及 tuning data 的相关操作。
-3. 在 SENSORS_MODULE_OBJ_S sensors_module_list[]中添加这个新的模组。
-4. （若有）将新的源文件加入到 Makefile 文件的 CUR_SOURCE 变量中。
-
-## User 层 demo 示例
-
-### 源码结构
+### Source Code Structure
 
 ```bash
 lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
@@ -826,27 +900,27 @@ lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
 
 ```
 
-### demo 编译
+### Demo Compilation
 
-**清理应用**
+**Clean the application**
 
 ```
 ~/bianbu-linux$ make k1x-cam-dirclean
 ```
 
-**编译应用**
+**Compile the application**
 
 ```
 ~/bianbu-linux$ make k1x-cam
 ```
 
-**重新编译应用**
+**Rebuild the application**
 
 ```go
 ~/bianbu-linux$ make k1x-cam-rebuild
 ```
 
-从输出 log 中可以看到生成文件有：
+From the output log, you can see the generated files:
 
 ```go
 >>> k1x-cam 1.0.0 Installing to target
@@ -949,137 +1023,142 @@ make[1]: Leaving directory '/home/lizhirong/bianbu-linux/output/k1'
 
 ```
 
-### 场景介绍
+### Scenario Introduction
 
-本章节将以三种典型场景为例，围绕 demo code，重点介绍其实现过程
+This section introduces three typical scenarios, focusing on their implementation using demo code.
 
-#### case1: single_pipeline_online_test
+#### Case 1: single_pipeline_online_test
 
-该 case 用于实现单条 pipeline 在线处理图像功能，图像会依次经过 ISP 和 CPP 处理，并且支持 ISP rawdump 功能。
+This case implements the single pipeline online image processing function. The image is processed sequentially by ISP and CPP, and supports the ISP rawdump feature.
 
-在该 case 中，ISP 使用 firmware0， cpp 使用 pipeline0， VI work mode 则使用 dev0 及其关联的 physical、rawdump CHN。
+In this case, ISP uses firmware0, CPP uses pipeline0, and VI work mode uses dev0 along with its associated physical and rawdump channels.
 
-数据流如下图所示：
+The data flow is shown below:
 
 ![](./static/U9PjbtCmUotSFwx864JcMYTSnGh.png)
 
-**Figure - case1 数据流示意图**
+When configuring each module, pay attention to filling in the input and output information. The table below shows the details:
 
-在配置各个模块时，要注意填充输入输出信息。如下表所示：
+**Table - case1 Input/Output**
 
-**Table - case1 输入输出**
-| 模块    | 输入      | 输出               | note                    |
+| Module  | Input     | Output             | Note                    |
 | ------- | --------- | ------------------ | ----------------------- |
-| senosor | NA        | 1920x1080          | NA                      |
+| sensor | NA        | 1920x1080          | NA                      |
 | ISP     | 1920x1080 | 1920x1080,NV12_DWT | CAM_ISP_CH_ID_PREVIEW   |
 | VI      | 1920x1080 | 1920x1080          | CAM_VI_WORK_MODE_ONLINE |
 | CPP     | 1920x1080 | 1920x1080          | NA                      |
 
-对于该 case buffer 处理，有如下几个 callback 需要注意:
+Regarding buffer handling in this case, the following callbacks need special attention:
 
-- isp_buffer_callback: ISP 的 frameInfo callback，当 ISP fw 获取到图像 frameInfo 之后调用该回调。用户可以通过该回调拿到 online 图像的 frameInfo 并进行特定操作。
-- vi_buffer_callback: VI 的 PHYSICAL CHN buffer callback，在 VI 用户层拿到了 ISP 处理结果 buffer 之后被调用。因为 ISP 还有后级模块 CPP，所以该 callback 应负责把输出 buffer 送给 CPP 模块作为其输入（调用 cpp_post_buffer 实现该功能）。
-- vi_rawdump_buffer_callback: VI 应用层拿到 ISP rawdump 的数据之后，会调用该回调，用户可以在该回调中执行保存 rawdump 数据一类的操作。
-- cpp_buffer_callback: CPP buffer 回调。对于 CPP 输入 buffer， 应在该回调中，将该 buffer 返回给资源池，继续作为 ISP 输出 buffer 使用；对于 CPP 输出 buffer, 用户可以从该 buffer 拿到 CPP 处理的结果数据。
+- **isp_buffer_callback**: ISP frameInfo callback, invoked when the ISP firmware obtains the image frameInfo. Users can use this callback to get the online image frameInfo for specific operations.
 
-#### case2: dual_pipeline_online_test
+- **vi_buffer_callback**: VI physical channel buffer callback, called after the VI user layer obtains the ISP processed buffer. Since ISP has a downstream module CPP, this callback should forward the output buffer to the CPP module as input (achieved by calling `cpp_post_buffer`).
 
-该 case 实现双 pipeline 在线处理功能，在 single_pipeline_online_testpipeline0 的基础上，增加了 pipeline1 的处理。数据流如下图所示：
+- **vi_rawdump_buffer_callback**: Called when the VI user layer receives ISP rawdump data. Users can perform operations such as saving rawdump data in this callback.
+
+- **cpp_buffer_callback**: CPP buffer callback. For CPP input buffers, this callback should return the buffer back to the resource pool to be reused as ISP output buffer. For CPP output buffers, users can obtain the processed results from the buffer.
+
+#### Case 2: dual_pipeline_online_test
+
+This case implements the dual pipeline online processing function. On top of the pipeline0 from single_pipeline_online_test, it adds processing for **pipeline1**. The data flow is shown below:
 
 ![](./static/WvclbhdZSo3pKrxS7nIcHEuhnHU.png)
 
-**Figure - case2 数据流示意图**
+Except that the sensor data comes from two different physical devices, the software processing for both pipelines is exactly the same. That is, Sensor, ISP, VI, and CPP are all configured in duplicate according to the pipeline.
 
-除了 sensor 的数据来源于两个不同的物理设备，在软件上，两条 pipeline 的处理方式完全一样， 即 Sensor， ISP， VI， CPP 均按 pipeline 配置双份即可。每条 pipeline 的 buffer 回调处理也跟 single pipeline 时一样。
+For the first pipeline:
+- ISP uses firmware0
+- CPP uses pipeline0
+- VI uses DEV0 and its associated channels
 
-对于第一条 pipeline，ISP 使用 firmware0, CPP 使用 pipeline0， VI 使用 DEV0 及其相关 CHN。
+For the second pipeline:
+- ISP uses firmware1
+- CPP uses pipeline1
+- VI uses DEV1 and its associated channels
 
-对于第二条 pipeline，ISP 使用 firmware1, CPP 使用 pipeline1，VI 使用 DEV1 及其相关 CHN。
+#### Case 3: dual_pipeline_capture_test
 
-#### case3: dual_pipeline_capture_test
-
-在该 case 中，ISP pipeline0 工作在 online 状态， ISP pipeline1 工作在 offline 状态。ISP pipeline0 rawdump 的结果会作为 ISP pipeline1 的输入数据，执行 ASR_ISP_TriggerRawCapture 操作后实现拍照功能。数据流如下图所示：
+In this case, ISP pipeline0 operates in online mode, while ISP pipeline1 operates in offline mode. The rawdump result from ISP pipeline0 serves as the input data for ISP pipeline1. After executing the `ASR_ISP_TriggerRawCapture` operation, the capture function is realized. The data flow is shown below:
 
 ![](./static/EYdLb1Au4oZbFHxH8qzcYyWcnUf.png)
 
-**Figure - case3 数据流示意图**
+Compared to the previous two cases, note that the pipeline1 workflow is slightly different.
 
-相较于前两个 case，需要注意 pipeline1 的流程稍有差别。
+- The VI module of pipeline1 uses DEV1’s bayerRead channel to read pipeline0’s rawdump results from DDR, and uses the physical channel to output capture results to DDR, while pipeline1’s rawdump channel is inactive.
+- Accordingly, the callback handling of both pipelines changes as follows:
 
-pipeline1 的 VI 模块使用 DEV1 的 bayerRead CHN 从 DDR 中读取 pipeline0 的 rawdump 结果，使用 physical CHN 输出 capture 的结果数据至 DDR，而 pipeline1 中的 rawdump CHN 没有工作。与此相关地，两条 pipeline 的 callback 处理也会有所变化。
+  - **vi_buffer_callback**: VI PHYSICAL channel buffer callback for pipeline0 and pipeline1. Similar to the first two cases, mainly responsible for passing output buffers to their respective CPP modules as input (implemented via `cpp_post_buffer`).
+  - **isp_buffer_callback**: ISP frameInfo callback for pipeline0. Same as the first two cases.
+  - **vi_rawdump_buffer_callback**: Rawdump callback for pipeline0. In addition to usual operations such as storing rawdump images, it also needs to notify pipeline1 of the rawdump results so that its bayerRead channel can read the rawdump data and trigger ISP to execute the capture command.
+  - **cpp_buffer_callback**: CPP buffer callback for both pipeline0 and pipeline1. Similar to the first two cases.
 
-- vi_buffer_callback: pipeline0 和 pipeline1 的 VI PHYSICAL CHN buffer callback，跟前两个 case 类似，主要是负责把输出 buffer 送给各自的 CPP 模块作为其输入（调用 cpp_post_buffer 实现该功能）。
-- isp_buffer_callback: pipeline0 的 ISP frameInfo callback。跟前两个 case 一样。
-- vi_rawdump_buffer_callback: pipeline0 的 rawdump callback，除了可以进行存储 rawdump 图片等常规操作外，还需要将 rawdump 的结果通知给 pipeline1，使其 bayerRead CHN 读取 rawdump 数据并 trigger ISP 执行 capture 指令。
-- cpp_buffer_callback: pipeline0 和 pipeline1 的 CPP buffer 回调。跟前两个 case 类似。
+### Executable Applications
 
-### 可执行应用
+The k1x-cam test suite mainly includes the following test programs:
 
-k1x-cam 的测试程序集中主要包含下面几个测试程序：
-
-- **cam-test：**用于单路 pipeline，双路 pipeline，单 raw pipeline，单 cpp 处理等测试验证
-- **cam_sensors_test：**用于简单的 sensor detect -> init -> stream on 流程调试验证
+- **cam-test:** Used for testing and verification of single pipeline, dual pipeline, single raw pipeline, single CPP processing, etc.
+- **cam_sensors_test:** Used for debugging and verifying the simple sensor workflow: detect → init → stream on.
 
 #### cam-test
 
-**一些基本用法**
+**Some Basic Usage**
 
 ```bash
-使用实例：cam-test <file.json>
+Usage example: cam-test <file.json>
 
-//单pipeline在线测试：imx135(4208x3120@30fps raw10 4lane) –> ISP -> DDR(1080p@30fps) -> CPP
-命令：cam-test demo/cfgs/0/camtest_sensor0_mode0.json
+// Single pipeline online test: imx135 (4208x3120@30fps raw10 4lane) → ISP -> DDR (1080p@30fps) -> CPP
+Command: cam-test demo/cfgs/0/camtest_sensor0_mode0.json
 
-//单pipeline在线测试：imx135(4208x2416@30fps raw10 4lane) –> ISP -> DDR(1080p@30fps) -> CPP
-命令：cam-test demo/cfgs/0/camtest_sensor0_mode1.json
+// Single pipeline online test: imx135 (4208x2416@30fps raw10 4lane) → ISP -> DDR (1080p@30fps) -> CPP
+Command: cam-test demo/cfgs/0/camtest_sensor0_mode1.json
 
-//单pipeline在线测试：imx135(2104x1560@30fps raw10 4lane) –> ISP -> DDR(1080p@30fps) -> CPP
-命令：cam-test demo/cfgs/0/camtest_sensor0_mode2.json
+// Single pipeline online test: imx135 (2104x1560@30fps raw10 4lane) → ISP -> DDR (1080p@30fps) -> CPP
+Command: cam-test demo/cfgs/0/camtest_sensor0_mode2.json
 
-//单pipeline在线测试：imx135(2104x1560@30fps raw10 4lane) –> ISP -> DDR(1080p@30fps) -> CPP
-命令：cam-test demo/cfgs/0/camtest_sensor0_mode2.json
+// Single pipeline online test: imx135 (2104x1560@30fps raw10 4lane) → ISP -> DDR (1080p@30fps) -> CPP
+Command: cam-test demo/cfgs/0/camtest_sensor0_mode2.json
 
-//双pipeline capture测试：imx135(2104x1560@30fps raw10 4lane) –> ISP -> DDR(1080p@30fps) -> CPP
-命令：cam-test demo/cfgs/2/camtest_sensor0_mode0.json
+// Dual pipeline capture test: imx135 (2104x1560@30fps raw10 4lane) → ISP -> DDR (1080p@30fps) -> CPP
+Command: cam-test demo/cfgs/2/camtest_sensor0_mode0.json
 
-//only raw dump pipeline测试：imx135(4208x3120@30fps raw10 4lane) –> ISP（VI） -> DDR
-命令：cam-test demo/cfgs/3/camtest_sensor0_mode0.json
+// Only raw dump pipeline test: imx135 (4208x3120@30fps raw10 4lane) → ISP (VI) -> DDR
+Command: cam-test demo/cfgs/3/camtest_sensor0_mode0.json
 
-//only isp online pipeline测试：imx135 –> ISP -> DDR（NV12）
-命令：cam-test demo/cfgs/4/camtest_sensor0_mode0_nv12.json
+// Only ISP online pipeline test: imx135 → ISP -> DDR (NV12)
+Command: cam-test demo/cfgs/4/camtest_sensor0_mode0_nv12.json
 
-//only isp online pipeline测试：imx135 –> ISP -> DDR（p010）
-命令：cam-test demo/cfgs/4/camtest_sensor0_mode0_p010.json
+// Only ISP online pipeline test: imx135 → ISP -> DDR (p010)
+Command: cam-test demo/cfgs/4/camtest_sensor0_mode0_p010.json
 
-//only isp online pipeline测试：imx135 –> ISP -> DDR（p210）
-命令：cam-test demo/cfgs/4/camtest_sensor0_mode0_p210.json
+// Only ISP online pipeline test: imx135 → ISP -> DDR (p210)
+Command: cam-test demo/cfgs/4/camtest_sensor0_mode0_p210.json
 
-//only isp online pipeline测试：imx135 –> ISP -> DDR（rgb565）
-命令：cam-test demo/cfgs/4/camtest_sensor0_mode0_rgb565.json
+// Only ISP online pipeline test: imx135 → ISP -> DDR (rgb565)
+Command: cam-test demo/cfgs/4/camtest_sensor0_mode0_rgb565.json
 
-//only isp online pipeline测试：imx135 –> ISP -> DDR（rgb888）
-命令：cam-test demo/cfgs/4/camtest_sensor0_mode0_rgb888.json
+// Only ISP online pipeline test: imx135 → ISP -> DDR (rgb888)
+Command: cam-test demo/cfgs/4/camtest_sensor0_mode0_rgb888.json
 
-//only isp online pipeline测试：imx135 –> ISP -> DDR（y210）
-命令：cam-test demo/cfgs/4/camtest_sensor0_mode0_y210.json
+// Only ISP online pipeline test: imx135 → ISP -> DDR (y210)
+Command: cam-test demo/cfgs/4/camtest_sensor0_mode0_y210.json
 
-//双pipeline online测试：imx135+gc2375h –> ISP -> DDR -> CPP
-命令：cam-test demo/cfgs/1/camtest_main_aux.json
+// Dual pipeline online test: imx135 + gc2375h → ISP -> DDR -> CPP
+Command: cam-test demo/cfgs/1/camtest_main_aux.json
 ```
 
-**JSON 参数说明，以 sdktest_main_aux.json 为例进行说明：**
+**JSON Parameter Description, explained using camtest_main_aux.json as an example:**
 
 ```bash
 {
-    "tuning_server_enable":1, //用于isp tunning服务使能，在only isp online、单pipeline online、双pipeline online测试有效
-    "show_fps":1,    //统计从0~120帧的平均帧率
-    "auto_run": 1,    //自动测试，没有用户交互过程，默认关闭
-    "cpp_node": [    //CPP模块
+    "tuning_server_enable":1, // Used to enable ISP tuning service, effective in only ISP online, single pipeline online, and dual pipeline online tests
+    "show_fps":1,    //// Calculate the average frame rate from frames 0 to 120
+    "auto_run": 1,   //// Automated testing without user interaction, disabled by default
+    "cpp_node": [    //CPP module
             {
                     "name": "cpp0",    //cpp group0
                     "enable": 1,
                     "format":"NV12",
-                    "src_from_file": 0,    //如果ISP和cpp都enable了，cpp的输入就来自ISP输出
+                    "src_from_file": 0,    //If both ISP and CPP are enabled, the input to CPP comes from the output of ISP.
                     "src_path":"/tmp/cpp_case_in_data/1920x1080/",
                     "size_width":1920,
                     "size_height":1080,
@@ -1094,22 +1173,22 @@ k1x-cam 的测试程序集中主要包含下面几个测试程序：
                     "size_height":1080,
             },
         ],
-    "isp_node":[    //ISP模块，1个ISP可以接入两路video stream input
+    "isp_node":[    //ISP Module: One ISP can accept two video stream inputs.
             {
-                    "name": "isp0",    //isp0在线模式工作，输出1080p@30fps NV12
+                    "name": "isp0",    //ISP0 works in online mode, outputting 1080p@30fps NV12.
                     "enable": 1,
                     "work_mode":"online",
                     "format":"NV12",
                     "out_width":1920,
                     "out_height":1080,
-                    "sensor_name":"imx135_asr",    //imx135对应/dev/cam_sensor0，工作在模式0
+                    "sensor_name":"imx135_asr",    //imx135 corresponds to /dev/cam_sensor0, operating in mode 0.
                     "sensor_id" : 0,
                     "sensor_work_mode":0,
                     "fps":30,
-                    "src_file":"/tmp/1920x1080_raw12_long_packed.vrf",    //不生效(使用在其他模式)
-                    "bit_depth": 12,    //不生效
-                    "in_width":1920,    //不生效
-                    "in_height":1080,    //不生效
+                    "src_file":"/tmp/1920x1080_raw12_long_packed.vrf",    //Not effective (used in other modes)
+                    "bit_depth": 12,    //Not effective
+                    "in_width":1920,    //Not effective
+                    "in_height":1080,    //Not effective
             },
             {
                     "name": "isp1",    //isp1在线模式工作，输出1600x1200@30fps NV12
@@ -1119,10 +1198,10 @@ k1x-cam 的测试程序集中主要包含下面几个测试程序：
                     "out_width":1600,
                     "out_height":1200,
                     "src_file":"/tmp/1920x1080_raw12_long_packed.vrf",    //不生效
-                    "bit_depth": 12,    //不生效
-                    "in_width":1920,    //不生效
-                    "in_height":1080,    //不生效
-                    "sensor_name":"gc2375h_asr",    //gc2375h对应/dev/cam_sensor1，工作在模式0
+                    "bit_depth": 12,    //Not effective
+                    "in_width":1920,    //Not effective
+                    "in_height":1080,    //Not effective
+                    "sensor_name":"gc2375h_asr",    //gc2375h corresponds to /dev/cam_sensor1, operating in mode 0
                     "sensor_id" : 1,
                     "sensor_work_mode":0,
                     "fps":30,
@@ -1131,40 +1210,43 @@ k1x-cam 的测试程序集中主要包含下面几个测试程序：
 }
 ```
 
-**查看出图情况**
+**Check Image Output Status**
 
-如果 json 没有开启 auto_run，需要用户输入交互指令进行测试，常用的交互方式有：（以 camtest_sensor0_mode0.json 为例说明）
+If the JSON configuration file does not enable `auto_run`, the user needs to interactively input commands to perform the test. Below are common interaction commands (using `camtest_sensor0_mode0.json` as an example):
 
 ```bash
 ~ # cam-test camtest_sensor0_mode0.json
 ....
 ...
-s    //输入字符s，然后回车，激活pipeline开流
+s    // Input 's' and press Enter to start the pipeline streaming
 
 ...
-...    //经过一段时间，可以从log中观察到帧率信息打印，表明已经接收到图像数据，类似“I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 342, fps 16.9"”
+...    // After some time, you can observe FPS information printed in the log, indicating image data is being received, e.g., 
+// “I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 342, fps 16.9"”
 
-d    //输入字符d，然后回车，可以dump出一帧CPP处理后的NV12数据（CPP输入输出只能处理NV12）
-
-...
-...
-r    //输入字符r，然后回车，可以dump出一帧未经处理的RAW数据，该RAW数据头部包含自定义数据，需要使用AsrVRFViewer.exe工具进行观察
+d    // Input 'd' and press Enter to dump one frame of CPP processed NV12 data (CPP input/output supports NV12 only)
 
 ...
 ...
-c    //输入字符c，然后回车，使得pipeline关流
+r    // Input 'r' and press Enter to dump one frame of raw unprocessed data; this RAW data header contains custom data and needs to be viewed using AsrVRFViewer.exe tool
 
 ...
 ...
-q    //输入字符q，然后回车，退出应用
+c    // Input 'c' and press Enter to stop the pipeline streaming
+
+...
+...
+q    // Input 'q' and press Enter to quit the application
 
 ```
 
-测试 test 实际支持的交互方式以代码为准，另外，json 参数更详细的作用，也可以分析 config.c 和 online_pipeline_test.c/main.c 的具体应用场景获知。
+>**Notes:**
+>- **Interactive commands**: The actual supported interactive commands depend on the test program code.
+>- **JSON parameters**: The detailed functions of JSON parameters can be understood by analyzing the specific application scenarios in `config.c`, `online_pipeline_test.c`, or `main.c`.
 
-## 实操 log（仅供参考）
+## Practical Logs (For Reference Only)
 
-### kernel 启动 camera 相关 log
+### Kernel Camera-Related Startup Logs
 
 ```bash
 ......
@@ -1196,25 +1278,25 @@ q    //输入字符q，然后回车，退出应用
 
 ```
 
-正常启动后，可以查看注册的设备节点情况：
+After a normal startup, you can check the registered device nodes:
 
-**字符设备节点**
+**Character Device Nodes**
 
-Sensor（最多可以有 3 个）
+Sensors (up to 3 possible)
 
 ```bash
 ~ # ls /dev/cam_sensor*
 /dev/cam_sensor0  /dev/cam_sensor1  /dev/cam_sensor2
 ```
 
-isp（一个 isp 节点对应两个 pipe）
+ISP (One ISP node corresponds to two pipes)
 
 ```bash
 ~ # ls /dev/mars11isp-pipe*
 /dev/mars11isp-pipe0  /dev/mars11isp-pipe1
 ```
 
-**v4l2 相关的节点**
+**v4l2 related nodes**
 
 ```bash
 ~ # ./test.sh
@@ -1255,9 +1337,11 @@ done
 
 ```
 
-### 正常运行单路在线测试 log
+### Normal Operation Single Pipeline Online Test Log
 
-执行命令 cat /proc/sys/kernel/printk，得知当前内核的打印等级为：4       4       1       7，下列测试 log 是 auto_run 为 1 的情况下的测试输出。如果cam-test命令执行过程中有出现E:字样打印，请找进迭工程师确认是否正常。
+By executing the command `cat /proc/sys/kernel/printk`, you can check the current kernel print level, which is: `4 4 1 7`. 
+The following test log was generated with `auto_run` set to `1`. 
+If you encounter any log entries containing `E:` during the execution of the `cam-test` command, please contact the relevant engineers to verify if it is normal.
 
 ```bash
 root@spacemit-k1-x-deb1-board:~# cam-test /usr/share/camera_json/csi1_camera_auto.json
@@ -1268,8 +1352,8 @@ I: getSensorNodeConfig(323): "no sensor_node, use default config"
 tuningServerScene: 1
 show_fps: 1
 auto_run: 1
-test_frame: 500                 //表示需要测试的帧数
-dump_one_frame: 250             //表示需要保存第几帧
+test_frame: 500                 //Indicates the number of frames to be tested
+dump_one_frame: 250             //Indicates which frame number to save
 use_v4l: 0
 auto_detect: 0
 cpp0 enable: 1
@@ -1282,10 +1366,10 @@ cpp1 size_width: 0
 cpp1 size_height: 0
 isp0 enable: 1
 isp0 work_mode: 0
-isp0 format: NV12               //表示ISP输出的YUV格式
-isp0 out_width: 1920            //表示ISP输出的分辨率大小
+isp0 format: NV12               //Indicates the YUV format output by the ISP
+isp0 out_width: 1920            //Indicates the resolution size of the ISP output
 isp0 out_height: 1080
-isp0 sensor_name: ov16a10_spm   //表示该摄像头的类型
+isp0 sensor_name: ov16a10_spm   //Indicates the type of the camera
 isp0 sensor_id: 0
 isp0 sensor_work_mode: 0
 isp0 fps: 30
@@ -1415,7 +1499,7 @@ I: VI_ConfigChn(562): "VI_ConfigChn set fmt(fourcc:0x41575270 3840x2160 planes:1
 I: VI_NormalCaptureLoop(797): "VI_NormalCaptureLoop chnDataTypeCnt=1\n"
 I: single_pipeline_online_test(1504): "sensor stream on"
 
-//开流后输出的帧率，以及保存帧数据的log
+//Frame rate output after stream start, and log of saved frame data
 I: cpp_client_receive_mctf_buffers(1833): "CPP0: frameid 1, fps 0.0"
 I: vi_buffer_callback(508): "chn0 preview fps: 29.961245"
 I: vi_buffer_callback(499): "dump one raw frame"
@@ -1462,6 +1546,4 @@ I: SetupTopologyPipelineLinks(1409): "disable link(dwt1_layer3==>aout4)"
 I: SetupTopologyPipelineLinks(1409): "disable link(dwt1_layer4==>aout5)"
 I: cam_cpp_destroy_grp(478): "CPP0: cam_cpp_destroy_grp: X"
 I: single_pipeline_online_test(1577): "test end"
-
-
 ```

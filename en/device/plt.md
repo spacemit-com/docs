@@ -8,11 +8,9 @@ This document describes product line tool.
 
 ## Introduction
 
-The product line tool is a system for testing the connectivity of the hardware interface of the board or the whole machine. It is based on bianbu linux and integrated with factorytest application.
+The production test tool is a dedicated system for verifying hardware interface connectivity on PCBs or complete devices. Based on a customized Bianbu Linux distribution, it integrates the factorytest application. The system typically runs from an SD card.
 
-The system usually runs on sdcard.
-
-## compilation
+## Compilation
 
 ```shell
 $ cd /path/to/bianbu-linux
@@ -27,9 +25,9 @@ your choice (1-3):
 
 ```
 
-Select `3` and press Enter to start compiling.
+Select option `3` and press Enter to start compiling.
 
-Compiled, you can see：
+Upon successful compilation, the system generates:
 
 ```shell
 Images successfully packed into /path/to/bianbu-linux/output/k1_plt/images/bianbu-linux-k1_plt.zip
@@ -56,29 +54,34 @@ INFO: hdimage(sdcard.img): writing MBR
 Successfully generated at /path/to/bianbu-linux/output/k1_plt/images/bianbu-linux-k1_plt-sdcard.img
 ```
 
-Where `bianbu-linux-k1_plt.zip` is suitable for Titan Flasher, or decompress and brush with fastboot；`bianbu-linux-k1_plt-sdcard.img` is the firmware of sdcard. After decompressing, it can be written to sdcard with dd command or [balenaEtcher](https://etcher.balena.io/).
+Output files:  
+- `bianbu-linux-k1_plt.zip`: For Titan Flasher or fastboot flashing  
+- `bianbu-linux-k1_plt-sdcard.img`: SD card image (flash using `dd` or [balenaEtcher](https://etcher.balena.io/))  
 
-Firmware default username: `root` password: `bianbu`。
+Default credentials:  
+- Username: `root`  
+- Password: `bianbu`  
 
 ## Customization
 
-### Add board type
+### Adding New Board Support
 
-Supported board types:
-
+Currently supported boards:  
 - deb1
 
-The system of production tools usually does not use the dts of the u-boot and kernel directly, but is customized based on it.
+The production system uses customized device trees rather than direct copies from U-Boot/kernel DTS.
 
 Steps to add a new board:
 
-1. Copy u-boot's dts to `buildroot-ext/board/spacemit/k1/plt_dts/u-boot`，such as k1-x_deb2.dts
+1. Copy U-Boot DTS to:  
+   `buildroot-ext/board/spacemit/k1/plt_dts/u-boot/` (e.g., `k1-x_deb2.dts`)  
 
-2. Customization
+2. Customize the DTS as needed  
 
-3. Copy the kernel dts to `buildroot-ext/board/spacemit/k1/plt_dts/kernel`，for example, k1-x_deb2.dts
+3. Copy kernel DTS to:  
+   `buildroot-ext/board/spacemit/k1/plt_dts/kernel/` (e.g., `k1-x_deb2.dts`)  
 
-4. Modify the dtsi path
+4. Update include paths in DTS files. Example:
 
    ```diff
    -#include "k1-x.dtsi"
@@ -95,9 +98,9 @@ Steps to add a new board:
    +#include "spacemit/k1-x-camera-sdk.dtsi"
    ```
 
-5. Changing other configurations
+5. Update other configurations
 
-6. Modify `output/k1_plt/.config` to add the dts for the new board type
+6. Modify `output/k1_plt/.config` to include new DTS for the new board type:
 
    ```diff
    -BR2_LINUX_KERNEL_INTREE_DTS_NAME="k1-x_deb1"
@@ -108,7 +111,7 @@ Steps to add a new board:
    +BR2_TARGET_UBOOT_CUSTOM_DTS_PATH="$(BR2_EXTERNAL_Bianbu_PATH)/board/spacemit/k1/plt_dts/u-boot/k1-x_deb1.dts $(BR2_EXTERNAL_Bianbu_PATH)/board/spacemit/k1/plt_dts/u-boot/k1-x_deb2.dts"
    ```
 
-7. Recompile u-boot, kernel, and firmware
+7. Recompile U-Boot, Kernel, and firmware
 
    ```shell
    make uboot-rebuild
@@ -116,7 +119,7 @@ Steps to add a new board:
    make
    ```
 
-8. Saving configuration
+8. Save configuration
 
    ```shell
    make savedefconfig
@@ -124,4 +127,4 @@ Steps to add a new board:
 
 ### Customizing rootfs
 
-By customizing rootfs with `buildroot-ext/board/spacemit/k1/plt_overlay`，the files in this directory will be copied to the `output/k1_plt/target` directory before the image is made.
+By customizing rootfs with `buildroot-ext/board/spacemit/k1/plt_overlay`，the files in this directory will be copied to the `output/k1_plt/target` directory before the image is made. 

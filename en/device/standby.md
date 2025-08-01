@@ -1,27 +1,33 @@
+---  
+sidebar_position: 7  
 ---
-sidebar_position: 7
----
 
-# Standby
+# Standby  
 
-Linux standby模式是一种省电模式，在这种模式下，计算机进入睡眠状态以节省功耗；当系统处于standby模式时，系统自动将大部分硬件设备关闭或者进入低功耗状态，并且DDR进入自刷新状态。
+**Linux Standby** mode is a power-saving state where the system enters sleep to reduce power consumption. In this mode:  
 
-## 功能介绍
+- **Most hardware devices are automatically powered down** or **put into low-power states**  
+- **DDR enters self-refresh mode**  
 
-系统休眠唤醒框图如下：
+## Module Overview  
+
+### Functional Description  
+
+The system sleep/wakeup architecture is shown below:  
 ![](static/standby.png)  
 
-系统的休眠唤醒分为四层：  
+The sleep/wakeup process involves four layers:  
 
-1. 用户空间层，主要是系统休眠的发起方
-2. 内核层，主要处理冻结用户进程、内核线程、以及各个设备的休眠唤醒等
-3. OPENSBI层，该层会操作PMU，让系统进入休眠
-4. 硬件层，PMU硬件处理系统休眠唤醒的硬件逻辑
+1. **Userspace Layer:** Initiates system suspension  
+2. **Kernel Layer:** Handles:  
+   - Freezing user processes and kernel threads  
+   - Device suspend/resume operations  
+3. **OPENSBI Layer:** Interfaces with PMU to enter sleep state  
+4. **Hardware Layer:** PMU handles low-level sleep/wake logic  
 
-## 源码结构介绍
+### Source Code Structure  
 
-控制器驱动代码在 drivers/soc/spacemit/pm/目录下：
-
+**Controller driver code** (located at `drivers/soc/spacemit/pm/`):  
 ```
 drivers/soc/spacemit/pm/
 ├── Makefile
@@ -29,11 +35,9 @@ drivers/soc/spacemit/pm/
 ├── platform_hibernation_pm_ops.c
 ├── platform_pm.c
 ├── platform_pm_ops.c
-
 ```
 
-休眠唤醒核心层代码在 kernel/power目录下：
-
+**Core sleep/wake layer** (located at `kernel/power`):  
 ```
 kernel/power/
 ├── Kconfig
@@ -42,53 +46,46 @@ kernel/power/
 └── wakelock.c
 ```
 
-# 关键特性
+## Key Features  
 
-## 特性
+### Features  
 
-无
+N/A  
 
-## 性能参数
+### Performance Parameters  
 
-| 休眠时间 | 唤醒时间 | 休眠功耗 |  
-| :-----| :----| :----: | :----: |:----: |  
-| 3s | 1s | 32.3 mw |
+| Suspend Time | Wakeup Time | Sleep Power |  
+|-------------|------------|------------|  
+| 3s         | 1s        | 32.3 mW   |  
 
-# 配置介绍
+## Configuration Guide  
 
-主要包括驱动使能配置和dts配置
+Includes **driver enablement** and **DTS configuration**  
 
-## CONFIG配置
-
-```
- CONFIG_SUSPEND:
- Allow the system to enter sleep states in which main memory is
- powered and thus its contents are preserved, such as the
- suspend-to-RAM state (e.g. the ACPI S3 state).
- 
- Symbol: SUSPEND [=y]
- Type  : bool
- Defined at kernel/power/Kconfig:2
-  Prompt: Suspend to RAM and standby
-  Depends on: ARCH_SUSPEND_POSSIBLE [=y]
-  Location:
-   -> Power management options
-   -> Suspend to RAM and standby (SUSPEND [=y]) 
-```
-
-## dts配置
+### CONFIG Settings  
 
 ```
-无
+CONFIG_SUSPEND:
+Allow the system to enter sleep states where main memory remains powered
+(e.g., suspend-to-RAM like ACPI S3 state).
+
+Symbol: SUSPEND [=y]
+Type  : bool
+Defined at kernel/power/Kconfig:2
+ Prompt: Suspend to RAM and standby
+ Depends on: ARCH_SUSPEND_POSSIBLE [=y]
+ Location:
+  -> Power management options
+  -> Suspend to RAM and standby (SUSPEND [=y])
 ```
 
-## 典型唤醒源配置  
+### Typical Wakeup Source Configurations  
 
-### power-key
+#### Power Key  
 
-本唤醒源使用的是pmic上面的ONEKEY，其基本配置如下：
+Uses PMIC's ONEKEY functionality:  
 
-#### dts
+##### DTS  
 
 ```
 &i2c8 {
@@ -112,80 +109,65 @@ kernel/power/
 };
 ```  
 
-#### 驱动源码
+##### Driver Source  
 
 ```
 drivers/input/misc/
 ├── spacemit-pwrkey.c
 
-使能唤醒地方
+Wakeup enable location:
 vi drivers/soc/spacemit/pm_domain/k1x-pm_domain.c +825
 ```  
 
-### pinctrl edge-detect唤醒
+#### Pinctrl Edge-Detect Wakeup  
 
-利用pinctrl edge-detect功能实现唤醒源的有hall原件开关盖、sdio-wifi唤醒，本场景以hall元件实现开盖唤醒作为例子禅师edge-detect唤醒功能的实现
-hall元件正常工作状态使用gpio中断上报开关盖事件，系统休眠时使用pinctrl上升沿触发系统唤醒
+Used for scenarios like hall sensor lid detection or SDIO-WiFi wakeup. Example shows hall sensor implementation using GPIO interrupt during normal operation and pinctrl edge-triggering for wakeup.  
 
-#### dts
+##### DTS  
 
 ```
-        spacemit_lid:spacemit_lid {
-                compatible = "spacemit,k1x-lid";
-                pinctrl-names = "default";
-                pinctrl-0 = <&pinctrl_hall_wakeup>;
-                lid-gpios = <&gpio 74 0>;
-                interrupts-extended = <&gpio 74 1
-                                &pinctrl 300>;
-        };
+spacemit_lid:spacemit_lid {
+        compatible = "spacemit,k1x-lid";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_hall_wakeup>;
+        lid-gpios = <&gpio 74 0>;
+        interrupts-extended = <&gpio 74 1
+                        &pinctrl 300>;
+};
 ```
 
-#### 源码目录结构
+##### Source Structure  
 
 ```
 drivers/soc/spacemit/
 ├── spacemit_lid.c
 ```
 
-代码实现如下：
-
+Implementation:  
 ```
 static int spacemit_lid_probe(struct platform_device *pdev)
 {
   ....
         hall->normal_irq = platform_get_irq(pdev, 0);
-        if (hall->normal_irq < 0)
-                return -EINVAL;
-
         hall->wakeup_irq = platform_get_irq(pdev, 1);
-        if (hall->wakeup_irq < 0) {
-                return -EINVAL;
-        }
 
-  /* 正常功能使用gpio */
+        /* Normal operation uses GPIO interrupt */
         error = devm_request_irq(&pdev->dev, hall->normal_irq,
                         hall_wakeup_detect,
                         IRQF_NO_SUSPEND | IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
                         "hall-detect", (void *)hall);
-        if (error) {
-                pr_err("request hall pinctrl dectect failed\n");
-                return -EINVAL;
-        }
 
-  /* 唤醒源使用pinctrl */
+        /* Wakeup uses pinctrl interrupt */
         dev_pm_set_dedicated_wake_irq_spacemit(&pdev->dev, hall->wakeup_irq, IRQ_TYPE_EDGE_RISING);
         device_init_wakeup(&pdev->dev, true);
-
-        return 0;
 }
 ```
 
-# 接口描述
+## API Reference  
 
-## 测试介绍
+### Testing Procedure  
 
-我们可以通过rtc唤醒方式测试我们的我们standby的功能，例子如下:
-
+Example RTC wakeup test script:  
 ```
 #!/bin/sh
 echo 9 > /proc/sys/kernel/printk
@@ -200,27 +182,15 @@ do
         echo "----->counter:$counter"
         sleep 20
 done
-```
+``` 
 
-## API介绍
+## Debugging  
 
-```
-暂无
+### Sysfs Interface  
+
+Follows standard Linux PM sysfs conventions. Reference:  
+``` 
+Documentation/admin-guide/pm/sleep-states.rst
 ```  
 
-## Debug介绍
-
-### sysfs
-
-```
-休眠唤醒的sysfs遵循linux标准规范，请参考Linux内核文档：  
-Documentation/admin-guide/pm/sleep-states.rst
-```
-
-### debugfs
-
-```
-无
-```
-
-# FAQ
+## FAQ

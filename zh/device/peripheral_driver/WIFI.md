@@ -1,22 +1,25 @@
 # WIFI
-介绍WIFI的移植和使用方法。
+本文介绍 WIFI 的移植和使用方法。
+
 ## 模块介绍
 K1平台上主要通过外部WIFI模块来实现WIFI功能，主要支持PCIE，SDIO以及USB等接口的模块。
+K1 平台主要通过外部 WiFi 模组实现无线连接，支持接口包括：**PCIe**、**SDIO** 以及 **USB**。
+
 ### 功能介绍
 
-WIFI框架图可以分为以下几个层次：
+WiFi 架构分为多个层次，如下图所示：
 
 ![](static/wlan.png)
 
 
 ### 源码结构介绍
 
-WIFI相关的源码可以分为三个部分：
-1. WIFI驱动，由WIFI厂商提供，主要实现WIFI功能。
-2. 平台相关部分，主要实现模组供电以及使能等相关接口，供WIFI驱动调用。
-3. 接口驱动，主要实现WIFI数据传输接口功能，如PCIE，SDIO以及USB等接口。
+WIFI 相关的源码可以分为三个部分：
+1. **WIFI驱动：** WIFI厂商提供，主要实现WIFI功能。
+2. **平台相关部分：** 主要实现模组供电以及使能等相关接口，供WIFI驱动调用。
+3. **接口驱动：** 主要实现 WIFI 数据传输接口功能，如**PCIe**、**SDIO** 以及 **USB** 等接口。
 
-WIFI驱动的源码一般放到以下目录：
+**WIFI 驱动的源码** 一般放到以下目录：
 ```
 drivers/net/wireless
 |-- aic8800             #aic厂商驱动
@@ -25,22 +28,25 @@ drivers/net/wireless
     |-- rtl8852bs       #rtl8852bs
 |-- wuqi                #wuqi厂商驱动
 ```
-平台相关的源码：
+
+**平台相关的源码**：
 ```
 drivers/soc/spacemit/spacemit-rf
 |-- spacemit-pwrseq.c   #WIFI和蓝牙等公共部分实现
 |-- spacemit-wlan.c     #WIFI供电，gpio以及时钟相关接口实现
 |-- spacemit-bt.c       #bt供电，gpio以及时钟相关接口实现
 ```
-接口相关的源码参考各个接口驱动说明文档。
+
+**接口相关的源码**参考各个接口驱动说明文档。
 
 ## 关键特性
-### sdio接口特性
+### SDIO 接口支持
+
 | 特性 | 特性说明 |
 | :-----| :----|
-| 兼容SDIO v4.10 | 兼容4bit SDIO 4.10规范 |
-| 支持SD 3.0模式 | 支持SDR12/SDR25/DDR50/SDR50/SDR104模式 |
-| 支持PIO/DMA | 支持PIO,SDMA,ADMA,ADMA2传输模式 |
+| 兼容 SDIO v4.10 | 兼容 4bit SDIO 4.10 规范 |
+| 支持 SD 3.0模式 | 支持 SDR12/SDR25/DDR50/SDR50/SDR104 模式 |
+| 支持 PIO/DMA | 支持 PIO,SDMA,ADMA,ADMA2 传输模式 |
 
 ### 性能参数
 | 模组型号 | TX(Mb/s) | RX(Mb/s) |
@@ -48,18 +54,23 @@ drivers/soc/spacemit/spacemit-rf
 | rtl8852bs | 460 | 480 |
 | aic8800d80 | 410 | 470 |
 
-测试方法
+**测试方法**
 
 ```
 同一局域网段
-服务端：iperf3 -s
-客户端：iperf3 -c 192.168.1.xxx -t 72000
+
+# 服务端
+iperf3 -s
+
+# 客户端
+iperf3 -c 192.168.1.xxx -t 72000
 ```
 
 ## 配置介绍
-主要包括驱动使能配置和dts配置
-### CONFIG配置
-CONFIG_SPACEMIT_RFKILL 为WIFI模组提供平台相关支持，默认情况，此选项为Y
+主要包括 **驱动使能配置** 和 **DTS 配置**
+
+### CONFIG 配置
+`CONFIG_SPACEMIT_RFKILL` 为 WIFI 模组提供平台相关支持，默认情况，此选项为 `Y`
 ```
 Device Drivers
         SOC (System On Chip) specific Drivers
@@ -67,10 +78,10 @@ Device Drivers
 ```
 
 
-### dts配置
-#### sdio pinctrl
+### DTS 配置
+#### SDIO pinctrl
 
-方案上一般 slot2 用于 sdio，对应 pinctrl_mmc2。
+通常使用 `slot2` (用于 SDIO) 对应 `pinctrl_mmc2`：
 
 ```
 pinctrl_mmc2: mmc2_grp {
@@ -85,7 +96,7 @@ pinctrl_mmc2: mmc2_grp {
 };
 ```
 
-如果需要支持WIFI唤醒，需要将wlan_hostwake配置为pinctl模式：
+如果需要支持 WIFI 唤醒，需要将 `wlan_hostwake` 配置为 pinctl 模式：
 ```
 pinctrl_wlan_wakeup: wlan_wakeup_grp {
         pinctrl-single,pins =<
@@ -96,7 +107,7 @@ pinctrl_wlan_wakeup: wlan_wakeup_grp {
 
 #### 电源配置
 
-sdio 需要配置两个电源，分别是 vmmc-supply 和 vqmmc-supply，分别对应卡的功能和 io 供电，vqmmc-supply 建议1.8v，具体根据sdio卡的模式选择实际电压。
+SDIO 需要配置两个电源，分别是 `vmmc-supply` 和 `vqmmc-supply`，分别对应卡的功能和 IO 供电，`vqmmc-supply` 建议 1.8V，具体根据 SDIO 卡的模式选择实际电压。
 
 
 ```
@@ -108,11 +119,11 @@ sdio 需要配置两个电源，分别是 vmmc-supply 和 vqmmc-supply，分别�
 
 #### tuning 配置
 
-sdio 跑高速模式下需要进行 tuning，不同的硬件版型都需要调整 tx 的相关参数。
+SDIO 跑高速模式下需要进行 tuning，不同的硬件版型都需要调整 TX 的相关参数。
 
-#### sdio dts 配置示例
+#### SDIO DTS 配置示例
 
-sdio 的完整方案配置如下：
+SDIO 的完整方案配置如下：
 
 ```
 /* SDIO */
@@ -145,9 +156,9 @@ sdio 的完整方案配置如下：
         status = "okay";
 };
 ```
-sdio tx_delaycode 的默认值是0x7f，实际上需要根据具体的方案走线等差异进行调整。
+`sdio tx_delaycode` 的默认值是 `0x7f`，实际上需要根据具体的方案走线等差异进行调整。
 
-#### 平台部分dts配置
+#### 平台部分 DTS 配置
 
 平台完整方案配置如下：
 ```
@@ -176,57 +187,62 @@ rf_pwrseq: rf-pwrseq {
 };
 ```
 
-目前市面上很多模组都是WIFI和蓝牙二合一，WIFI和蓝牙的供电部分很多都是共用的，共用的部分建议放到rf_pwrseq中进行配置，仅影响WIFI的部分，放到wlan_pwrseq中进行配置。
+`rf_pwrseq` 配置说明：
+- `vdd-supply`：模组主电源，具体根据实际硬件配置；
+- `vdd_voltage`：用于设定模组供电的电压。
+- `io-supply`：是配置模组 IO 的供电，具体按实际硬件配置。
+- `io_voltage`：用于设定模组 IO 供电的电压。
+- `pwr-gpios`：模组主使能脚，默认上电时拉高，支持多个 GPIO；
+- `clock`：模组共用的时钟配置；
+- `power-on-delay-ms`：模组上电后的延时，默认 100ms。
 
-单WIFI模组只需要配置wlan_pwrseq即可，不需要配置rf_pwrseq，但要使能rf_pwrseq节点。
+`wlan_pwrseq` 配置说明：
+- `regon-gpios`：Wi-Fi 模块使能脚，调用 `spacemit_wlan_set_power(1)` 时拉高；
+- `interrupts`：Wi-Fi 模块的唤醒中断引脚，表示采用pinctl的方式进行唤醒；
+- `power-on-delay-ms`：Wi-Fi 上电延时，默认 10ms。
 
-在打开WIFI电源时会先使能共用部分的电源以及gpio状态，平台会维护对应的引用计数，关闭时只有WIFI和蓝牙都关闭后才会真正关闭共用部分的电源以及gpio状态。
+`bt_pwrseq` 配置说明：
+- `reset-gpios`：蓝牙模块复位脚，使能蓝牙对应 `rfkill` 节点时拉高；
+- `clock`：蓝牙时钟配置；
+- `power-on-delay-ms`：蓝牙上电延时，默认 10ms。
 
-rf_pwrseq：
-- vdd-supply是配置模组的供电，具体按实际硬件配置。
-- vdd_voltage用于设定模组供电的电压。
-- io-supply是配置模组io的供电，具体按实际硬件配置。
-- io_voltage用于设定模组io供电的电压。
-- pwr-gpios是模组使能脚，配置后会默认拉高，支持多个gpio的配置。
-- clock是模组共用的时钟配置。
-- power-on-delay-ms是设置模组上电后的延时，默认是100ms。
+当前市面上大多数模组为 Wi-Fi 和蓝牙二合一，其供电部分通常共用。建议将共用部分配置在 `rf_pwrseq` 节点中，Wi-Fi 专属部分配置在 `wlan_pwrseq` 节点中。
 
-wlan_pwrseq：
-- regon-gpios是WIFI部分的使能脚，调用spacemit_wlan_set_power(1)接口时会拉高。
-- interrupts配置WIFI的中断唤醒脚，表示采用pinctl的方式进行唤醒。
-- power-on-delay-ms是设置WIFI上电后的延时，默认是10ms。
+如果使用的是单 Wi-Fi 模组，仅需配置 `wlan_pwrseq`，不需要配置 `rf_pwrseq`，但要使能`rf_pwrseq`节点。
 
-bt_pwrseq：
-- reset-gpios是蓝牙的使能脚，使能蓝牙对应的rfkill时会将该gpio拉高。
-- clock是蓝牙的时钟配置。
-- power-on-delay-ms是设置蓝牙上电后的延时，默认是10ms。
+在打开 Wi-Fi 电源时，平台会优先启用共用电源及 GPIO 状态，并维护相应的引用计数。关闭时，只有 Wi-Fi 和蓝牙都关闭后，平台才会真正关闭共用电源及 GPIO 状态。
 
 ## 接口介绍
 
-### API介绍
-平台部分的接口，包括WIFI上下电，获取中断以及sdio扫描等接口。
-- void spacemit_wlan_set_power(bool on_off)
+### API 介绍
+平台部分的接口，包含 Wi-Fi 上下电控制、中断获取及 SDIO 扫描等功能：
+- `void spacemit_wlan_set_power(bool on_off);`
+   设置WIFI电源，`0` 为关闭，`1` 为打开。
 
-   设置WIFI电源，0为关闭，1为打开
-- int spacemit_wlan_get_oob_irq(void);
+- `int spacemit_wlan_get_oob_irq(void);`
+   获取平台中断请求（IRQ）号。
 
-   获取平台irq中断号
-- void spacemit_sdio_detect_change(int enable_scan);
-
-   扫描sdio总线
+- `void spacemit_sdio_detect_change(int enable_scan);`
+   扫描 SDIO 总线。
 
 ## Debug介绍
 
 ### sysfs
 
+SDIO 的 `tx_delaycode` 参数默认在方案的 DTS 中指定。
+调试时，可以通过 sysfs 下对应节点动态修改该值，方便验证。  
+
 ```
-sdio的tx_delaycode的值默认是在方案dts中指定，可以通过sysfs下的该节点进行动态修改，方便调试阶段的验证。
 echo 0x7f > /sys/devices/platform/soc/d4280800.sdh
-动态修改必须要在wifi驱动加载之前才能生效。
 ```
+
+**注意：** 动态修改必须在 WiFi 驱动加载之前完成，才能生效。
+
 ### debugfs
+
+常用于查询 SDIO 的工作状态，包括频率，位宽，模式等信息。
+
 ```
-常用于查询sdio的工作状态，包括频率，位宽，模式等信息。
 cat /sys/kernel/debug/mmc1/ios
 clock:          204800000 Hz
 actual clock:   187500000 Hz
@@ -239,25 +255,35 @@ timing spec:    6 (sd uhs SDR104)
 signal voltage: 1 (1.80 V)
 driver type:    0 (driver type B)
 ```
+
 ## 测试介绍
 
-首先确认wpa_supplicant服务有正常运行。
+**步骤 1：** 确保 `wpa_supplicant` 服务有正常运行。
 ```
 wpa_supplicant -iwlan0 -Dnl80211 -c/wpa_supplicant.conf -B
 ```
-wpa_supplicant.conf参考配置如下：
+
+**步骤 2：** 配置 `wpa_supplicant.conf` 参考如下：
 ```
 ctrl_interface=/var/run/wpa_supplicant
 wowlan_triggers=any
 ```
-wowlan_triggers是wow相关的配置，支持WIFI唤醒需要配置。
+`wowlan_triggers` 是 wow 相关的配置，用于支持WIFI唤醒功能。
 
-使用wpa_cli与wpa_supplicant服务进行交互，wpa_supplicant.conf的ctrl_interface如果不是默认的/var/run/wpa_supplicant，则wpa_cli运行时需要使用-p进行显式的指定。
+**步骤 3：** 使用 `wpa_cli` 与 `wpa_supplicant` 服务进行交互。
+
+如果 `wpa_supplicant.conf` 的 `ctrl_interface` 路径不是默认的 `/var/run/wpa_supplicant`，则 `wpa_cli` 运行时需要使用 `-p` 进行指定路径。
+   
 ```
  wpa_cli -iwlan0 -p/var/run/wpa_supplicant
+```
+
+扫描周围可用的无线网络：
+```
  scan
  scan_results
 ```
+
 正常扫描会有类似如下输出：
 ```
 bssid / frequency / signal level / flags / ssid
@@ -274,7 +300,8 @@ dc:16:b2:57:9e:60       2437    -78     [WPA-PSK-CCMP][WPA2-PSK-CCMP][WPS][ESS] 
 9a:00:74:84:d1:60       2412    -85     [WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][ESS]   ChinaNet-ieR7
 dc:f8:b9:46:ec:30       2472    -85     [WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][ESS]   ChinaNet-MiZK
 ```
-选择需要连接的ap网络进行连接
+
+**步骤 4：** 选择需要连接的 AP 网络进行连接
 ```
 > add_network
 0
@@ -288,26 +315,31 @@ OK
 ```
 
 ## FAQ
-问题1
 
-现象：能检测到sdio设备，但是初始化失败。
+**问题 1:**
 
-打印：
+**现象：** 能检测到 SDIO 设备，但是初始化失败。
+
+**打印信息：**
 ```
 mmc1: error -110 whilst initialising SDIO card
 ```
-解决办法
+
+**解决办法：**
 1. 修改sdio的tx_delaycode参数进行验证。
 
-问题2
+**问题 2：**
 
-现象：sdio读写报错。
+**现象：** SDIO 读写报错。
+
+**打印信息：**
 ```
 [ 23.662558] rtl8852bs mmc1:0001:1: rtw_sdio_raw_read: sdio read failed (-110)
 [ 23.669829] rtl8852bs mmc1:0001:1: RTW_SDI0: READ use CMD53
 [ 23.675507] rtl8852bs mmc1:0001:1: RTW_SDIO: READ from 0x00270, 4 bytes
 [ 23.682193] RTW SDIO: READ 0000000: 63 00 00 81
 ```
-解决办法：
-1. 修改sdio的tx_delaycode参数进行验证。
-2. 方法1无效后可以尝试降频验证，在sdh-host-caps-disable中增加MMC_CAP_UHS_SDR104，禁掉SDR104模式。
+**解决办法：**
+1. 修改 SDIO 的 `tx_delaycode` 参数进行验证。
+2. 如果方法1无效，尝试降低频率验证。
+在 `sdh-host-caps-disable` 中增加 `MMC_CAP_UHS_SDR104`，禁掉 SDR104 模式。

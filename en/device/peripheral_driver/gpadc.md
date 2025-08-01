@@ -1,40 +1,46 @@
-介绍gpadc的功能和使用方法。
+# GPADC
 
-# 模块介绍
-IIO是linux内核中的一个子系统，专门用于处理工业控制、测量设备的数据采集和处理。IIO子系统支持的设备类型众多，包括模数转换器(ADC)、数模转换器(DAC)、加速度计、陀螺仪、惯性测量单元、温度传感器，我们本章节所介绍的gpadc是一个模数转换器，其嵌入到了我们的PMIC芯片中
+GPADC Functionality and Usage Guide.
 
-## 功能介绍
+## Overview
+
+The IIO (Industrial I/O) subsystem in the Linux kernel is designed to handle data acquisition and processing for industrial control and measurement devices. It supports a wide range of device types, including:
+
+- Analog-to-Digital Converters (ADC)
+- Digital-to-Analog Converters (DAC)
+- Accelerometers
+- Gyroscopes
+- Inertial Measurement Units (IMUs)
+- Temperature sensors, and more.
+
+The GPADC (General Purpose ADC) discussed in this section is an analog-to-digital converter embedded within the SpacemiT PMIC (Power Management IC) chip. It enables the system to sample and measure analog signals (such as voltages) through software, using the Linux IIO interface.
+
+### Function Description
+
 ![](static/gpadc.png)  
 
-1. iio core，提供驱动程序和用户空间之间的接口、负责设备枚举、注册和管理  
-2. IIO设备驱动程序，用于控制和读取特定IIO设备的代码  
-3. IIO缓冲区，用于存储传感器和其他测量设备数据的内存区域  
-4. IIO事件处理，用于处理来自传感器和其他测量设备的中断和事件
+1. **IIO Core**: Provides the interface between the driver and user space, responsible for device enumeration, registration, and management.
+2. **IIO Device Driver**: Code for controlling and reading specific IIO devices.
+3. **IIO Buffer**: A memory area for storing data from sensors and other measurement devices.
+4. **IIO Event Handling**: Mechanisms for handling interrupts and events from sensors and other measurement devices.
 
-## 源码结构介绍
+### Source Code Structure
 
-```
-* IIO core
-    drivers/iio/industrialio-core.c  
-* IIO设备驱动程序
-    drivers/iio/adc/k1x_adc.c
-* IIO缓冲区
-    drivers/iio/industrialio-buffer.c
-* IIO事件处理
-    drivers/iio/industrialio-event.c
-```
-# 关键特性
+1. **IIO Core**: `drivers/iio/industrialio-core.c` 
+2. **IIO Device Driver**: `drivers/iio/adc/k1x_adc.c`
+3. **IIO Buffer**: `drivers/iio/industrialio-buffer.c`
+4. **IIO Event Handling**: `drivers/iio/industrialio-event.c`
 
-## 特性
-| 特性 |
-| :-----|
-| 软件支持6路ADC |
-| 12bit ADC转换精度，100Hz~50Khz采样率 |
+## Key Features
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
+- Supported channels: Supports up to 6 ADC channels.
+- Precision: 12-bit resolution ADC with a sampling rate of 100Hz to 50kHz.
 
-## CONFIG配置
+## Configuration Introduction
+
+The configuration mainly includes **driver enablement** and **DTS (Device Tree Source) configuration**.
+
+### CONFIG Configuration
 
 ```
 Symbol: SPACEMIT_P1_ADC [=y]
@@ -43,63 +49,73 @@ Defined at drivers/iio/adc/Kconfig:1444
 Prompt: Spacemit P1 adc driver
 Depends on: IIO [=y] && MFD_SPACEMIT_PMIC [=y]
 Location:
-	-> Device Drivers
-		-> Industrial I/O support (IIO [=y])
-			-> Analog to digital converters
-				-> Spacemit P1 adc driver (SPACEMIT_P1_ADC [=y])   
-```
-## dts配置
-我们的gpadc内嵌在pmic中，使能gpadc需要配置两个dts点
-
-1. gpadc channel pinctrl配置
-```
-pmic_pinctrl: pinctrl {
-    compatible = "pmic,pinctrl,spm8821";
-    gpio-controller;
-    #gpio-cells = <2>;
-    spacemit,npins = <6>;
-
-    /* 假如使用channel2 作为adc的输入管脚 */
-    gpadc2_pins: gpadc2-pins {
-            pins = "PIN2";
-            function = "adcin";
-    };
-};
+ -> Device Drivers
+  -> Industrial I/O support (IIO [=y])
+   -> Analog to digital converters
+    -> Spacemit P1 adc driver (SPACEMIT_P1_ADC [=y])   
 ```
 
-2. adc 驱动使能配置
+### DTS Configuration
+
+The GPADC is embedded within the PMIC chip. To enable the GPADC, you need to configure two DTS (Device Tree Source) nodes:
+
+1. GPADC Channel pinctrl Configuration
+
+   ```
+   pmic_pinctrl: pinctrl {
+       compatible = "pmic,pinctrl,spm8821";
+       gpio-controller;
+       #gpio-cells = <2>;
+       spacemit,npins = <6>;
+
+       /* If using channel2 as the ADC input pin */
+       gpadc2_pins: gpadc2-pins {
+               pins = "PIN2";
+               function = "adcin";
+       };
+   };
+   ```
+
+2. ADC Driver Enable Configuration
+
+   ```
+   ext_adc: adc {
+        compatible = "pmic,adc,spm8821";
+   };
+   ```
+
+## Interface
+
+### API
+
 ```
-ext_adc: adc {
-     compatible = "pmic,adc,spm8821";
-};
+struct iio_dev *iio_device_alloc(struct device *parent, int sizeof_priv); // Allocate an iio_dev structure
+struct iio_dev *devm_iio_device_alloc(struct device *dev, int sizeof_priv); // Allocate an iio_dev structure
+int iio_device_register(struct iio_dev *indio_dev); // Register an IIO device
+void iio_device_unregister(struct iio_dev *indio_dev); // Unregister an IIO device
 
 ```
 
-# 接口描述
-## 测试介绍
-通过动态改变外部采样电压值来进行简单的测试，其软件读取电压值的方法如下：
+## Debugging
+
+### sysfs
+
+```
+cd /sys/bus/iio/devices/iio:device0  # IIO framework directory
+in_voltage2_raw  # Read the value of the ADC hardware register
+in_voltage2_scale  # Read the precision of the ADC
+```
+
+## Testing
+
+A simple test can be performed by dynamically changing the external sampling voltage. The method for reading the voltage value in software is as follows:
+
 ```
 cd /sys/bus/iio/devices/iio:device0
 cat in_voltage2_raw
 cat in_voltage2_scale
 
-得到的两个节点做乘法运算就是得到的采样电压值(单位为mV)
-
-```
-## API介绍
-```
-struct iio_dev *iio_device_alloc(struct device *parent, int sizeof_priv); --- 申请iio_dev结构体
-struct iio_dev *devm_iio_device_alloc(struct device *dev, int sizeof_priv) --- 申请 iio_dev
-int iio_device_register(struct iio_dev *indio_dev) -- 注册iio设备
-void iio_device_unregister(struct iio_dev *indio_dev) -- 注销iio设备
-
+# Multiply the values obtained from the two nodes to get the sampling voltage (in millivolts, mV).
 ```
 
-## Debug介绍
-### sysfs
-```
-cd /sys/bus/iio/devices/iio:device0  --- iio框架目录  
-in_voltage2_raw  -- 读取的adc硬件寄存器的值  
-in_voltage2_scale  --- 读取的adc的精度  
-```
-# FAQ
+## FAQ

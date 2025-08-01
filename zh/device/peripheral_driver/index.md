@@ -5,35 +5,37 @@ slug: /development_guide/peripheral_driver
 
 # 外设驱动
 
-介绍文档编写目的、使用范围和相关人员。
+本文档介绍编写目的、适用范围以及相关使用人员，并详细说明 SpacemiT K1 平台的外设驱动支持情况。
+
 
 ## 编写目的
 
-本文档介绍SpacemiT K1 CPU各接口和外设的板级配置、CONFIG配置、测试、调试接口和常见问题等信息，方便开发人员进行二次开发。
+本手册旨在帮助开发者了解并快速上手 SpacemiT K1 CPU 的外设驱动，包括各接口的板级配置、内核配置（CONFIG）、驱动测试方法、调试接口说明以及常见问题处理，方便开发者进行二次驱动开发和系统集成。
 
 ## 使用范围
 
-适用于SpacemiT K1 CPU。
+适用于基于 SpacemiT K1 CPU 的平台及其软件开发套件。
 
 ## 相关人员
 
-- 驱动工程师
-- 系统工程师
+- 驱动开发工程师  
+- 系统集成工程师
 
 ## 功能介绍
 
-外设驱动（或设备驱动）是控制硬件设备与操作系统之间的接口。Linux系统外设驱动是一个模块化的组件，它充当了硬件和操作系统之间的桥梁，负责对硬件进行初始化、配置、管理、数据传输和错误处理等工作。
+外设驱动（或设备驱动）是控制硬件设备与操作系统之间的接口。Linux系统中，外设驱动是一个模块化的组件，它充当了硬件和操作系统之间的桥梁，负责对硬件进行初始化、配置、管理、数据传输和错误处理等工作。
 
-SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SPI等接口，提供了全面的外设连接选型，该文档包含K1涉及到的高速扩展接口驱动、音视频接口驱动、工业扩展接口驱动、存储接口驱动等使用说明文档。
+SpacemiT K1 包含了各种丰富的 IO 能力，集成多套 PCIe，USB，GMAC、SPI 等接口，提供了全面的外设连接选型，本文档覆盖了 K1 涉及到的高速扩展接口驱动、音视频接口驱动、工业扩展接口驱动、存储接口驱动等使用说明文档：
 
-- 高速扩展接口驱动：PCIe、USB、GMAC等 
-- 音视频接口驱动：DSI、HDMI、CSI等
-- 工业扩展接口驱动：CAN-FD、UART、I2C、SPI、PWM等
-- 存储接口驱动：SDHC、SPI-Flash等
+- **高速扩展接口驱动**：PCIe、USB、GMAC 等   
+- **音视频接口驱动**：DSI、HDMI、CSI 等   
+- **工业控制接口驱动**：UART、CAN-FD、I2C、SPI、PWM 等  
+- **存储接口驱动**：SDHC、SPI-Flash 等
 
 ## 快速索引
 高速扩展接口驱动
-- [GMAC](09-GMAC.md)  
+- [GMAC](09-GMAC.md) 
+- [EtherCAT](22-EtherCAT.md)  
 - [USB](10-USB.md)  
 - [PCIe](11-PCIe.md)   
 
@@ -49,6 +51,7 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [I2C](06-I2C.md)  
 - [QSPI](07-QSPI.md) 
 - [SPI](SPI.md) 
+- [CAN](15-CAN.md)
 - [GPADC](gpadc.md)
 
 存储接口驱动
@@ -65,10 +68,11 @@ SpacemiT K1包含了各种丰富的IO能力，集成多套PCIe，USB，GMAC、SP
 - [Thermal](thermal.md)  
 - [CPUFREQ](15-Cpufreq.md)  
 - [Standby](../standby.md)
+- [PMIC](14-PMIC.md)
 
 第三方外设驱动
 - [WIFI](WIFI.md)
 - [BT](BT.md)
 
-其他
+其他驱动
 - [CRYPTO](18-CRYPTO.md)

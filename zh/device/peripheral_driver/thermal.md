@@ -1,24 +1,24 @@
 # Thermal
 
-介绍thermal的功能和使用方法。
+介绍 Thermal 的功能和使用方法。
 
 ## 模块介绍
 
-thermal特指一套关于温控机制的驱动框架，Linux thermal框架是Linux系统下温度控制的一套架构，主要用来解决随着设备性能的不断增强而引起的日益严重的发热问题
+Thermal 特指一套关于温控机制的驱动框架。Linux Thermal 框架是 Linux 系统下用于温度控制的一套架构，主要用于解决随着设备性能不断增强而引起的日益严重的发热问题。
 
 ### 功能介绍
 
 ![](static/thermal.png)
 
-1. thermal_cooling_device对应系实施冷却措施的驱动，是温控的执行者  
-2. thermal core是thermal的只要程序，驱动初始化程序，维护thermal_zone，governor，cooling device三者的关系，并通过sysfs和用户空间交互
-3. thermal governor是温度控制算法，解决温控发生时，cooling device如何选择cooling state的问题。
-4. thermal zone device，主要用来创建thermal zone结点和连接thermal sensor， 在/sys/class/thermal目录下的thermal_zone, 该节点通过dts文件配置生成
-5. thermal sensor是温度传感器，主要是给thermal提供温度感知
+1. **thermal_cooling_device**：对应系实施冷却措施的驱动，是温控的执行者。  
+2. **thermal core**：Thermal的只要程序，负责驱动初始化，维护 thermal_zone，governor 和 cooling device 三者的关系，并通过 sysfs 和用户空间交互。
+3. **thermal governor**：温度控制算法，解决温控发生时 cooling device 应该选择哪个cooling state。
+4. **thermal zone device**：主要用来创建 thermal zone 结点和连接 thermal sensor。节点位于 `/sys/class/thermal` 目录下，由 DTS 文件配置生成。
+5. **thermal sensor**：温度传感器，主要是给 thermal 提供温度数据。
 
 ### 源码结构介绍
 
-CPU调频平台驱动目录如下：
+CPU 调频平台驱动目录如下：
 
 ```
 drivers/thermal/
@@ -46,28 +46,29 @@ drivers/thermal/
 
 ### 特性
 
-| 特性 | 特性说明 |
-| :-----| :----|
-| 支持cpu温度控制 |
-| 支持115°C过温关机 |
+- 支持 CPU 温度控制
+- 支持 115°C 过温关机
 
-测试方法
+**测试方法**
 
+利用外部测温设备或运行高负载应用，制造温度变化的环境，检查 thermal 和 cpufreq 节点，确认 CPU 调温是否符合预期。
+1. 查看 thermal sensor 节点：
 ```
-利用外部温枪或者跑负载大而变动的应用以创造温度一个温度可变的环境，查看thermal以及cpufreq的节点看是否cpu调温符合预期  
-1. thermal sensor节点
-    1.1 cat /sys/class/thermal/thermal_zone1/temp  
-2. cpu调频节点
-    2.1 cat /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq
+cat /sys/class/thermal/thermal_zone1/temp  
+```
+
+2. 查看 CPU 调频节点：
+```
+cat /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq
 ```
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括 **驱动使能配置** 和 **DTS 配置**
 
-### CONFIG配置
+### CONFIG 配置
 
-THERMAL配置如下：
+THERMAL 配置如下：
 
 ```
 CONFIG_K1X_THERMAL:
@@ -85,7 +86,7 @@ controller present in Spacemit SoCs
     -> Spacemit K1X Thermal Support (K1X_THERMAL [=y]) 
 ```
 
-### dts配置
+### DTS 配置
 
 ```
 &thermal_zones {
@@ -222,20 +223,22 @@ controller present in Spacemit SoCs
 
 ### API介绍
 
-请参考内核目录下面的Document文档介绍：  
+请参考内核目录下面的文档：  
+```
 Documentation/driver-api/thermal/
+```
 
-## Debug介绍
+## Debug 介绍
 
 ### sysfs
 
+请参考内核目录下面的文档：
 ```
-请参考内核目录下面的：
 Documentation/driver-api/thermal/sysfs-api.rst
 ```
 
 ## 测试介绍
 
-测试thermal驱动可以按照上述测试方法的描述，进行测试
+请按照上述 **测试方** 部分描述，进行 thermal 驱动的测试验证。
 
 ## FAQ

@@ -1,69 +1,92 @@
-介绍Clock的功能和使用方法。
+# Clock
 
-# 模块介绍
-Clock是时钟模块的控制器。
-## 功能介绍
+Clock Functionality and Usage Guide.
+
+## Overview
+
+The Clock module manages and controls system clock signals.
+
+### Functional Description
+
 ![](static/CLOCK.png)
 
-Linux为了做好时钟管理，提供了一个时钟管理框架Common Clock Framework（以下简称CCF），为设备驱动提供统一的操作接口，使设备驱动不必关心时钟硬件实现的具体细节。  
-其结构包括以下几个部分：  
-**clock provider**：对应上图的右侧部分，即clock controller，负责提供系统所需的各种时钟。  
-**clock consumer**：对应上图的左侧部分，即使用时钟的一些设备驱动。  
-**clock framework**：CCF的核心部分，向clock consumers提供操作clock的通用API；实现时钟管理的核心逻辑，将与硬件相关的clock控制逻辑封装成操作函数集，交由clock provider实现。  
-**device tree**：CCF允许在设备树中声明可用的时钟与设备的关联。  
+To manage clocks effectively, Linux provides the Common Clock Framework (CCF) for centralized clock management. This framework offers a unified interface for device drivers, allowing them to operate without needing to know the specific hardware implementation details of the clock. The structure includes the following components:
+- **clock provider:** Corresponding to the right side of the diagram, the clock controller, which is responsible for providing various clocks required by the system.
+- **clock consumer:** Corresponding to the left side of the diagram, the device drivers that use the clocks.
+- **clock framework:** The CCF core that exposes unified APIs for clock operations to consumers; implementing the core logic of clock management, encapsulating hardware-related clock control logic into a set of operation functions, and leaving their implementation to the clock provider.
+- **device tree:** CCF allows the declaration of available clocks and their associations with devices in the device tree
 
-Clock系统相关的器件包括：
-  - 用于产生clock的Oscillator（有源振荡器，也称作谐振荡器）或者Crystal（无源振荡器，也称晶振）
-  - 用于倍频的PLL（锁相环，Phase Locked Loop）
-  - 用于分频的Divider
-  - 用于时钟源选择的Mux
-  - 用于时钟开关控制的Gate  
+Clock-related components in the system include:
+- Oscillator (active, aka resonator) or Crystal (passive, aka crystal oscillator) for generating clocks.
+- PLL (Phase Locked Loop) for frequency multiplication.
+- Divider for frequency division.
+- Mux for clock source selection.
+- Gate for clock enable/disable control.
 
-系统中可能存在很多个这样的硬件模块，呈树形结构，linux将他们管理成一个时钟树（clock-tree），根节点一般是晶振，接着是pll，然后是mux或者div，最终叶子节点一般是gate。CCF实现了多种基础时钟类型，例如固定速率时钟fixed_rate clock、门控时钟gate clock、分频器时钟divider clock和复用器时钟mux clock等。一般为了方便使用，会根据时钟树设计，实现一些时钟类型。
+There may be many such hardware modules in the system, organized in a tree structure. Linux manages them as a clock tree, with the root node typically being a crystal oscillator, followed by PLLs, then muxes or dividers, and finally gate controllers as leaf nodes. CCF implements several basic clock types, such as fixed-rate clocks, gate clocks, divider clocks, and mux clocks. Generally, to facilitate usage, additional clock types are implemented based on the clock tree design.
 
-## 源码结构介绍
+### Source Code Structure
 
-Clock控制器驱动代码在drivers/clk/spacemit目录下：
+#### Clock Controller Driver Source Code
+The Clock controller driver code is located in the `drivers/clk/spacemit` directory:
+
 ```
 drivers/clk/spacemit
-|-- ccu_ddn.c                   #ddn时钟类型源码
+|-- ccu_ddn.c                   # Source code for ddn clock type
 |-- ccu_ddn.h
-|-- ccu_ddr.c                   #ddr时钟类型源码
+|-- ccu_ddr.c                   # Source code for ddr clock type
 |-- ccu_ddr.h
-|-- ccu_dpll.c                  #dpll时钟类型源码
+|-- ccu_dpll.c                  # Source code for dpll clock type
 |-- ccu_dpll.h
-|-- ccu_mix.c                   #mix时钟类型源码
+|-- ccu_mix.c                   # Source code for mix clock type
 |-- ccu_mix.h
-|-- ccu_pll.c                   #pll时钟类型源码
+|-- ccu_pll.c                   # Source code for pll clock type
 |-- ccu_pll.h
-|-- ccu-spacemit-k1x.c          #k1 clock controller驱动
+|-- ccu-spacemit-k1x.c          # k1 clock controller driver
 |-- ccu-spacemit-k1x.h
 |-- Kconfig
 |-- Makefile
 ```
-clock控制器驱动实现了5种时钟类型:
-- pll类型，锁相环类型
-- dpll类型，ddr相关的锁相环类型
-- ddn类型，分数divider，有一级除频，对应分母，一级倍频，对应分子
-- mix类型，混合类型，支持gate/mux/divider的任一种或者随意组合
-- ddr类型，ddr相关的特殊时钟类型  
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
-## CONFIG配置
-CONFIG_COMMON_CLK为Common Clock Framework提供支持，默认情况下，此选项为Y
+The clock controller driver implements five types of clocks:
+- **pll type:** Phase Locked Loop (PLL) type.
+- **dpll type:** DDR-related PLL type.
+- **ddn type:** Fractional divider type, with one level of division (denominator) and one level of multiplication (numerator).
+- **mix type:** Mixed type, supporting any combination of gate, mux, and divider.
+- **ddr type:** Special clock type related to DDR.
+
+#### Clock Index Definitions
+
+The clock index definitions are located in the dt-bindings directory:
+
+```
+include/dt-bindings/clock/spacemit-k1x-clock.h
+```
+
+## Configuration
+
+The configuration mainly includes driver enabling and DTS (Device Tree Source) configuration.
+
+### CONFIG Configuration
+
+CONFIG_COMMON_CLK: This option provides support for the Common Clock Framework (CCF). By default, this option is enabled (`y`).
+
 ```
 Device Drivers
-	Common Clock Framework (COMMON_CLK[=y])
+ Common Clock Framework (COMMON_CLK[=y])
 ```
-CONFIG_SPACEMIT_K1X_CCU 为K1 Clock控制器驱动提供支持，默认情况下，此选型为Y
+
+CONFIG_SPACEMIT_K1X_CCU: This option provides support for the K1 Clock controller driver. By default, this option is enabled  (`y`).
+
 ```
  Device Drivers
-	Common Clock Framework (COMMON_CLK[=y])
-	        Clock support for Spacemit k1x SoCs (SPACEMIT_K1X_CCU [=y])
+ Common Clock Framework (COMMON_CLK[=y])
+         Clock support for Spacemit k1x SoCs (SPACEMIT_K1X_CCU [=y])
 ```
-## DTS配置
-clock controller的dts配置如下：
+
+### DTS Configuration
+The DTS configuration for the clock controller is as follows:
+
 ```
 / {
         clocks {
@@ -145,26 +168,15 @@ clock controller的dts配置如下：
 
 
 ```
-模块如要使用clock功能，需要在dts配置clocks和clock-names属性，然后在驱动中通过CCF API进行Clock相关的操作。以can为例：
-```
-                flexcan0: fdcan@d4028000 {
-                        compatible = "spacemit,k1x-flexcan";
-                        reg = <0x0 0xd4028000 0x0 0x4000>;
-                        interrupts = <16>;
-                        interrupt-parent = <&intc>;
-                        clocks = <&ccu CLK_CAN0>,<&ccu CLK_CAN0_BUS>; #配置模块需要使用的时钟index
-                        clock-names = "per","ipg";                    #配置clocks对应的名称，驱动里可以通过这个字符串获取对应时钟
-                        resets = <&reset RESET_CAN0>;
-                        fsl,clk-source = <0>;
-                        status = "disabled";
-                };
 
-```
-# 接口描述
+## Interface
 
-## API介绍
-CCF为设备驱动提供了通用的时钟操作的接口
-- get接口
+### API
+The Common Clock Framework (CCF) provides a set of generic clock operation interfaces for device drivers.
+
+- get  
+Obtain a clock handle
+
 ```c
 /*
 * clk_get - get clk
@@ -194,8 +206,11 @@ struct clk *devm_clk_get(struct device *dev, const char *id);
 */
 struct clk *of_clk_get_by_name(struct device_node *np, const char *name);
 ```
-上述接口，第二个参数如果缺省，会默认获取dts里"clocks"项配置的第一个时钟。
-- put接口
+
+For the aforementioned interface, if the second parameter is omitted, it will default to obtaining the first clock configured in the "clocks" item in the DTS.
+- put  
+Release the clock handle.
+
 ```c
 /*
 * clk_put - put clk
@@ -211,7 +226,10 @@ void clk_put(struct clk *clk);
 */
 void devm_clk_put(struct device *dev, struct clk *clk);
 ```
-- prepare
+
+- prepare  
+Prepare the clock, which usually involves some preliminary work before enabling the clock.
+
 ```c
 /**
  * clk_prepare - prepare a clock source
@@ -221,7 +239,10 @@ void devm_clk_put(struct device *dev, struct clk *clk);
  */
 int clk_prepare(struct clk *clk);
 ```
-- unprepare
+
+- unprepare  
+Unprepare the clock, which usually involves some cleanup work after disabling the clock.
+
 ```c
 /**
  * clk_unprepare - undo preparation of a clock source
@@ -232,7 +253,10 @@ int clk_prepare(struct clk *clk);
  */
 void clk_unprepare(struct clk *clk);
 ```
-- enable
+
+- enable  
+Clock enable
+
 ```c
 /**
  * clk_enable - inform the system when the clock source should be running.
@@ -243,7 +267,10 @@ void clk_unprepare(struct clk *clk);
  */
 int clk_enable(struct clk *clk);
 ```
-- disable
+
+- disable  
+Disable the clock.
+
 ```c
 /**
  * clk_disable - inform the system when the clock source is no longer required.
@@ -258,8 +285,13 @@ int clk_enable(struct clk *clk);
  */
 void clk_disable(struct clk *clk);
 ```
-clk_prepare_enable是clk_prepare和clk_enable的组合，clk_disable_unprepare是clk_unprepare和clk_disable的组合
-- set rate
+
+**clk_prepare_enable:** This is a combination of clk_prepare and clk_enable. It is recommended to use this interface for enabling the clock after preparing it.
+**clk_disable_unprepare:** This is a combination of clk_unprepare and clk_disable. It is recommended to use this interface for disabling the clock and performing any necessary cleanup.
+
+- set rate  
+Set the clock frequency.
+
 ```c
 /**
  * clk_set_rate - set the clock rate for a clock source
@@ -271,7 +303,10 @@ clk_prepare_enable是clk_prepare和clk_enable的组合，clk_disable_unprepare�
  */
 int clk_set_rate(struct clk *clk, unsigned long rate);
 ```
-- get rate
+
+- get rate  
+Obtain the current clock frequency.
+
 ```c
 /**
  * clk_get_rate - obtain the current clock rate (in Hz) for a clock source.
@@ -281,7 +316,10 @@ int clk_set_rate(struct clk *clk, unsigned long rate);
 unsigned long clk_get_rate(struct clk *clk);
 
 ```
-- set parent
+
+- set parent  
+Set the parent clock.
+
 ```c
 /**
  * clk_set_parent - set the parent clock source for this clock
@@ -292,7 +330,10 @@ unsigned long clk_get_rate(struct clk *clk);
 int clk_set_parent(struct clk *clk, struct clk *parent);
 
 ```
-- get parent
+
+- get parent  
+Obtain the handle of the current parent clock.
+
 ```c
 /**
  * clk_get_parent - get the parent clock source for this clock
@@ -302,7 +343,10 @@ int clk_set_parent(struct clk *clk, struct clk *parent);
  */
 struct clk *clk_get_parent(struct clk *clk);
 ```
-- round rate
+
+- round rate  
+Obtain the frequency that is closest to the target frequency and that the clock controller can provide.
+
 ```c
 /**
  * clk_round_rate - adjust a rate to the exact rate a clock can provide
@@ -322,75 +366,178 @@ struct clk *clk_get_parent(struct clk *clk);
 long clk_round_rate(struct clk *clk, unsigned long rate);
 ```
 
-## Debug介绍
-可以通过debugfs进行调试
-- 打印时钟树  
-/sys/kernel/debug/clk/clk_summary常用于打印时钟树结构，查看各个时钟节点的状态，频率，父时钟等信息。
-```
-root# cat /sys/kernel/debug/clk/clk_summary
-```
-- 查看具体时钟节点  
-还可以单独查看具体时钟节点的状态，频率，父时钟等信息。以can0_clk为例：
-```
-root:/sys/kernel/debug/clk/can0_clk # ls -l
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_accuracy
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_duty_cycle
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_enable_count
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_flags
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_max_rate
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_min_rate
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_notifier_count
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_parent
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_phase
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_possible_parents
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_count
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_enable
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_protect_count
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_rate
-root:/sys/kernel/debug/clk/can0_clk# cat clk_prepare_count          #查看enable状态
-0
-root:/sys/kernel/debug/clk/can0_clk# cat clk_rate                   #查看当前频率
-20000000
-root:/sys/kernel/debug/clk/can0_clk# cat clk_parent                 #查看当前父时钟
-pll3_20
-root:/sys/kernel/debug/clk/can0_clk#
-```
-- 改变时钟配置  
-在driver/clk/clk.c中加上CLOCK_ALLOW_WRITE_DEBUGFS宏定义，就可以对debugfs下的一些clk节点进行写操作，否则只有读操作权限
-```
-/sys/kernel/debug/clk/can0_clk # ls -l
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_accuracy
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_duty_cycle
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_enable_count
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_flags
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_max_rate
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_min_rate
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_notifier_count
--rw-r--r--    1 root     root             0 Jan  1 08:03 clk_parent              #可读可写
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_phase
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_possible_parents
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_count
--rw-r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_enable      #可读可写
--r--r--r--    1 root     root             0 Jan  1 08:03 clk_protect_count
--rw-r--r--    1 root     root             0 Jan  1 08:03 clk_rate                #可读可写
-/sys/kernel/debug/clk/can0_clk # cat clk_rate                                    #查看频率
-20000000
-/sys/kernel/debug/clk/can0_clk # echo 40000000 > clk_rate                        #设置频率为40MHz
-/sys/kernel/debug/clk/can0_clk # cat clk_rate                                    #确认设置结果
-40000000
-/sys/kernel/debug/clk/can0_clk # cat clk_parent                                  #查看父时钟
-pll3_40
-/sys/kernel/debug/clk/can0_clk # echo 0 > clk_parent                             #设置父时钟为index为0的时钟源
-/sys/kernel/debug/clk/can0_clk # cat clk_parent                                  #确认设置结果
-pll3_20
-/sys/kernel/debug/clk/can0_clk # cat clk_prepare_enable                          #查看prepare_enable状态
-0
-/sys/kernel/debug/clk/can0_clk # echo 1 > clk_prepare_enable                     #prepare并enable时钟节点
-/sys/kernel/debug/clk/can0_clk # cat clk_prepare_enable                          #确认设置结果
-1
-/sys/kernel/debug/clk/can0_clk # echo 0 > clk_prepare_enable                     #unprepare并disable时钟节点
-/sys/kernel/debug/clk/can0_clk # cat clk_prepare_enable                          #确认设置结果
-0
-/sys/kernel/debug/clk/can0_clk #
-```
-# FAQ
+### Usage Example
+
+To use the clock functionality in a module, you need to configure the clocks and clock-names properties in the DTS file, and then use the CCF API for clock-related operations in the driver.
+- Configure dts
+  Locate the corresponding clock indices in include/dt-bindings/clock/spacemit-k1x-clock.h and configure them in the module's DTS file.
+  Taking can0 as an example, can0 has two clocks: one is the module operation clock CLK_CAN0, and the other is the bus clock CLK_CAN0_BUS. The DTS configuration is as follows:
+
+   ```
+                  flexcan0: fdcan@d4028000 {
+                          compatible = "spacemit,k1x-flexcan";
+                          reg = <0x0 0xd4028000 0x0 0x4000>;
+                          interrupts = <16>;
+                          interrupt-parent = <&intc>;
+                          clocks = <&ccu CLK_CAN0>,<&ccu CLK_CAN0_BUS>; # Configure the clock indices for can0
+                          clock-names = "per","ipg";                    # Configure the names corresponding to the clocks, which  can be used by the driver to obtain the corresponding clocks
+                          resets = <&reset RESET_CAN0>;
+                          fsl,clk-source = <0>;
+                          status = "disabled";
+                };
+
+  ```
+
+- Add Header Files and Clock Handles 
+
+  ```
+  #include <linux/clk.h>
+  ```
+
+  ```
+  struct flexcan_priv {
+
+          struct clk *clk_ipg;
+          struct clk *clk_per;
+  };
+  ````
+
+- Obtaining Clocks  
+  Typically, during the driver's probe stage, clock handles are obtained using devm_clk_get. If the driver's probe fails or during the remove stage, the driver automatically releases the corresponding clock handles.
+
+  ```
+          clk_ipg = devm_clk_get(&pdev->dev, "ipg");               # Obtain the clock handle corresponding to the bus clock CLK_CAN0_BUS.
+          if (IS_ERR(clk_ipg)) {
+                  dev_err(&pdev->dev, "no ipg clock defined\n");
+                  return PTR_ERR(clk_ipg);
+          }
+
+          clk_per = devm_clk_get(&pdev->dev, "per");               # Obtain the clock handle corresponding to the operating clock CLK_CAN0.
+          if (IS_ERR(clk_per)) {
+                  dev_err(&pdev->dev, "no per clock defined\n");
+                  return PTR_ERR(clk_per);
+          }
+
+  ```
+
+- Enable the clock.
+  Enable the clock node using clk_prepare_enable
+
+  ```
+          if (priv->clk_ipg) {
+                  err = clk_prepare_enable(priv->clk_ipg);         # Enable the bus clock CLK_CAN0_BUS.
+                  if (err)
+                          return err;
+          }
+
+          if (priv->clk_per) {
+                  err = clk_prepare_enable(priv->clk_per);         # Enable the operating clock CLK_CAN0.
+                  if (err)
+                          clk_disable_unprepare(priv->clk_ipg);
+          }
+
+  ```
+
+- Obtain the clock frequency.
+Get the clock frequency using clk_get_rate.
+
+  ```
+  clock_freq = clk_get_rate(clk_per);                  # Obtain the current frequency of the operating clock CLK_CAN0.
+  ```
+
+- Set the clock frequency. 
+  Modify the clock frequency using clk_set_rate, where the first parameter is the clock handle struct clk*, and the second parameter is the target frequency.
+
+  ```
+  clk_set_rate(clk_per, clock_freq);                   # Set the frequency of the operating clock CLK_CAN0.
+  ```
+
+- Disable the clock. 
+  Disable the clock using clk_disable_unprepare.
+
+  ```
+  clk_disable_unprepare(priv->clk_per);                # Disable the operating clock CLK_CAN0.
+  clk_disable_unprepare(priv->clk_ipg);                # Disable the bus clock CLK_CAN0_BUS.
+  ```
+
+## Debugging
+
+  You can use debugfs for debugging purposes.
+
+- Print the Clock Tree
+  The file /sys/kernel/debug/clk/clk_summary is commonly used to print the clock tree structure. It provides information on the status, frequency, parent clocks, and other details of each clock node
+
+  ```
+  root# cat /sys/kernel/debug/clk/clk_summary
+  ```
+
+- Viewing Specific Clock Nodes
+  You can also view the status, frequency, parent clock, and other information for specific clock nodes. For example, to view details for the can0_clk:
+
+  ```
+  
+  root:/sys/kernel/debug/clk/can0_clk # ls -l
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_accuracy
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_duty_cycle
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_enable_count
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_flags
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_max_rate
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_min_rate
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_notifier_count
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_parent
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_phase
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_possible_parents
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_count
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_enable
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_protect_count
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_rate
+  root:/sys/kernel/debug/clk/can0_clk# cat clk_prepare_count          # Viewing Enable Status
+  0
+  root:/sys/kernel/debug/clk/can0_clk# cat clk_rate                   # Viewing Current Frequency
+  20000000
+  root:/sys/kernel/debug/clk/can0_clk# cat clk_parent                 # Viewing the Current Parent Clock
+  pll3_20
+  root:/sys/kernel/debug/clk/can0_clk#
+  ```
+
+- Modifying Clock Configuration
+  Define CLOCK_ALLOW_WRITE_DEBUGFS in drivers/clk/clk.c to enable write access to debugfs clock nodes. Otherwise, you only have read permissions.
+
+  ```
+  /sys/kernel/debug/clk/can0_clk # ls -l
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_accuracy
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_duty_cycle
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_enable_count
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_flags
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_max_rate
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_min_rate
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_notifier_count
+  -rw-r--r--    1 root     root             0 Jan  1 08:03 clk_parent              # Read/write
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_phase
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_possible_parents
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_count
+  -rw-r--r--    1 root     root             0 Jan  1 08:03 clk_prepare_enable      # Read/write
+  -r--r--r--    1 root     root             0 Jan  1 08:03 clk_protect_count
+  -rw-r--r--    1 root     root             0 Jan  1 08:03 clk_rate                # Read/write
+  /sys/kernel/debug/clk/can0_clk # cat clk_rate                                    # View the frequency.
+  20000000
+  /sys/kernel/debug/clk/can0_clk # echo 40000000 > clk_rate                        # Set the frequency to 40 MHz.
+  /sys/kernel/debug/clk/can0_clk # cat clk_rate                                    # Confirm the setting result
+  40000000
+  /sys/kernel/debug/clk/can0_clk # cat clk_parent                                  # View the parent clock.
+  pll3_40
+  /sys/kernel/debug/clk/can0_clk # echo 0 > clk_parent                             # Set the parent clock to the clock source with index 0.
+  /sys/kernel/debug/clk/can0_clk # cat clk_parent                                  # Confirm the setting result.
+  pll3_20
+  /sys/kernel/debug/clk/can0_clk # cat clk_prepare_enable                          # View the prepare_enable status.
+  0
+  /sys/kernel/debug/clk/can0_clk # echo 1 > clk_prepare_enable                     # Prepare and enable the clock node.
+  /sys/kernel/debug/clk/can0_clk # cat clk_prepare_enable                          # Confirm the setting result
+  1
+  /sys/kernel/debug/clk/can0_clk # echo 0 > clk_prepare_enable                     # Unprepare and disable the clock node.
+  /sys/kernel/debug/clk/can0_clk # cat clk_prepare_enable                          # Confirm the setting result.
+  0
+  /sys/kernel/debug/clk/can0_clk #
+  ```
+
+## FAQ

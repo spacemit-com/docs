@@ -1,29 +1,28 @@
 # PINCTRL
 
-介绍PIN的功能和使用方法。
+介绍 **PIN** 的功能和使用方法。
 
 ## 模块介绍
 
-PINCTRL是PIN模块的控制器。
+PINCTRL 是 **PIN模块的控制器**。
 
 ### 功能介绍
 
 ![](static/linux_pinctrl.png)  
 
-Linux pinctrl模块包括两部分: pinctrl core和pin 控制器驱动。  
-pinctrl core主要有两个功能:  
+Linux pinctrl模块包括两部分: **pinctrl core** 和 **pin 控制器驱动**。  
 
-- 提供pinctrl功能接口给其它驱动使用  
-- 提供pin控制器设备注册与注销接口  
+1. **pinctrl core** 主要有两个功能:  
+   - 提供 pinctrl 功能接口给其它驱动使用  
+   - 提供 pin 控制器设备注册与注销接口  
 
-pinctrl控制器驱动主要功能:  
-
-- 驱动pin控制器硬件  
-- 实现pin的管理和配置
+2. **pinctrl 控制器驱动** 主要功能:  
+   - 驱动 pin 控制器硬件  
+   - 实现 pin 的管理和配置
 
 ### 源码结构介绍
 
-控制器驱动代码在drivers/pinctrl目录下：
+控制器驱动代码在 `drivers/pinctrl` 目录下：
 
 ```
 drivers/pinctrl
@@ -40,49 +39,52 @@ drivers/pinctrl
 
 ## 配置介绍
 
-主要包括驱动使能配置和dts配置
+主要包括 **驱动使能配置** 和 **dts配置**
 
 ### CONFIG配置
 
-CONFIG_PINCTRL 为pin控制器提供支持，默认情况，此选项为Y
+- **CONFIG_PINCTRL**: 为 pin 控制器提供支持，默认值为 `Y`
 
 ```
 Device Drivers
         Pin controllers (PINCTRL [=y])
 ```
 
-CONFIG_PINCTRL_SINGLE 为k1 pinctrl控制器提供支持，默认情况，此选项为Y
+- **CONFIG_PINCTRL_SINGLE**: 为 K1 pinctrl 控制器提供支持，默认值为 `Y`
 
 ```
 Device Drivers  
         Pin controllers (PINCTRL [=y])
                 One-register-per-pin type device tree based pinctrl driver (PINCTRL_SINGLE [=y])
 ```
+
 ## pin使用说明
-介绍在dts设备节点里使用pin
+
+介绍在dts设备节点里使用pin。
+
 ### pin 配置参数
 
-对 pin id、复用功能和属性进行定义。
+对 **pin id**、**复用功能** 和 **属性** 进行定义。
 
-详细定义内核目录`include/dt-bindings/pinctrl/k1-x-pinctrl.h`。
+详细定义内核目录 `include/dt-bindings/pinctrl/k1-x-pinctrl.h`。
 
 #### pin id
 
 即 pin 编号。
 
-K1 pin 编号范围1~147，对应宏定义 `GPIO_00 ~ GPIO_127`。
+K1 pin 编号范围 **1~147**，对应宏定义 `GPIO_00 ~ GPIO_127`。
 
 #### pin 功能
 
-k1 pin 支持复用选择。
+K1 pin 支持复用选择。
 
-k1 pin 复用功能列表见[K1 Pin Multiplex](https://developer.spacemit.com/#/documentation?token=CzJlwnDYNigRgDk7qS2cvYHPnkh)。
+K1 pin 复用功能列表见 [K1 Pin Multiplex](https://developer.spacemit.com/documentation?token=CzJlwnDYNigRgDk7qS2cvYHPnkh&type=file)。
 
-pin 的复用功能号为 0~7，分别定义为 `MUX_MODE0 ~ MUX_MODE7`。
+pin 的复用功能号为 **0~7**，分别定义为 `MUX_MODE0 ~ MUX_MODE7`。
 
 #### pin 属性
 
-pin 的属性包括边沿检测、上下拉和驱动能力。
+pin 的属性包括 **边沿检测**、**上下拉** 和 **驱动能力**。
 
 ##### 边沿检测
 
@@ -105,27 +107,23 @@ pin 的属性包括边沿检测、上下拉和驱动能力。
 
 ##### 驱动能力
 
-1. pin 电压为 1.8v
+1. **pin 电压为 1.8V**: 分为 4 级，值越大，驱动能力越强。
 
-分为 4 级，值越大，驱动能力越强。
+   - PAD_1V8_DS0
+   - PAD_1V8_DS1
+   - PAD_1V8_DS2
+   - PAD_1V8_DS3
 
-- PAD_1V8_DS0
-- PAD_1V8_DS1
-- PAD_1V8_DS2
-- PAD_1V8_DS3
+2. **pin 电压为 3.3V**: 分为 7 级，值越大，驱动能力越强。
 
-2. pin 电压为 3.3v
-
-分为 7 级，值越大，驱动能力越强
-
-- PAD_3V_DS0
-- PAD_3V_DS1
-- PAD_3V_DS2
-- PAD_3V_DS3
-- PAD_3V_DS4
-- PAD_3V_DS5
-- PAD_3V_DS6
-- PAD_3V_DS7
+   - PAD_3V_DS0
+   - PAD_3V_DS1
+   - PAD_3V_DS2
+   - PAD_3V_DS3
+   - PAD_3V_DS4
+   - PAD_3V_DS5
+   - PAD_3V_DS6
+   - PAD_3V_DS7
 
 ### pin 配置定义
 
@@ -133,11 +131,11 @@ pin 的属性包括边沿检测、上下拉和驱动能力。
 
 选定 pin 功能，设置 pin 的边沿检测，上下拉和驱动能力。
 
-采用宏 K1X_PADCONF 进行设置, 格式为 pin_id, mux_mode, pin_config。
+采用宏 `K1X_PADCONF` 进行设置, 格式为 **pin_id, mux_mode, pin_config**
 
-举例: 将 pin GPIO_00 设置为 gmac0 rxdv 功能，且关闭边沿检测，关闭上下拉，驱动能力设置为 2(1.8v)。
+示例：将 pin GPIO_00 设置为 gmac0 rxdv 功能，且关闭边沿检测，关闭上下拉，驱动能力设置为 2 (1.8V)。
 
-查看 k1 pin 功能复用列表 [K1 Pin Multiplex.xls]，GPIO_00 要设置成 gmac0 rxdv 功能，需要设置功能模式为 1, 即 MUX_MODE1。
+查看 K1 pin 功能复用列表 [K1 Pin Multiplex](https://developer.spacemit.com/documentation?token=CzJlwnDYNigRgDk7qS2cvYHPnkh&type=file)，GPIO_00 要设置成 gmac0 rxdv 功能，需要设置功能模式为 1, 即 MUX_MODE1。
 
 设置如下:
 
@@ -147,16 +145,16 @@ K1X_PADCONF(GPIO_00,    MUX_MODE1, (EDGE_NONE | PULL_DIS | PAD_1V8_DS2))   /* gm
 
 #### 定义一组 pin
 
-对控制器(如 gmac、pcie、usb 和 emmc 等)使用的功能 pin 组进行配置。
+对控制器(如 gmac、pcie、usb 和 emmc 等)使用的 **功能 pin 组** 进行配置。
 
-默认的功能 pin 组定义，内核目录下`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`。
+默认的功能 pin 组定义，内核目录：`arch/riscv/boot/dts/spacemit/k1-x_pinctrl.dtsi`。
 
-1. 功能 pin 组是否在 k1-x_pinctrl.dtsi 有定义，如果已定义且满足配置，直接使用；如果未定义或配置不满足，则按照第 2 步进行设置；
+1. 功能 pin 组是否在 `k1-x_pinctrl.dtsi` 有定义，如果已定义且满足配置，直接使用；如果未定义或配置不满足，则按照第 2 步进行设置；
 2. 设置控制器使用的 pin 组
 
 以 eth0 为例，假设开发板 eth0 pin 组使用 GPIO00~GPIO14、GPIO45，且 tx 需要使能上拉。
 
-k1-x_pinctrl.dtsi 中 gmac0 pins 默认定义
+`k1-x_pinctrl.dtsi` 中 gmac0 pins 默认定义
 
 ```c
 pinctrl_gmac0: gmac0_grp {
@@ -191,8 +189,7 @@ tx pin 的上下拉功能不满足，默认定义为关闭上下拉，当前需�
 下面分别进行介绍。
 
 1. 重写 pin 组默认定义
-
-在方案 dts 文件中增加如下配置，重写 gmac0 默认配置，将 gmac0 tx 设置为上拉。
+   在方案 dts 文件中增加如下配置，重写 gmac0 默认配置，将 gmac0 tx 设置为上拉。
 
 ```c
 &pinctrl {
@@ -220,8 +217,7 @@ tx pin 的上下拉功能不满足，默认定义为关闭上下拉，当前需�
 ```
 
 2. 新定义 gmac0 pin 组
-
-在方案 dts 文件中增加如下配置，将 gmac0 tx 设置为上拉。
+   在方案 dts 文件中增加如下配置，将 gmac0 tx 设置为上拉。
 
 ```c
 &pinctrl {
@@ -250,7 +246,7 @@ tx pin 的上下拉功能不满足，默认定义为关闭上下拉，当前需�
 
 ### pin 使用示例
 
-eth0 引用方案重写定义的 pinctrl_gmac0
+eth0 引用方案中重写定义的 `pinctrl_gmac0`
 
 ```c
 eth0 {
@@ -259,7 +255,7 @@ eth0 {
 };
 ```
 
-或者引用方案新增加的 pinctrl_gmac0_1
+或者引用方案新增加的 `pinctrl_gmac0_1`
 
 ```c
 eth0 {
@@ -272,28 +268,28 @@ eth0 {
 
 ### API介绍
 
-获取和释放设备pinctrl句柄
+- **获取和释放设备 pinctrl 句柄**
 
 ```
 struct pinctrl *devm_pinctrl_get(struct device *dev);  
 ```
 
-释放设备pinctrl句柄
+- **释放设备pinctrl句柄**
 
 ```
 void devm_pinctrl_put(struct pinctrl *p);
 ```
 
-查找pinctrl state
-根据state_name 在pin control state holder中查找对应的pin control state.
+- **查找pinctrl state**
+  根据state_name 在pin control state holder中查找对应的pin control state.
 
 ```
 struct pinctrl_state *pinctrl_lookup_state(struct pinctrl *p,
        const char *name)
 ```
 
-设定pinctrl state  
-对设备pins设置pinctrl state.
+- **设定pinctrl state**  
+  对设备pins设置pinctrl state.
 
 ```
 int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
@@ -301,16 +297,16 @@ int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
 
 ### demo示例
 
-#### pins状态为内核已定义
+#### 使用 Linux 默认定义的 pins 状态
 
-linux定义了"default"、"init"、"idle"和"sleep"四种标准pins状态，kernel框架层会进行管理，模块驱动不用操作。  
+linux定义了 **defaul**、**init**、**idle** 和 **sleep** 四种标准 pins 状态，kernel 框架层会进行管理，模块驱动不用操作。  
 
-- default: 设备pins默认状态  
-- init:    设备驱动probe阶段初始化状态
-- sleep:   PM(电源管理)流程设备睡眠状态时pins状态, .suspend时设置
-- idle:    runtime suspend时pins状态，pm_runtime_suspend或pm_runtime_idle时设置
+- **default**: 设备pins默认状态  
+- **init**:    设备驱动probe阶段初始化状态
+- **sleep**:   PM(电源管理)流程设备睡眠状态时pins状态, suspend时设置
+- **idle**:    runtime suspend时pins状态，pm_runtime_suspend或pm_runtime_idle时设置
 
-如gmac0控制器使用pins定义为"default"状态, gmac控制器驱动不用做任何操作，kernel框架会完成eth0 pins的设置。
+如 gmac0 控制器使用 pins 定义为 **default** 状态, gmac 控制器驱动不用做任何操作，kernel 框架会完成 eth0 pins 的设置。
 dts配置如下:
 
 ```c
@@ -320,10 +316,10 @@ eth0 {
 };
 ```
 
-#### pins状态自定义  
+#### 自定义 pins 状态 
 
-以k1 sd卡控制器举例，k1 sd卡控制器定义了3种pins状态"default"、"fast"和"debug"。  
-dts中定义和引用如下:
+以 K1 SD卡控制器举例，K1 SD卡控制器定义了 3 种 pins状态 **default**、**fast** 和 **debug**。  
+dts 中定义和引用如下:
 
 ```c
 &pinctrl {
@@ -373,8 +369,8 @@ dts中定义和引用如下:
 
 ```
 
-k1 sd控制器驱动
-sdhci-of-k1x.c管理上述pins
+K1 SD 控制器驱动
+`sdhci-of-k1x.c` 管理上述pins
 
 ```c
 /* 获取pinctrl handler */
@@ -411,7 +407,7 @@ if (spacemit->pinctrl && !IS_ERR(spacemit->pinctrl)) {
 
 ### sysfs
 
-查看系统当前pinctrl控制信息和pin配置信息
+查看系统当前 **pinctrl 控制信息** 和 **pin配置信息**
 
 ```
 /sys/kernel/debug/pinctrl
@@ -436,17 +432,11 @@ if (spacemit->pinctrl && !IS_ERR(spacemit->pinctrl)) {
     `-- pins
 ```
 
-d401e000.pinctrl-pinctrl-single  
+- `d401e000.pinctrl-pinctrl-single`: d401e000 pinctrl 管理的 **pin 详细信息**。详见本文的 **debugfs** 小节说明  
 
-- d401e000 pinctrl管理的pin详细信息。详见debugfs说明  
+- `pinctrl-devices`: 系统中所有 **pinctrl 控制器信息**  
 
-pinctrl-devices
-
-- 系统中所有pinctrl控制器信息  
-
-pinctrl-handles/pinctrl-maps  
-
-- 显示系统已请求的pin功能组信息
+- `pinctrl-handles/pinctrl-maps`: 显示系统已请求的 **pin 功能组信息**
 
 ### debugfs
 
@@ -464,7 +454,10 @@ pinctrl-handles/pinctrl-maps
 
 ## 测试方法  
 
-查看pin对应的寄存器值  
+使用 `devmem` 工具查看某 pin 对应寄存器值： 
+
+```
 devmem reg_addr
+```
 
 ## FAQ

@@ -1,44 +1,69 @@
-以下文档旨在为在 K1 平台上适配其他 AMD 显卡的开发者提供参考指导。本文将以我们在适配 Radeon HD7350 显卡时对内核所做的改动为例，介绍所涉及的关键点，并解释这些修改背后的原因和考量。无论您正在适配与 HD7350 同一代的 GPU，还是其他 AMD GPU，此文档都可作为参考和指导。
+# K1 平台 AMD 显卡适配指南
 
-# 1. 简介
-Linux内核中的独立显卡驱动主要依托于DRM（Direct Rendering Manager）子系统，这是一个用于管理图形处理单元（GPU）资源的内核模块，旨在提供统一的接口以支持多种硬件设备。独立显卡驱动通常包括以下几个层次：
- - **用户空间接口**：通过 ioctl 等接口与用户空间的图形库（如 Mesa、X.Org、Wayland）进行交互。
- - **DRM核心层**：提供基础的框架和通用功能，如内存管理、调度、同步等。
- - **硬件特定驱动模块**：针对不同厂商和型号的显卡（如 NVIDIA、AMD、Intel 等）实现具体的硬件控制逻辑。
+本文档为在 **K1 平台** 上适配 AMD 显卡的开发者提供参考。
+以 **Radeon HD7350** 为例，介绍适配过程中对 Linux 内核的主要修改，并解释原因。本指南也适用于同代及其他 AMD GPU 的适配。
 
-  
-DRM 主要组件有：
-- **DRM核心（DRM Core）**：负责管理显卡设备的初始化、资源分配、内存管理及用户空间与内核空间的通信。
-提供通用的 API 接口，供具体硬件驱动调用。
-- **驱动模块（Driver Modules）**：针对不同品牌和型号的独立显卡，Linux 内核提供相应的驱动模块，如 nouveau（NVIDIA 开源驱动）、amdgpu（AMD 显卡驱动）等。这些模块实现硬件初始化、指令集管理、中断处理、功耗管理等具体功能。
-- **GEM（Graphics Execution Manager）**：提供图形内存对象的管理，支持显存的高效分配与共享。
-通过 GEM，用户空间应用可以创建和管理图形缓冲区，实现高效的图形渲染。
-- **TTM（Translation Table Maps）**：TTM 可以作为 GEM 的后端，负责显存与系统内存之间的映射与管理。
-主要用于处理内存压力和资源分配策略。
-- **调度与同步**：显卡驱动需要有效管理多任务的调度，确保各个图形任务的高效执行。使用同步机制（如 Fence）来协调内核与用户空间之间的操作顺序，避免资源冲突。
-- **内存管理**：负责显存的分配、映射与回收，确保内存资源的高效利用。支持零拷贝技术，减少数据在内核与用户空间之间的传输开销。
+## 背景介绍
+
+Linux 内核中的独立显卡驱动依托于 **DRM（Direct Rendering Manager）子系统**。
+DRM 是一个用于管理 GPU（图形处理单元）资源的内核模块，提供统一的接口，以支持不同厂商的显卡。
+它的整体结构可分为以下几个层次：
+
+- **用户空间接口**
+  通过 `ioctl` 等接口与 **用户空间的图形库**（如 **Mesa、X.Org、Wayland**）进行交互，**应用程序** 可通过这些库访问 GPU。
+  交互流程：应用 → 图形库 → DRM `ioctl` → DRM 驱动 → GPU
+
+- **DRM 核心层（DRM Core）**
+  提供统一的框架和通用功能，包括显卡设备初始化、资源分配、内存管理、任务调度与同步、以及用户空间和内核空间的通信接口。
+
+  - **GEM（Graphics Execution Manager）**
+    - 提供图形内存对象的管理
+    - 支持显存的高效分配与共享
+    - 允许用户空间应用创建和管理图形缓冲区，实现高效渲染
+
+  - **TTM（Translation Table Maps）**
+    - 负责显存与系统内存的映射和管理，可作为 GEM 的后端
+    - 提供在内存压力下的资源调度与分配策略
+
+  - **调度与同步（Command Scheduling）**
+    - 管理 GPU 多任务的调度
+    - 使用 Fence 等机制协调内核与用户空间操作的顺序, 避免资源冲突
+
+  - **内存管理（VRAM Management）**
+    - 负责显存分配、映射与回收
+    - 支持 **零拷贝（Zero-Copy）** 技术，减少内核与用户空间之间的数据传输开销
+
+- **硬件特定驱动模块（Driver Modules）**
+  - 负责不同厂商和型号的 GPU 的硬件控制
+  - 典型驱动：`nouveau`（NVIDIA 开源驱动）、`amdgpu` 和 `radeon`（AMD驱动）
 
 radeon 驱动结构框图：
 
 ![](static/radeon-driver.png)
 
-# 2. 配置与修改
+## 配置与修改
 
-在将 AMD 显卡适配至 K1 平台时，往往需要对内核中显卡驱动、设备树(Device Tree)、地址映射、缓存策略、DMA 位宽以及中断管理等方面进行修改与调整。对于 RISC-V 架构平台，这些调整需要在理解 RISC-V 的内存管理和 PCIe 地址空间映射机制的前提下进行。本参考文档将从以下几个方面展开：
+在将 AMD 显卡适配至 K1 平台时，需要对 **显卡驱动、设备树 (Device Tree)、地址映射、缓存策略、DMA 位宽以及中断管理** 等进行修改与调整。
+对于 **RISC-V 架构平台**，这些调整应在充分理解 **内存管理机制** 和 **PCIe 地址空间映射** 的前提下进行。
 
-1. 设备树解析与地址映射；
-2. 添加write-combining支持；
-3. 缓存属性与访问权限的调整；
-4. DMA 地址宽度适配；
-5. MSI 中断支持限制；
-6. linux内核显卡驱动配置。
+本参考文档将从以下几个方面展开：
 
-### 2.1 设备树与地址映射
+1. 设备树解析与地址映射
+2. 添加 write-combining 支持
+3. 缓存属性与访问权限的调整
+4. DMA 地址宽度适配
+5. MSI 中断支持限制
+6. Linux 内核显卡驱动配置。
+
+### 设备树与地址映射
 
 **设备树解析：**
 
-1. 在设备树中，`ranges`属性用于定义地址映射关系，即如何将子设备的地址空间映射到父设备的地址空间。这个属性通常出现在需要进行地址转换的场景中，例如在外部总线或PCIe设备中。
-2. pcie主控设备树节点的`ranges`属性的格式为一个数字矩阵，这里的 `ranges` 包含四个部分：属性、PCIe地址、CPU地址和地址长度。具体来说，其格式为 `<地址属性，PCIe地址, CPU地址, 地址长度>`。
+- 在设备树中，`ranges` 属性定义了子设备地址空间与父设备地址空间的映射关系。
+- 在 PCIe 主控节点中，`ranges` 通常包含四个部分：
+  `<地址属性, PCIe地址, CPU地址, 地址长度>`
+
+示例修改如下：
 
 ``` c
 diff --git a/arch/riscv/boot/dts/spacemit/k1-x.dtsi b/arch/riscv/boot/dts/spacemit/k1-x.dtsi
@@ -56,22 +81,26 @@ index 7ea166ca6fb0..fd978a379c37 100644
              interconnect-names = "dma-mem";
 ```
 
-改动前：
+- **改动前**：
 
-1. 映射的源地址是 `0xa0000000`，目标地址也是 `0xa0000000`，大小为 `0x17000000`（即 368 MB），该段地址空间的属性是MEM属性；
+  - 源地址 `0xa0000000` → 目标地址 `0xa0000000`
+  - 大小 `0x17000000` (368 MB)，属性为 **MEM**
 
-改动后：
+- **改动后**：
 
-1. 第一段：源地址是 `0xa0000000`，目标地址是 `0xa0000000`，大小为 `0x10000000`（即 256 MB），该段地址空间的属性是MEM + 预取属性；
-2. 第二段：源地址是 `0xb0000000`，目标地址是 `0xb0000000`，大小为 `0x7000000`（即 112 MB），该段地址空间的属性是MEM属性；
+  - 第一段：源地址 `0xa0000000` → 目标地址 `0xa0000000`，大小 `0x10000000` (256 MB)，属性为 **MEM + 预取**
+  - 第二段：源地址 `0xb0000000` → 目标地址 `0xb0000000`，大小 `0x7000000` (112 MB)，属性为 **MEM**
 
-对较大的显存区间进行区分（如将其中一部分标记为预取属性），优化访问性能。通过此变更，更合理地划分地址空间，提升特定段的访问性能（如预取加速）。
+此调整将较大显存区间分段，其中一部分设置为预取，提高访问性能。
 
-**提示**：K1平台上pcie2可以使用的地址空间的大小为384MB，包含了配置空间和BAR空间各个区域。在修改设备树时，可以参考现有的 GPU 映射示例，对比不同 GPU 型号的 BAR 地址范围，并适当修改映射区域。
+**提示**
 
-### 2.2 添加wc(write-combining)支持
+- K1 平台上 **pcie2 可用地址空间总计 384MB**，包括配置空间和 BAR 空间。
+- 修改设备树时，应参考现有 GPU 的 BAR 地址范围，并适当划分映射区域。
 
-```c 
+### 添加 wc(write-combining) 支持
+
+```c
 diff --git a/arch/riscv/include/asm/pci.h b/arch/riscv/include/asm/pci.h
 index cc2a184cfc2e..9f6f59aff214 100644
 --- a/arch/riscv/include/asm/pci.h
@@ -88,11 +117,23 @@ index cc2a184cfc2e..9f6f59aff214 100644
  #include <asm-generic/pci.h>
 ```
 
-K1平台 pci 地址空间映射添加wc(write-combining)支持。
+- 在 K1 平台 PCI 地址映射中启用 **write-combining** (WC)。
+- WC 模式生效需要资源具备 **IORESOURCE\_PREFETCH** 标志。
+- 结合设备树修改，可在 PCI 资源映射到用户空间时启用 WC，从而提升显存访问效率。
 
-write_combine 生效需要资源本身有 IORESOURCE_PREFETCH 标志，所以结合上面设备树的修改，实现了将 PCI 资源映射到用户空间时，支持 write-combining 模式，从而提高显存访问效率。
+### 缓存属性与访问权限设置
 
-### 2.3 缓存属性与访问权限设置
+在 AMD 显卡适配中，**缓存策略** 会直接影响显存的访问效率和系统稳定性。默认情况下，驱动会根据 `rbo->flags` 在多种模式之间选择，例如：
+
+- **uncached**（不缓存）
+- **cached**（普通缓存）
+- **write-combined (WC)**（写合并）
+
+然而，默认策略并不总是最适合 GPU 的显存访问模式，因此需要进行修改。
+
+**修改示例**
+
+在 `radeon_ttm_tt_create` 函数中，强制使用 **write-combined (WC)**：
 
 ```c
 diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
@@ -109,7 +150,9 @@ index 4eb83ccc4906..4693119e2412 100644
          return NULL;
 ```
 
-在 radeon_ttm_tt_create 接口中根据 rbo->flags 原本会选择不同的缓存模式（uncached/write-combined/cached）。默认的 caching 策略可能不适合 GPU 显存访问模式，通过强制使用write-combined，可以保证缓存的一致性。
+**扩展 RISC-V 架构支持**
+
+在 TTM 模块中增加对 **RISC-V** 的支持，使 WC 模式能正确生效：
 
 ```c
 diff --git a/drivers/gpu/drm/ttm/ttm_module.c b/drivers/gpu/drm/ttm/ttm_module.c
@@ -128,11 +171,18 @@ index b3fffe7b5062..1319178edf03 100644
      else
 ```
 
+**说明**：
+
+- 在 RISC-V 平台下，当缓存模式为 **write-combined** 时 (即 `caching = ttm_write_combined`)，PTE（页表项）会正确设置为 **非缓存或写合并属性**。
+- 这样可以避免显存访问时的缓存不一致问题，提升渲染和数据传输效率。
+
 `ttm_prot_from_caching` 函数中引入 RISC-V 架构支持。当 caching = ttm_write_combined 时，会将相应页表属性设置为写合并模式。在 RISC-V 平台下，当缓存属性为写合并时，对应 PTE 能正确设置为非缓存或写合并的属性。
 
-### 2.4 DMA 地址宽度 (dma_bits) 调整
+### DMA 地址宽度 (`dma_bits`) 调整
 
-```c 
+在驱动初始化中，`dma_bits` 用于指定 GPU 可寻址的物理内存空间大小。
+
+```c
 diff --git a/drivers/gpu/drm/radeon/radeon_device.c b/drivers/gpu/drm/radeon/radeon_device.c
 index afbb3a80c0c6..42e6510eccf0 100644
 --- a/drivers/gpu/drm/radeon/radeon_device.c
@@ -148,13 +198,20 @@ index afbb3a80c0c6..42e6510eccf0 100644
      if ((rdev->flags & RADEON_IS_PCI) &&
 ```
 
-在驱动初始化时设置 `dma_bits`，原代码中 `dma_bits = 40`，表示 GPU 可访问到 1TB 内存。根据实际情况改为 `dma_bits = 32`，限制在 4GB 内存范围内。从原先的 40 位缩小到 32 位，缩小 了DMA 位宽以提高稳定性。
+- 在驱动初始化时，原代码默认 `dma_bits = 40`，表示显卡最多可以访问 **1TB** 内存空间（40 位寻址）。
+- 但在实际适配 K1 平台时，为提升稳定性，改为 `dma_bits = 32`，限制访问范围在 **4GB**（32 位寻址）以内。
 
+此处的修改提升了 K1 平台在加载 Radeon 驱动时的兼容性和稳定性，建议在调试过程中重点关注相关地址访问行为。
+
+> **注意：**
 对于其他 AMD 显卡，如若 GPU 本身不需要访问过大的物理内存空间，则可相应调整 `dma_bits` 来确保设备正常工作。
 
 ### 2.5 MSI 中断适配
 
-```c 
+在 K1 平台上，部分旧架构的 AMD GPU（尤其是 **GCN1 及更早架构**）使用 **MSI（Message Signaled Interrupts）** 可能导致中断无法正确触发。
+为保证系统稳定性，可在驱动中禁用 MSI，退回到传统的线性中断方式。
+
+```c
 diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
 index c4dda908666c..f540529909d3 100644
 --- a/drivers/gpu/drm/radeon/radeon_irq_kms.c
@@ -172,12 +229,12 @@ index c4dda908666c..f540529909d3 100644
       * Older chips have a HW limitation, they can only generate 40 bits
 ```
 
-K1平台上某些旧架构 GPU 使用 MSI 中断可能导致中断无法正确触发。禁用 MSI 可以退回到传统中断模式，确保系统稳定运行。
+**提示：**
 
-**提示**：  
-
-- 如果您的 GPU 无法触发中断或系统在插入 GPU 后中断异常，可尝试禁用 MSI。  
-- 仅在必要时才禁用 MSI，如果平台支持 MSI，启用它通常能获得更好的性能和更低的延迟。
+- 如果 GPU 无法触发中断，或插入 GPU 后系统中断异常，可尝试禁用 MSI。
+- 仅在必要时禁用 MSI：
+  - **禁用 MSI** → 稳定性更高，但性能和延迟可能略受影响。
+  - **启用 MSI** → 性能和延迟更优，但在 K1 平台上可能不稳定。
 
 ### 2.6 打开显卡驱动配置
 
@@ -197,6 +254,21 @@ index 1e14a4a5c4f7..58dfdf05bfce 100644
  CONFIG_SPACEMIT_HDMI=y
 ```
 
-将linux内核对应显卡驱动的配置打开，在make menuconfig中配置成Y（build in）或者m（编译成模块）。
+在内核配置文件 `k1_defconfig` 中开启 Radeon 驱动支持：
 
-目前K1平台支持了 radeon 驱动（对应GCN 1.0 之前架构的AMD显卡）。对于较新的 AMD 显卡，包括 GCN 1.0 及之后的架构（Radeon Rx 系列及更高端的显卡），需要适配 amdgpu 驱动。在修改驱动代码之后，需要把对应的驱动配置打开。
+```c
++CONFIG_DRM_RADEON=m
++CONFIG_DRM_RADEON_USERPTR=y
+```
+
+这两项配置可在 `make menuconfig` 中选择，方式如下：
+
+- `Y` → 内置到内核（build-in）
+- `M` → 编译为模块（module）
+
+目前，在 K1 平台上：
+
+- **radeon 驱动** 已支持 **GCN 1.0 之前架构** 的 AMD 显卡；
+- 对于 **GCN 1.0 及之后架构**（如 Radeon Rx 系列），则需要适配并开启 **amdgpu 驱动**。
+
+>**注意：** 修改或适配驱动代码后，必须确保对应的内核配置已打开。

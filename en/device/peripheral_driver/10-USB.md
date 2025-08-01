@@ -1,106 +1,127 @@
-介绍USB的功能和使用方法。
-# 模块介绍
-USB全称Universal Serial Bus（通用串行总线），是一种新兴的并逐渐取代其他接口标准的数据通信方式，由 Intel、Compaq、Digital、IBM、Microsoft、NEC及Northern Telecom 等计算机公司和通信公司于1995年联合制定，并逐渐形成了行业标准。
+# USB
 
-K1共有三个USB控制器，分别为USB2.0 OTG（USB0），USB2.0 Host（USB1），USB3.0 DRD（USB2.0 Port记为USB2、SuperSpeed Port记为USB3）。
+USB Functionality and Usage Guide.
 
-Linux中，支持两种USB角色，可以外接USB外设的Host模式和作为USB外设可以接入到其他上位机的Device模式。
+## Overview
 
-## 功能介绍
+USB stands for Universal Serial Bus, a data communication method that is increasingly replacing other interface standards. It was jointly developed in 1995 by several major computer and telecommunications companies, including Intel, Compaq, Digital, IBM, Microsoft, NEC, and Northern Telecom, and has since become an industry standard
 
-### USB Host
+The K1 platform features three USB controllers:
+- USB2.0 OTG (USB0)
+- USB2.0 Host (USB1)
+- USB3.0 DRD (where the USB2.0 port is USB2 and the SuperSpeed port is USB3)
+
+In Linux, two USB roles are supported:
+- **Host Mode:** This mode allows the system to connect and manage USB peripherals.
+- **Device Mode:** This mode enables the system to act as a USB peripheral that can be connected to another host device.
+
+### Features
+
+#### USB Host
+
 ![](static/USB-host.png)
 
-USB Host角色驱动框架图可以分为以下几个层次：  
-- USB Host Controller：这是USB控制器驱动层，负责初始化USB控制器以及底层的数据收发操作，直接控制底层寄存器。  
-- USB Core：这是核心层，负责抽象出USB层次和基于URB的传输，并提供接口供上下使用。  
-- USB Class：这是USB设备功能层，负责实现USB设备驱动、USB功能驱动，对接内核其他框架（如HID、UVC、Storage等）。  
+The USB Host role driver framework can be divided into the following layers:
 
-### USB Device
+- **USB Host Controller Driver:** This is the USB controller driver layer, responsible for initializing the controller and performing low-level data transmission and reception operations.
+- **USB Core Services:** This is the core layer, responsible for abstracting the USB hierarchy and URB-based transfers, and providing interfaces for upper and lower layers.
+- **USB Class Driver:** This is the USB device functionality layer, responsible for implementing USB device drivers, USB function drivers, and interfacing with other kernel frameworks (such as HID, UVC, Storage, etc.).
+
+#### USB Device
+
 ![](static/USB-device.png)
 
-USB Device角色驱动框架图可以分为以下几个层次：  
-- USB Device Controller：这是USB Device角色控制器驱动层，负责初始化USB控制器以及底层的数据收发操作，直接控制底层寄存器。  
-- UDC Core：这是核心层，负责抽象出USB Device层次和基于usb_request的传输，并提供接口供上下使用。  
-- Composite: 用于组合多个USB Device功能为一个设备，支持用户空间通过configfs配置，或者legacy驱动硬编码组合好的Functions。  
-- Function：这是USB Device功能层，负责实现USB Device模式的功能驱动，对接内核其他框架（如存储、V4L2、网络等）。  
+The USB Device role driver framework can be divided into the following layers:
 
-这些层次结构共同构成了Linux系统中USB子系统的框架，确保了USB模块系统中的正常运行和数据传输。
+- **USB Device Controller Driver:** This is the USB Device role controller driver layer, responsible for initializing the controller and performing low-level data transmission and reception operations.
+- **UDC Core:** This is the core layer, responsible for abstracting the USB Device hierarchy and URB-based transfers, and providing interfaces for upper and lower layers.
+- **Composite:** Used to combine multiple USB Device functions into a single device, supporting configuration by userspace through configfs or hard-coded combinations of Functions in legacy drivers.
+- **Function Driver:** This is the USB Device functionality layer, responsible for implementing the functional drivers for USB Device mode, and interfacing with other kernel frameworks (such as storage, V4L2, networking, etc.).
 
-## 源码结构介绍
-USB2.0 OTG控制器驱动代码在drivers/usb目录下：
+These layers together form the framework of the USB subsystem in the Linux system, ensuring the normal operation and data transfer within the USB module system.
+
+
+### Source Code Structure
+
+The USB2.0 OTG controller driver code is located in the `drivers/usb` directory:
 
 ```
 drivers/usb
 |-- phy/
-|   |-- phy-k1x-ci-otg.c      # OTG驱动，用于实现EHCI Host和K1X UDC两种模式驱动切换。
-|   |-- phy/phy-k1x-ci-usb2.c # PHY驱动。
+|   |-- phy-k1x-ci-otg.c      # OTG driver, used to implement the switching between EHCI Host and K1X UDC modes.
+|   |-- phy/phy-k1x-ci-usb2.c # PHY driver.
 |-- host/
-|   |-- ehci-k1x-ci.c         # EHCI Host模式平台驱动, 需要和EHCI Host驱动组合使用。
+|   |-- ehci-k1x-ci.c         # EEHCI Host mode platform driver, needs to be used in combination with the EHCI Host driver.
 |-- gadget/
     |-- udc/
-        |-- k1x_udc_core.c    # Device模式驱动。
+        |-- k1x_udc_core.c    # Device mode driver.
 ```
 
-usb2.0host控制器驱动代码在drivers/usb目录下：
+The USB2.0 Host controller driver code is located in the `drivers/usb` directory:
 
 ```
 drivers/usb
 |-- phy/
-|    |-- phy-k1x-ci-usb2.c # PHY驱动。
+|    |-- phy-k1x-ci-usb2.c # PHY driver.
 |-- host/
-    |-- ehci-k1x-ci.c     # EHCI Host模式平台驱动, 需要和EHCI Host驱动组合使用。
+    |-- ehci-k1x-ci.c     # The EHCI Host mode platform driver needs to be used in conjunction with the EHCI Host driver.
 ```
 
-
-usb3.0drd控制器驱动代码在drivers/usb目录下：
+The USB3.0 DRD (Dual-Role Device) controller driver code is located in the `drivers/usb` directory.
 
 ```
 drivers/usb
 |-- phy/
-|   |-- phy-k1x-ci-usb2.c   # USB3.0复合端口下的USB2.0 PHY驱动。
+|   |-- phy-k1x-ci-usb2.c   # USB2.0 PHY driver for the USB3.0 composite port
 |-- phy/
 |   |-- spacemit/
-|       |-- phy-spacemit-k1x-combphy.c # USB3.0 5Gbps PHY驱动。
+|       |-- phy-spacemit-k1x-combphy.c # USB3.0 5Gbps PHY 
 |-- dwc3/
-|   |-- dwc3-spacemit.c    # DWC平台驱动, 需要和DWC3驱动搭配使用。
+|   |-- dwc3-spacemit.c    # DWC platform driver, needs to be used in combination with the DWC3 driver
 ```
 
-其他一些组件代码路径如下：
+Other component code paths are as follows:
+
 ```
 drivers/
 |-- extcon/
-    |-- extcon-k1xci.c   # ID Pin+Vbus Pin检测连接器驱动,需搭配OTG驱动使用。
+|    |-- extcon-k1xci.c   # MicroUSB Pin detection connector driver, needs to be used with OTG and Extcon drivers
 |-- usb
-    |-- misc/
-        |-- spacemit_onboard_hub.c # 用于板载USB外设供电配置的帮助驱动。
+|    |-- misc/
+|        |-- spacemit_onboard_hub.c # Helper driver for on-board USB peripheral power configuration
 ```
 
-# 关键特性
-## USB2.0 OTG
-### 特性
-| 特性 | 特性说明 |
+## Key Features
+
+### USB2.0 OTG
+
+#### Features
+
+| Feature | Description |
 | :-----| :----|
-| 支持OTG | 支持Host和Device模式切换，并支持idpin+vbuspin检测。 |
-| 支持HS,FS Host/Device | High Speed(480Mb/s), Full Speed(12Mb/s) Host/Device 模式 |
-| 支持LS Host Only | 支持Low Speed(1.5Mb/s) Host only 模式| 
-| 支持16 Host Channel|最多支持16 Channel同时传输|
-| 支持16 IN + 16 OUT Device端点| 16KB Tx Buffer, 2KB Rx Buffer|
-| 支持Remote Wakeup| Host模式下支持High Speed, Full Speed, Low Speed Remote Wakeup |
-### 性能参数
-| 测试项目 | Tx(MB/s) | Rx(MB/s) |
-| :-----| :----| :----: | 
-| U盘测速(HIKISEMI S560 256GB) | 32.2 | 32.4 |
-| U盘模式Gadget测速 | 21.8 | 14.8 |
+| Supports OTG | Supports switching between Host and Device modes, and supports idpin+vbuspin detection |
+| Supports HS, FS Host/Device | High Speed (480Mb/s), Full Speed (12Mb/s) Host/Device modes |
+| Supports LS Host Only | Supports Low Speed (1.5Mb/s) Host-only mode |
+| Supports 16 Host Channels | Supports up to 16 channels for simultaneous transmission |
+| Supports 16 IN + 16 OUT Device Endpoints | 16KB Tx Buffer, 2KB Rx Buffer |
+| Supports Remote Wakeup| Supports High Speed, Full Speed, Low Speed Remote Wakeup in Host mode |
 
-测试方法
+#### Performance Parameters
+
+| Test Item | Tx(MB/s) | Rx(MB/s) |
+| :-----| :----| :----: |
+| USB Drive Speed Test (HIKISEMI S560 256GB) | 32.2 | 32.4 |
+| USB Drive Speed Test in Gadget Mode | 21.8 | 14.8 |
+
+**Testing Method**
+
 ```
-# U盘测速：
+# USB Drive Speed Test:
 ## host:
 fio -name=Tx -ioengine=libaio -direct=1 -iodepth=64 -rw=write -bs=512K -size=1024M -numjobs=1 -group_reporting -filename=/dev/sda
 fio -name=Rx -ioengine=libaio -direct=1 -iodepth=64 -rw=read -bs=512K -size=1024M -numjobs=1 -group_reporting -filename=/dev/sda
 
-# U盘模式Gadget：
+# USB Drive in Gadget Mode:
 ## device:
 gadget-setup msc
 ## pc:
@@ -108,50 +129,60 @@ fio -name=DevRx -ioengine=libaio -direct=1 -iodepth=64 -rw=write -bs=512K -size=
 fio -name=DevTx -ioengine=libaio -direct=1 -iodepth=64 -rw=read -bs=512K -size=100M -numjobs=1 -group_reporting -filename=/dev/sda
 ```
 
-## USB2.0 Host
-### 特性
-| 特性 | 特性说明 |
-| :-----| :----|
-| 支持HS,FS,LS Host | High Speed(480Mb/s), Full Speed(12Mb/s), Low Speed(1.5Mb/s) Host模式 |
-| 支持16 Host Channel|最多支持16 Channel同时传输|
-| 支持Remote Wakeup| Host模式下支持HighSpeed, FullSpeed, LowSpeed Remote Wakeup |
-### 性能参数
-| 测试项目 | Tx(MB/s) | Rx(MB/s) |
-| :-----| :----| :----: | 
-| U盘测速(HIKISEMI S560 256GB) | 32.2 | 32.4 |
+### USB2.0 Host
 
-测试方法
+#### Features
+
+| Characteristics | Feature Description |
+| :-----| :----|
+| Supports HS, FS, LS Host | High Speed (480Mb/s), Full Speed (12Mb/s), Low Speed (1.5Mb/s) Host mode |
+| Supports 16 Host Channels | Supports up to 16 channels for simultaneous transmission |
+| Supports Remote Wakeup | Supports High Speed, Full Speed, Low Speed Remote Wakeup in Host mode |
+
+#### Performance Parameters
+
+| Test Item | Tx(MB/s) | Rx(MB/s) |
+| :-----| :----| :----: |
+| USB Drive Speed Test (HIKISEMI S560 256GB) | 32.2 | 32.4 |
+
+**Testing Method**
+
 ```
-# U盘测速：
+# USB Drive Speed Test:
 fio -name=Tx -ioengine=libaio -direct=1 -iodepth=64 -rw=write -bs=512K -size=1024M -numjobs=1 -group_reporting -filename=/dev/sda
 fio -name=Rx -ioengine=libaio -direct=1 -iodepth=64 -rw=read -bs=512K -size=1024M -numjobs=1 -group_reporting -filename=/dev/sda
 ```
 
-## USB3.0 DRD
-### 特性
-| 特性 | 特性说明 |
-| :-----| :----|
-| 支持OTG | 支持Host和Device模式切换 |
-| 支持SS Host/Device | Super Speed(5Gbps/s) Host/Device 模式 |
-| 兼容HS,FS Host/Device | High Speed(480Mb/s), Full Speed(12Mb/s) Host/Device 模式 |
-| 支持LS Host Only | 支持Low Speed(1.5Mb/s) Host only 模式| 
-| 支持32 Device端点| 支持动态分配|
-| 支持低功耗 | USB2.0 Suspend, USB3.0 U1, U2, U3|
-| 支持Remote Wakeup| Host模式下支持SuperSpeed, HighSpeed, FullSpeed, LowSpeed Remote Wakeup |
-### 性能参数
-| 测试项目 | Tx(MB/s) | Rx(MB/s) |
-| :-----| :----| :----: | 
-| U盘测速(HIKISEMI S560 256GB)(SuperSpeed) | 345 | 343 |
-| U盘测速(HIKISEMI X301 64GB)(HighSpeed) | 27.1 | 30.2 |
-| U盘模式Gadget测速(SuperSpeed) | 349 | 328 |
+### USB3.0 DRD
 
-测试方法
+#### Feature
+
+| Feature | Description |
+| :-----| :----|
+| Supports OTG | Supports switching between Host and Device modes |
+| Supports SS Host/Device | Super Speed (5Gbps/s) Host/Device mode |
+| Compatible with HS, FS Host/Device | High Speed (480Mb/s), Full Speed (12Mb/s) Host/Device mode |
+| Supports LS Host Only | Supports Low Speed (1.5Mb/s) Host-only mode |
+| Supports 32 Device Endpoint | Supports dynamic allocatio |
+| Supports Low Power | USB2.0 Suspend, USB3.0 U1, U2, U3|
+| Supports Remote Wakeup | Supports SuperSpeed, HighSpeed, FullSpeed, LowSpeed Remote Wakeup in Host mode |
+
+#### Performance Parameters
+
+| Test Item | Tx(MB/s) | Rx(MB/s) |
+| :-----| :----| :----: |
+| USB Drive Speed Test (HIKISEMI S560 256GB) (SuperSpeed) | 345 | 343 |
+| USB Drive Speed Test (HIKISEMI X301 64GB) (HighSpeed) | 27.1 | 30.2 |
+| USB Drive Speed Test in Gadget Mode (SuperSpeed) | 349 | 328 |
+
+**Testing Method**
+
 ```
-# U盘测速:
+# USB Drive Speed Test:
 fio -name=Tx -ioengine=libaio -direct=1 -iodepth=64 -rw=write -bs=512K -size=1024M -numjobs=1 -group_reporting -filename=/dev/sda
 fio -name=Rx -ioengine=libaio -direct=1 -iodepth=64 -rw=read -bs=512K -size=1024M -numjobs=1 -group_reporting -filename=/dev/sda
 
-# U盘模式Gadget测速(SuperSpeed):
+# USB Drive Speed Test in Gadget Mode (SuperSpeed):
 ## device:
 USB_UDC=c0a00000.dwc3 gadget-setup uas:/dev/nvme0n1p1
 ## pc:
@@ -159,12 +190,16 @@ fio -name=DevRx -rw=write -bs=512k -size=5G -numjobs=1 -iodepth=32 -group_report
 fio -name=DevTx -rw=read -bs=512k -size=5G -numjobs=1 -iodepth=32 -group_reporting -direct=1 -ioengine=libaio -filename=/dev/sda
 ```
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
+## Configuration Introduction
 
-## USB2.0 OTG配置介绍
-### CONFIG配置
-CONFIG_K1XCI_USB2_PHY为USB2.0 OTG的PHY提供支持，默认Y。
+This mainly includes **driver enablement configuration** and **DTS configuration**.
+
+### USB2.0 OTG Configuration Introduction
+
+#### CONFIG Configuration
+
+ `CONFIG_K1XCI_USB2_PHY`: Provides support for the USB2.0 OTG PHY and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
@@ -172,7 +207,8 @@ Device Drivers
              -> K1x ci USB 2.0 PHY Driver (K1XCI_USB2_PHY [=y])
 ```
 
-CONFIG_USB_K1X_UDC为USB2.0 OTG的Device功能提供支持，默认Y。
+`CONFIG_USB_K1X_UDC`: Provides support for the Device functionality of USB2.0 OTG and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
@@ -181,14 +217,17 @@ Device Drivers
                -> Spacemit K1X USB2.0 Device Controller (USB_K1X_UDC [=y]) 
 ```
 
-CONFIG_USB_EHCI_K1X为USB2.0 OTG的Host功能提供支持，默认Y。
+`CONFIG_USB_EHCI_K1X`: Provides support for the Host functionality of USB2.0 OTG and defaults to `Y`.
+
 ```
 Device Drivers 
          -> USB support (USB_SUPPORT [=y])
            -> EHCI HCD (USB 2.0) support (USB_EHCI_HCD [=y])
              -> EHCI support for Spacemit k1x USB controller (USB_EHCI_K1X [=y])
 ```
-CONFIG_USB_K1XCI_OTG为USB2.0 OTG的OTG角色切换提供支持，默认Y。
+
+`CONFIG_USB_K1XCI_OTG`: Provides support for the OTG role switching of USB2.0 OTG and defaults to `Y`.
+
 ```
 Device Drivers 
          -> USB support (USB_SUPPORT [=y])
@@ -196,28 +235,32 @@ Device Drivers
              -> Spacemit K1-x USB OTG support (USB_K1XCI_OTG [=y])    
 ```
 
-CONFIG_EXTCON_USB_K1XCI为USB2.0 OTG用于MicroUSB接口的的ID Pin+Vbus Pin检测连接器驱动提供支持，默认Y。
+`CONFIG_EXTCON_USB_K1XCI`: Provides support for the MicroUSB interface's ID Pin+Vbus Pin detection connector driver for USB2.0 OTG and defaults to `Y`.
+
 ```
 Device Drivers
          -> External Connector Class (extcon) support (EXTCON [=y])
            -> Spacemit K1-x USB extcon support (EXTCON_USB_K1XCI [=y])
 ```
 
-### DTS配置
-USB2.0 OTG支持4种配置模式，通常情况下配置为**以Device Only模式工作**。
+#### DTS Configuration
 
-如果支持手动切换Host，推荐配置为**以OTG模式工作(基于usb-role-switch)**并且配置为默认Device角色。
+The USB2.0 OTG controller supports four configuration modes:
+- Typically configured to operate in **Device Only mode**.
+- If manual Host switching is supported, it is recommended to configure it to operate in **OTG mode (based on usb-role-switch)** and set the default role to Device.
+- If automatic dual-role switching is supported (e.g., for Type-C OTG interfaces), it is recommended to configure it to operate in **OTG mode (based on usb-role-switch)** and connect to the Type-C driver or GPIO detection.
+- If the K1 platform is used and the EXTCON framework is employed for USB role control, it also supports configuration in **OTG mode (based on K1 EXTCON)**. This method typically relies on external events (such as ID detection or VBUS status) to complete role switching.
 
-如果支持自动切换双角色（如Type-C OTG接口），推荐配置为**以OTG模式工作(基于usb-role-switch)**，并接入Type-C驱动或者GPIO检测。
 
-#### 以Device Only 模式工作
+##### Operating in Device Only Mode
 
-USB2.0 OTG 控制器 device 模式对应的设备树节点为 udc，作为 device 模式工作时，需要配置 dts 
-1. disable ehci节点。
-2. enable usbphy节点。
-3. udc节点的 `spacemit,udc-mode` 属性为 `MV_USB_MODE_UDC` 来选择 device 模式。
+The device tree node for the USB2.0 OTG controller in device mode is `udc`. To operate in device mode, configure the DTS as follows:
 
-方案 dts 配置如下：
+1. Disable the ehci and otg nodes.
+2. Enable the usbphy node.
+3. Set the spacemit,udc-mode property of the `udc` node to `MV_USB_MODE_UDC` to select device mode.
+
+The DTS configuration for this setup is as follows:
 
 ```c
 &usbphy {
@@ -230,15 +273,19 @@ USB2.0 OTG 控制器 device 模式对应的设备树节点为 udc，作为 devic
 &ehci { 
         status = "disabled";
 };
+&otg {
+        status = "disabled";
+};
 ```
 
-#### 以Host Only模式工作
+##### Operating in Host Only Mode
 
-USB2.0 OTG 控制器 host 模式对应的设备树节点为 ehci，作为 host 模式工作时，可以通过 dts 配置:
-1. disable udc 节点。
-2. ehci节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
-3. 如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
-4. 可选属性`spacemit,reset-on-resume`，用于控制系统休眠唤醒后是否reset控制器。
+The device tree node for the USB2.0 OTG controller in host mode is `ehci`. To operate in host mode, configure the DTS as follows
+
+1. Disable the `udc` and `otg` nodes.
+2. Set the `spacemit,udc-mode` property of the `ehci` node to `MV_USB_MODE_HOST` (default value) to select host mode.
+3. If the host needs to control the VBUS switch using GPIO, the `spacemit_onboard_hub` driver can be configured.
+4. Optional property `spacemit,reset-on-resume`, which is used to control whether the controller is reset after the system resumes from sleep.
 
 ```c
 &usbphy {
@@ -252,20 +299,25 @@ USB2.0 OTG 控制器 host 模式对应的设备树节点为 ehci，作为 host �
         spacemit,udc-mode = <MV_USB_MODE_HOST>;
         status = "okay";
 };
+&otg {
+        status = "disabled";
+};
 ```
 
-#### 以OTG模式工作(基于usb-role-switch)
-此配置模式适合大部分方案，可接入Type—C角色检测、GPIO角色检测、支持用户手动切换等。
+##### Operating in OTG Mode (Based on usb-role-switch)
 
-需要为 otg 节点配置`usb-role-switch`属性，以启用对role-switch的支持，通常适用于typec连接器，也支持其他如GPIO检测，接入方法可参考Linux内核文档usb-connector、typec相关章节。配置后，/sys/class/usb_role/下会出现一个 mv-otg-role-switch 节点。
+This configuration mode is suitable for most schemes and can connect to Type-C role detection, GPIO role detection, and supports user manual switching, etc.
 
-通过启用otg节点，并且配置otg节点的`role-switch-user-control`属性。
+You need to configure the `usb-role-switch` property for the `otg` node to enable support for role-switch, which is typically applicable to Type-C connectors but also supports other methods such as GPIO detection. For specific integration methods, refer to the Linux kernel documentation on usb-connector and Type-C related sections. After configuration, a `mv-otg-role-switch` node will appear under `/sys/class/usb_role/`.
 
-otg节点支持配置vbus-gpios用于控制角色切换时的vbus。
+By enabling the `otg` node and configuring the `role-switch-user-control` property of the otg node.
 
-otg节点的`role-switch-default-mode`属性决定开机后的默认角色，可选host，peripheral。
+The `otg` node supports configuring `vbus-gpios` to control the vbus during role switching.
 
-otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs的/sys/class/usb_role/mv-otg-role-switch/role手动控制角色切换。
+The `role-switch-default-mode` property of the `otg` node determines the default role after power-on, with options being h`host` or p`peripheral`.
+
+The `role-switch-user-control` property of the `otg` node determines whether the user can manually control role switching through the sysfs `/sys/class/usb_role/mv-otg-role-switch/role`.
+
 ```c
 &usbphy {
         status = "okay";
@@ -278,7 +330,7 @@ otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs�
         role-switch-default-mode = "host";
         vbus-gpios = <&gpio 123 0>;
         status = "okay";
-        /* 可选
+        /* Optional
         typec_connector {
              ....
         }
@@ -291,40 +343,47 @@ otg节点的`role-switch-user-control`属性决定用户是否可以通过sysfs�
 };
 
 &ehci {
-        spacemit,udc-mode = <MV_USB_MODE_HOST>;
+        spacemit,udc-mode = <MV_USB_MODE_OTG>;
         status = "okay";
 };
 
 ```
 
-#### 以OTG模式工作(基于K1 EXTCON)
+##### Operating in OTG Mode (Based on K1 EXTCON)
 
-此配置适用于MicroUSB接口，且需要支持VBUS PIN、ID PIN唤醒的方案。
+This configuration is only applicable to MicroUSB interfaces and requires support for VBUS PIN and ID PIN detection for automatic OTG role switching.
 
-以 otg(基于K1 EXTCON)模式工作，硬件方案需要进行如下设计：  
-1. USB_ID0 Pin（INPUT） 接入 OTG MicroUSB ID Pin。（ID 接地 USB2.0 OTG 作为 host 工作,  ID 悬空/高 USB2.0 OTG 作为 device 工作）。
-2. VBUS_ON0 Pin （INPUT）接入 OTG MicroUSB VBUS Pin，当 VBUS 有对外输出或外部输入时，VBUS_ON0 为高。
-3. 需要选择一个Pin配置为VBUS开关（可选GPIO63或GPIO127）配置为drive_vbus0_iso功能，用于驱动根据是否处于 host 模式下开关的对外 5v 供电开关。
-4. 在drive_vbus0_iso输出高以前，VBUS_ON0 不能为高，MicroUSB也不能对外供电，防止造成硬件损坏。
-5. USB2.0 OTG Port 切换为 device 模式下时，端口接入外部 vbus 供电后，VBUS_ON0 需被拉高。
+To operate in OTG mode (based on K1 EXTCON), the hardware design needs to meet the following requirements:
 
-dts 需要进行下面的配置：
+1. Connect the USB_ID0 Pin (INPUT) to the OTG MicroUSB ID Pin. (When ID is grounded, USB2.0 OTG works as a host; when ID is floating/high, USB2.0 OTG works as a device).
 
-1. 使用 pinctrl 把 GPIO64(另可选GPIO125)配置为 VBUS_ON0 功能，把 GPIO65(另可选GPIO126)配置为USB_ID0功能，用于检测 otg 接口状态。
-2. 使能 usbphy、extcon、otg、udc、ehci 节点。
-3. 把 dts 中 udc 节点、ehci 节点、otg 节点的 spacemit,udc-mode 属性配置为 MV_USB_MODE_OTG。
-4. 在 dts 中需要通过 otg 节点和 udc 节点的 spacemit,extern-attr 配置 vbus 和 idpin 的检测支持，配置为 MV_USB_HAS_VBUS_IDPIN_DETECTION。
-5. otg 节点需要配置 vbus-gpio，用于驱动根据进入 host 模式情形下控制对外 5v 供电开关。切换为 host 模式时，在 vbus-gpio 被驱动拉高以前，VBUS_ON0 不能为高。
+2. Connect the VBUS_ON0 Pin (INPUT) to the OTG MicroUSB VBUS Pin. VBUS_ON0 will be high when VBUS is outputting or receiving power externally.
 
-otg 节点方案 dts 配置示例如下（假设使用 pinctrl 配置采用 k1-x_pinctrl.dtsi 中的 pinctrl_usb0_1 节点），参考 k1-x_evb.dts：
+3. Select a Pin to configure as the VBUS switch (e.g., GPIO63 or GPIO127) and set it to the `drive_vbus0_iso` function to control the 5V power supply switch based on whether the system is in host mode.
+
+4. Before `drive_vbus0_iso` outputs high, VBUS_ON0 must not be high, and the MicroUSB must not supply power externally to prevent hardware damage.
+
+5. When the USB2.0 OTG Port switches to device mode, VBUS_ON0 must be pulled high after the port is connected to an external VBUS power supply.
+
+The DTS needs the following configurations:
+
+1. Use pinctrl to configure GPIO64 (or alternatively GPIO125) as the VBUS_ON0 function and GPIO65 (or alternatively GPIO126) as the USB_ID0 function to detect the OTG interface status.
+
+2. Enable the `usbphy`, `extcon`, `otg`, `udc`, and `ehci` nodes.
+
+3. Set the `spacemit,udc-mode` property of the `udc`, `ehci`, and `otg` nodes in the DTS to `MV_USB_MODE_OTG`.
+
+4. Configure the DTS to support vbus and idpin detection through the `spacemit,extern-attr` property of the `otg` and `udc` nodes, setting it to `MV_USB_HAS_VBUS_IDPIN_DETECTION`.
+
+The DTS configuration example for the OTG node (assuming the pinctrl configuration uses the `pinctrl_usb0_1` node from `k1-x_pinctrl.dtsi`), as referenced in `k1-x_evb.dts`, is as follows:
 
 ```c
 &pinctrl{
    pinctrl_usb0_1: usb0_1_grp {
        pinctrl-single,pins =<
-               K1X_PADCONF(GPIO_64, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2))	/* vbus_on0 */
-               K1X_PADCONF(GPIO_65, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2))	/* usb_id0 */
-               K1X_PADCONF(GPIO_63, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2))	/* drive_vbus0_iso */ >;
+               K1X_PADCONF(GPIO_64, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)) /* vbus_on0 */
+               K1X_PADCONF(GPIO_65, MUX_MODE1, (EDGE_NONE | PULL_UP   | PAD_1V8_DS2)) /* usb_id0 */
+               K1X_PADCONF(GPIO_63, MUX_MODE1, (EDGE_NONE | PULL_DOWN | PAD_1V8_DS2)) /* drive_vbus0_iso */ >;
    };
 };
 &extcon {
@@ -351,31 +410,38 @@ otg 节点方案 dts 配置示例如下（假设使用 pinctrl 配置采用 k1-x
 };
 ```
 
+##### USB Sleep and Wakeup
 
-#### USB休眠唤醒
-K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
-USB2.0 OTG需要在otg节点和ehci节点配置 spacemit,reset-on-resume 属性使能reset-resume。
+The K1 USB module supports two system sleep strategies:
+- **reset-resume**, which maintains the lowest power consumption for USB
+- **no-reset**
 
-如果需要支持USB Remote Wakeup：  
-需要对ehci节点，otg节点禁用 spacemit,reset-on-resume 属性，并且启用 wakeup-source 属性。
-此外系统pmu需要使能usb唤醒的唤醒源，参考电源管理文档相关章节。
+For USB2.0 OTG, the `spacemit,reset-on-resume` property needs to be configured in the `otg` and `ehci` nodes to enable the reset-resume strategy.
+
+To support USB Remote Wakeup:
+- The `spacemit,reset-on-resume` property must be disabled for the `ehci` and `otg` nodes.
+- The `wakeup-source` property must be enabled.
+- Additionally, the system PMU (Power Management Unit) must enable the USB wakeup source. For more details, refer to the relevant section below:
+
 ```c
 &otg {
         /*spacemit,reset-on-resume;*/
         wakeup-source;
-        .... 其他参数省略，请参照上面的配置
+        .... 其Other parameters are omitted; refer to the configurations above
 };
 &ehci {
         /*spacemit,reset-on-resume;*/
         wakeup-source;
-        .... 其他参数省略，请参照上面的配置
+        .... Other parameters are omitted; refer to the configurations above
 };
 ```
 
-## USB2.0 HOST配置介绍
+### USB2.0 HOST Configuration
 
-### CONFIG配置
-CONFIG_K1XCI_USB2_PHY为USB2.0 HOST的PHY提供支持，默认Y。
+#### CONFIG Configuration
+
+`CONFIG_K1XCI_USB2_PHY`: Provides support for the PHY of USB2.0 HOST and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
@@ -383,21 +449,25 @@ Device Drivers
              -> K1x ci USB 2.0 PHY Driver (K1XCI_USB2_PHY [=y])
 ```
 
-CONFIG_USB_EHCI_K1X为USB2.0 HOST的Host功能提供支持，默认Y。
+`CONFIG_USB_EHCI_K1X`: Provides support for the Host functionality of USB2.0 HOST and defaults to `Y`.
+
 ```
 Device Drivers 
          -> USB support (USB_SUPPORT [=y])
            -> EHCI HCD (USB 2.0) support (USB_EHCI_HCD [=y])
              -> EHCI support for Spacemit k1x USB controller (USB_EHCI_K1X [=y])
 ```
-### DTS配置
-#### 以Host Only模式工作
-USB2.0 HOST支持配置为**以Host Only模式工作**。
 
-USB2.0 HOST 控制器 host 模式对应的设备树节点为 ehci1，作为 host 模式工作时，可以通过 dts 配置:
-1. ehci1节点的`spacemit,udc-mode` 属性为 `MV_USB_MODE_HOST`（默认值）来选择 host 模式。
-2. 如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
-3. 可选属性`spacemit,reset-on-resume`，用于控制系统休眠唤醒后是否reset控制器。
+#### DTS Configuration
+
+##### Operating in Host Only Mode
+
+USB2.0 HOST supports configuration to operate in **Host Only mode**.
+
+The device tree node corresponding to the host mode of the USB2.0 HOST controller is `ehci1`. When operating in host mode, the DTS can be configured as follows:
+1. Set the `spacemit,udc-mode` property of the `ehci1` node to `MV_USB_MODE_HOST` (default value) to select host mode.
+2. If the host needs to control the VBUS switch using GPIO, the `spacemit_onboard_hub` driver can be configured.
+3. Optional property `spacemit,reset-on-resume`, which is used to control whether the controller is reset after the system resumes from sleep
 
 ```c
 &usbphy1 {
@@ -410,48 +480,59 @@ USB2.0 HOST 控制器 host 模式对应的设备树节点为 ehci1，作为 host
 };
 ```
 
-USB2.0 HOST控制器也支持以OTG模式工作(基于usb-role-switch)，具体参考方案dts和USB2.0 OTG配置介绍的相关内容。
+##### USB Sleep and Wakeup
 
-#### USB休眠唤醒
-K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
-USB2.0 HOST控制器需要在ehci节点配置 spacemit,reset-on-resume 属性使能reset-resume。
+The K1 USB supports two system sleep strategies:
+- The **reset-resume** strategy, which maintains the lowest power consumption for USB.
+- The **no-reset** strategy.
 
-如果需要支持USB Remote Wakeup：  
-需要对ehci1节点禁用 spacemit,reset-on-resume 属性，并且启用 wakeup-source 属性。
-此外系统pmu需要使能usb唤醒的唤醒源，参考电源管理文档相关章节。
+For the USB2.0 HOST controller, the `spacemit,reset-on-resume` property needs to be configured in the `ehci1` node to enable the reset-resume strategy.
+
+To support USB Remote Wakeup:
+1. The `spacemit,reset-on-resume` property must be disabled for the `ehci1` node.
+2. The `wakeup-source` property must be enabled.
+3. Additionally, the system PMU (Power Management Unit) must enable the USB wakeup source. For more details, refer to the relevant section below:
+
 ```c
 &ehci1 {
         /*spacemit,reset-on-resume;*/
         wakeup-source;
-        .... 其他参数省略，请参照上面的配置
+        .... Other parameters are omitted; refer to the configurations above
 };
 ```
 
-## USB3.0 DRD配置介绍
-### CONFIG配置
-CONFIG_K1XCI_USB2_PHY为USB3.0 DRD的USB2.0 Port提供PHY支持，默认Y。
+### Introduction to USB3.0 DRD Configuration
+
+#### CONFIG Configuration
+
+`CONFIG_K1XCI_USB2_PHY`: Provides PHY support for the USB2.0 Port of USB3.0 DRD and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
            -> USB Physical Layer drivers 
              -> K1x ci USB 2.0 PHY Driver (K1XCI_USB2_PHY [=y])
 ```
-CONFIG_PHY_SPACEMIT_K1X_COMBPHY为USB3.0 DRD的SuperSpeed PHY提供支持，默认Y。
+
+`CONFIG_PHY_SPACEMIT_K1X_COMBPHY`: Provides support for the SuperSpeed PHY of USB3.0 DRD and defaults to `Y`.
+
 ```
 Device Drivers 
          -> PHY Subsystem
            -> Spacemit K1-x USB3&PCIE combo PHY driver (PHY_SPACEMIT_K1X_COMBPHY [=y]) 
 ```
 
-CONFIG_USB_DWC3_SPACEMIT 为Spacemit USB3.0 DRD控制器驱动提供平台支持，默认情况下，此选型为Y
+`CONFIG_USB_DWC3_SPACEMIT`: Provides platform support for the Spacemit USB3.0 DRD controller driver and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
            -> DesignWare USB3.0 DRD Core Support (USB_DWC3 [=y])
              -> Spacemit Platforms (USB_DWC3_SPACEMIT [=y])
 ```
-CONFIG_USB_DWC3_DUAL_ROLE为USB3.0 DRD控制器提供双模式支持，默认情况下，此选型为Y，实际角色可以由设备树配置。
-也可选择配置为单Host模式或者单Device模式。
+
+`CONFIG_USB_DWC3_DUAL_ROLE`: Provides dual-role support for the USB3.0 DRD controller and defaults to `Y`. The actual role can be configured via the device tree. It can also be configured as a single Host mode or single Device mode.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
@@ -460,10 +541,12 @@ Device Drivers
              -> Dual Role mode (USB_DWC3_DUAL_ROLE [=y]) 
 ```
 
-### DTS配置
+#### DTS Configuration
 
-#### 以Host Only模式工作
-USB3.0 DRD控制器的设备树节点为 usbdrd3.对应 high-speed utmi phy 节点为 usb2phy，对应 superspeed pipe phy 节点为 combphy，使用 USB3.0 DRD 控制器时需要使能这两个节点。phy 节点无参数配置。
+##### Operating in Host Only Mode
+
+The device tree node for the USB3.0 DRD controller is `usbdrd3`. The corresponding high-speed UTMI PHY node is `usb2phy`, and the corresponding superspeed pipe PHY node is `combphy`. When using the USB3.0 DRD controller, these two nodes need to be enabled. However, no configuration for the PHY nodes.
+
 ```
 &usb2phy {
         status = "okay";
@@ -472,7 +555,9 @@ USB3.0 DRD控制器的设备树节点为 usbdrd3.对应 high-speed utmi phy 节�
         status = "okay";
 };
 ```
-USB3.0 DRD控制器有部分参数通过 dts 的 usbdrd3 节点的子节点 dwc3 节点配置，需要配置部分quirk参数如下：
+
+Some parameters of the USB3.0 DRD controller are configured through the `dwc3` sub-node of the `usbdrd3` node in the DTS. The following quirk parameters need to be configured.
+
 ```c
 &usbdrd3 {
         status = "okay";
@@ -489,78 +574,158 @@ USB3.0 DRD控制器有部分参数通过 dts 的 usbdrd3 节点的子节点 dwc3
         };
 };
 ```
-如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
-#### 以Device Only模式工作
 
-USB3.0 DRD 控制器的角色通过 usbdrd3 节点的子节点 dwc3 的 dr_mode 属性配置，可选 host、peripheral、otg。dr_mode 属性配置为 peripheral 则以 device only 模式工作。
+If the Host needs to control the VBUS switch using GPIO, the `spacemit_onboard_hub` driver can be configured.
 
-#### 以DRD模式工作
+##### Operating in Device Only Mode
 
-配置 dr_mode 为 otg 模式时，dts 节点中需要配置 usb-role-switch 布尔属性为真。可以通过 role-switch-default-mode 字符串属性配置对应的默认角色，可选值为 host、peripheral。   
+The role of the USB3.0 DRD controller is configured through the `dr_mode` property of the `dwc3` sub-node of the `usbdrd3` node. The `dr_mode` property can be set to `host`, `peripheral`, or `otg`. Setting the `dr_mode` property to `peripheral` operates in device only mode.
+
+##### Operating in DRD Mode
+
+When configuring `dr_mode` to `otg` mode, the DTS node needs to set the `usb-role-switch` boolean property to true. The default role can be configured through the `role-switch-default-mode` string property, with options being `host` or `peripheral`.
 
 ```c
 &usbdrd3 {
 dwc3@c0a00000 {
         dr_mode = "otg";
         usb-role-switch;
-        .... 其他参数省略，请参照上面的配置
+        .... Other parameters are omitted; please refer to the configurations above.
         role-switch-default-mode = "host";
 };
 };
 ```
 
-配置后，/sys/class/usb_role/下会出现一个 c0a00000.dwc3-role-switch 节点。目前 dwc3 驱动仅支持通过 debugfs 进行角色切换：
+After configuration, a `c0a00000.dwc3-role-switch` node will appear under `/sys/class/usb_role/`. Currently, the dwc3 driver only supports role switching via debugfs:
 
 ```c
-# 查看控制器当前角色：
+# Check the current role of the controller:
 cat /sys/kernel/debug/usb/c0a00000.dwc3/mode
-# 切换至 host 角色：
+# Switch to host role:
 echo host > /sys/kernel/debug/usb/c0a00000.dwc3/mode
-# 切换至 device 角色：
+# Switch to device role:
 echo device > /sys/kernel/debug/usb/c0a00000.dwc3/mode
 ```
 
-以上是支持手动切换控制器角色的配置说明，如果需要支持自动检测 otg 的功能需要配置额外的检测芯片驱动，参考内核文档extcon、typec、usb-connector相关内容。
+The above is a configuration guide for manually switching the controller role. If automatic OTG detection is required, additional detection chip drivers need to be configured. Refer to the kernel documentation on extcon, typec, and usb-connector for more details.
 
-如果host需要适用GPIO控制vbus开关，可以使用spacemit_onboard_hub驱动配置。
+If the Host needs to control the VBUS switch using GPIO, the `spacemit_onboard_hub` driver can be configured.
 
-#### USB休眠唤醒
-K1 USB支持两种系统休眠策略，一种是reset-resume策略，保持USB最低功耗，一种是no-reset策略。
-USB3.0 DRD控制器需要在usbdrd3节点配置reset-on-resume属性使能reset-resume。
+For USB3.0 device use cases, it is recommended that the role-switch reporting source (such as the Type-C driver) complies with reporting the `USB_ROLE_NONE` state when a device disconnect is detected (usually when VBUS is disconnected, or for Type-C, when a detach is detected). Additionally, enable the `monitor-vbus` property in the device tree node for dwc3@c0a00000.
 
-如果需要支持USB Remote Wakeup：  
-需要对usbdrd3节点禁用 reset-on-resume 属性，并且启用 wakeup-source 属性。
-此外系统pmu需要使能usb唤醒的唤醒源，参考电源管理文档相关章节。
+After configuration, the controller will rely on the `USB_ROLE_NONE` state for disconnection detection and perform a software reset to achieve better compatibility. For Type-C reporting, refer to the kernel Type-C documentation.
+
+An example based on GPIO reporting is as follows:
+
+```c
+&usbdrd3 {
+dwc3@c0a00000 {
+        dr_mode = "otg";
+        .... Other parameters are omitted; please refer to the configurations above.
+        monitor-vbus;
+        usb-role-switch;
+        role-switch-default-mode = "peripheral";
+        connector {
+                /* Report vbus connection state from MCU */
+                compatible = "gpio-usb-b-connector", "usb-b-connector";
+                type = "micro";
+                label = "Type-C";
+                vbus-gpios = <&gpio 78 GPIO_ACTIVE_HIGH>;
+        };
+};
+};
+```
+
+##### Operating in High-Speed Only Mode / Working with PCIE0
+
+The USB3.0 DRD controller has two physical ports:
+- The USB2.0 Port is referred to as USB2.
+- The SuperSpeed Port is referred to as USB3.
+
+The SuperSpeed Port PHY is shared with PCIE0. Therefore, when enabling USB3.0 DRD and requiring SuperSpeed 5Gbps support, PCIE0 cannot be used; only the USB2 Port (480Mbps) can be shared with PCIE0.
+
+For a design that requires separating the USB2 hardware network from the USB3/PCIE0 hardware network, the DTS can be modified as follows:
+- Remove the phys and phy-names properties from the usbdrd3 node.
+- Enable the maximum-speed property in the dwc3@c0a00000 node and configure it to high-speed.
+
+This will restrict the USB3.0 DRD controller to only enable its USB2 Port.
+
+The DTS configuration example for this setup is as follows:
+
+```c
+&usbdrd3 {
+        status = "okay";
+        ......(Other configurations are described above)
+        /* Do not init PIPE3 phy for PCIE0 */
+        /delete-property/ phys;
+        /delete-property/ phy-names;
+        dwc3@c0a00000 {
+                maximum-speed = "high-speed";  
+                ......（Other configurations are described above）
+        };
+};
+
+&pcie0_rc {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_pcie0_2>;
+        status = "okay";
+};
+```
+
+
+##### USB Sleep and Wakeup
+
+The K1 USB supports two system sleep strategies:
+- The **reset-resume** strategy, which maintains the lowest power consumption for USB.
+- The **no-reset** strategy.
+
+For the USB3.0 DRD controller, the reset-on-resume property needs to be configured in the `usbdrd3` node to enable the `reset-on-resume` strategy.
+
+If USB Remote Wakeup needs to be supported:
+- The `reset-on-resume` property must be disabled for the `usbdrd3` node.
+- The `wakeup-source` property must be enabled.
+- Additionally, the system PMU (Power Management Unit) must enable the USB wakeup source. For more details, refer to the relevant section below:
+
 ```c
 &usbdrd3 {
         /*reset-on-resume;*/
         wakeup-source;
-        .... 其他参数省略，请参照上面的配置
+        .... Other parameters are omitted, please refer to the above configuration.
 };
 ```
 
-## 其他USB配置介绍
-### 其他USB CONFIG配置
-CONFIG_USB为USB总线协议提供支持，默认情况，此选项为Y
+### Other USB Configuration
+
+#### Other USB CONFIG Configurations
+
+`CONFIG_USB`: Provides support for the USB bus protocol and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])    
 ```
-对于U盘、USB网卡、USB打印机等配置需要打开，常用的选型默认Y，此处不一一列举。
 
-CONFIG_USB_ROLE_SWITCH为基于role-switch的模式切换提供支持（如Type-C接口OTG可能使用）:
+This configuration needs to be enabled for USB drives, USB network adapters, USB printers, etc. Commonly used options are set to `Y` by default and are not listed one by one here.
+
+
+`CONFIG_USB_ROLE_SWITCH`: Provides support for mode switching based on role-switch (e.g., Type-C OTG interfaces may use this):
+
 ```
 Device Drivers
        -> USB support (USB_SUPPORT [=y])
            -> USB Role Switch Support (USB_ROLE_SWITCH [=y]) 
 ```
-CONFIG_USB_GADGET为USB Device模式提供支持，默认，此选项为Y
+
+`CONFIG_USB_GADGET`: Provides support for USB Device mode and defaults to `Y`.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
            -> USB Gadget Support (USB_GADGET [=y])
 ```
-CONFIG_USB_GADGET下可选支持Configfs配置的function，如RNDIS，此处根据实际需求配置，默认常用的已打开。
+
+Under `CONFIG_USB_GADGET`, optional support for Configfs-configured functions such as RNDIS can be enabled. These are configured based on actual needs, and commonly used options are enabled by default.
+
 ```
 Device Drivers
          -> USB support (USB_SUPPORT [=y])
@@ -571,24 +736,31 @@ Device Drivers
                -> USB Webcam function (USB_CONFIGFS_F_UVC [=y])
                -> ....
 ```
-CONFIG_SPACEMIT_ONBOARD_USB_HUB为板载USB外设供电配置的帮助驱动提供支持。
+
+`CONFIG_SPACEMIT_ONBOARD_USB_HUB`: Provides support for the helper driver for on-board USB peripheral power configuration.
+
 ```
 Device Drivers 
         -> USB support (USB_SUPPORT [=y])
           -> Spacemit onboard USB hub support (SPACEMIT_ONBOARD_USB_HUB [=y])
 ```
-### 其他USB DTS配置
-目前支持通过spacemit_onboard_hub驱动配置开机自动配置部分USB相关上电逻辑，主要用于板载VBUS开关、需要上电的hub使用。
-驱动的compatible为"spacemit,usb3-hub"，支持配置两组GPIO:
-- hub-gpios：用于hub上电。
-- vbus-gpios：用于对外vbus供电。
-支持属性：
-- hub_inter_delay_ms: int, hub-gpios中的gpio之间的延迟。
-- vbus_inter_delay_ms: int, vbus-gpios中gpio之间的延迟。
-- vbus_delay_ms: int, 配置hub上电后多久才能打开vbus。
-- suspend_power_on: bool, 系统休眠时是否保留电源。需要支持USB Remote Wakeup（如键盘鼠标唤醒），此项必须配置。
-  
-DTS配置示例：
+
+#### Other USB DTS Configurations
+
+Currently, the `spacemit_onboard_hub` driver supports automatic power-up logic for USB-related components at boot, mainly used for on-board VBUS switches and hubs that require power-up.
+The driver's compatible string is `spacemit,usb3-hub`, and it supports configuring two sets of GPIOs:
+
+- hub-gpios: For powering up the hub.
+- vbus-gpios: For powering the external VBUS.
+
+Supported properties:
+- `hub_inter_delay_ms`: int, delay between GPIOs in hub-gpios.
+- `vbus_inter_delay_ms`: int, delay between GPIOs in vbus-gpios.
+- `vbus_delay_ms`: int, delay after powering up the hub before enabling VBUS.
+- `suspend_power_on`: bool, whether to keep power on during system suspend. This must be configured if USB Remote Wakeup (e.g., keyboard/mouse wakeup) is supported.
+
+DTS configuration example:
+
 ```
 usb2hub: usb2hub {
         compatible = "spacemit,usb3-hub";
@@ -597,51 +769,93 @@ usb2hub: usb2hub {
         status = "okay";
 };
 ```
-## USB休眠唤醒配置介绍
 
-1. 休眠需要低功耗的场景，建议休眠时关闭USB对外5VVBUS供电，对于USB供电支持GPIO控制的方案，可以参考spacemit_onboard_hub驱动的配置说明。  
-2. 对于以下场景，建议休眠时保留USB对外5VVBUS供电，对于支持GPIO控制VBUS的方案，可以参
-考6.4。
-   - 需要打开摄像头视频流进入休眠，唤醒后恢复上层应用视频流的应用场景。部分摄像头如果休
-眠断电不支持恢复。
-   - 对于上电后初始化较久的设备（从上电到枚举大于3s），需要休眠唤醒过程不出现设备断开重
-连接的行为，建议休眠时不要关闭电源供电。    
-   - 对于适应设备兼容性及需要使用USB对外提供供电的其他场景。
-3. 关于如何启用系统对USB RemoteWakeup支持，参见电源管理的standby小节。
+### USB Sleep and Wakeup Configuration
 
-# 接口描述
-## 测试介绍
-USB可以通过第三方工具完成性能和功能测试，eg：fio用于USB存储测试，目前bianbu-linux上已集成fio工具。
-鼠标键盘功能可以通过查看input子系统，网卡功能可以使用iperf3等。
-## API介绍
-### Host API介绍
-USB host设备通常会接入系统其他子系统，如U盘存储设备接入存储子系统、USB HID接入INPUT子系统等，请参阅相关的Linux内核API介绍。
-### Device API介绍
-USB Device支持通过Configfs配置，请参考Linux内核文档usb/gadget_configfs。
+#### Power Supply Design
+ 
+For low-power scenarios during sleep, it is recommended to disable the 5V VBUS power supply for USB when the system is in sleep mode. For schemes that support USB power supply control via GPIO, refer to the configuration instructions for the `spacemit_onboard_hub` driver in the other USB DTS configurations.
 
-此外SpacemiT提供了[bianbu-linux/usb-gadget工具](https://gitee.com/bianbu-linux/usb-gadget)，其中有使用Configfs配置USB Device的脚本可供使用和参考，请参阅对应页面的帮助文档。
-## Debug介绍
-### 通用USB Host Debug介绍
+For the following scenarios, the 5V VBUS power supply for USB (or on-board USB peripherals) should be retained during sleep:
+- Supporting USB Remote Wakeup, such as waking up the system using a USB keyboard or mouse.
+- Applications that require keeping the camera video stream active during sleep and resuming the upper-layer application video stream upon waking. Some cameras do not support recovery if power is cut during sleep.
+- Devices that take a long time to initialize after power-on (more than 2 seconds from power-on to responding to enumeration, such as some 4G modules) should not be disconnected and reconnected during sleep and wake cycles. It is recommended not to cut power during sleep.
+- Other scenarios where device compatibility or the need to provide power via USB requires keeping the power supply active.
+
+For the following scenarios, the 1.8V power supply (AVDD18_USB, AVDD18_PCIE) to the SOC's USB module should be maintained during sleep:
+- Supporting USB Remote Wakeup, such as waking up the system using a USB keyboard or mouse.
+- When `reset-on-resume`/`spacemit,reset-on-resume` is not enabled (see individual controller sections).
+
+#### CONFIG Configuration
+`CONFIG_PM_SLEEP` needs to be enabled.
+
+#### DTS Configuration
+This section introduces how to enable the system's USB wakeup source. For DTS configurations of individual controllers, refer to the relevant sections for each controller.
+If USB Remote Wakeup is required, such as waking the system from sleep using a USB keyboard or mouse, the `pmu_wakeup5` boolean property needs to be configured for the `soc->pmu->power` node in the device tree.
+
+DTS example:
+
+```cpp
+&pmu {
+	power: power-controller {
+		pmu_wakeup5;
+	};
+};
+```
+
+## Interface
+
+### API
+
+#### Host API
+
+Devices connected to the USB host typically connect to other subsystems within the system. For example, USB storage devices connect to the storage subsystem, and USB HID devices connect to the INPUT subsystem. Please refer to the relevant Linux kernel API documentation for more information.
+
+If you need to develop a custom protocol USB peripheral driver, you can refer to the Linux kernel `driver-api/usb/writing_usb_driver` for kernel-mode driver development or refer to the libusb documentation for user-mode driver development.
+
+#### Device API
+
+USB Device supports configuration via Configfs. Please refer to the Linux kernel documentation `usb/gadget_configfs`. Some functions require the use of application layer service programs.
+
+SpacemiT also provides the [bianbu-linux/usb-gadget tool](https://gitee.com/bianbu-linux/usb-gadget), which includes scripts for configuring USB Device using Configfs. You can use and refer to these scripts. Please check the help documentation on the corresponding page.
+
+If you need to develop a custom protocol USB Device mode driver, you can develop a user-mode driver based on FunctionFS. You can refer to the Linux kernel documentation `usb/functionfs` and the example in the Linux kernel source code directory `tools/usb/ffs-aio-example`.
+
+
+## Debugging
+
+### General USB Host Debugging
+
 #### sysfs
-查看USB设备信息
+
+View USB device information
+
 ```
 ls /sys/bus/usb/devices/
 1-0:1.0  1-1.1:1.0  1-1.3      1-1.4:1.0  2-1.1      2-1.1:1.2  2-1.5:1.0  usb1
 ...
 ```
-sysfs 下的 usb 路径命名如下：
+
+The USB path naming in sysfs is as follows:
+
 ```
 <bus>-<port[.port[.port]]>:<config>.<interface>
 ```
-其中对于Device层级的sysfs目录，可以查询到对应设备的一些信息，选取常用介绍如下：
+
+For the sysfs directory of the Device hierarchy, you can query some information about the corresponding device. Commonly used information includes:
+
 ```
-idProduct, idVendor: USB设备的PID和VID。
-product: 产品名称字符串。
-speed: 如480为USB2.0 high-speed, 5000为USB3.0 SuperSpeed。
+idProduct, idVendor: The PID and VID of the USB device.
+product: The product name string.
+speed: For example, 480 for USB2.0 high-speed, 5000 for USB3.0 SuperSpeed
 ```
-更多内容可参考Linux内核 ABI/stable/sysfs-bus-usb, ABI/testing/sysfs-bus-usb等文档。
+
+For more details, you can refer to the Linux kernel documentation `ABI/stable/sysfs-bus-usb`, `ABI/testing/sysfs-bus-usb`, etc.
+
 #### debugfs
-查询USB的设备信息
+
+Query USB device information.
+
 ```
 cat /sys/kernel/debug/usb/devices
 
@@ -658,18 +872,22 @@ E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
 ......
 ```
 
-### USB2.0 OTG Debug介绍
-Device模式下的Debug信息：暂不支持。
+### USB2.0 OTG Debugging
 
-Host模式下的Debug信息：
+Debug information in Device mode: Not currently supported.
+
+Debug information in Host mode:：
+
 ```
 # cd /sys/kernel/debug/usb/ehci/mv-ehci/
-bandwidth: 可以查看控制器当前分配的带宽。
-periodic: 可以查看当前周期性传输的Debug信息。
-register: dump ehci控制器寄存器。
+bandwidth: View the currently allocated bandwidth of the controller.
+periodic: View debug information for current periodic transfers.
+register: Dump the EHCI controller registers.
 ```
-OTG的Debug信息：
-如果DTS中配置了相关属性，可以在以下节点查看到 USB2.0 OTG Port的当前角色信息，支持手动切换角色。
+
+Debug information for OTG:
+If the relevant properties are configured in the DTS, you can view the current role information of the USB2.0 OTG Port at the following node, and you can manually switch roles
+
 ```
 cat /sys/class/usb_role/mv-otg-role-switch/role
 device
@@ -679,46 +897,87 @@ cat /sys/class/usb_role/mv-otg-role-switch/role
 host
 ```
 
-### USB2.0 HOST Debug介绍
-Host模式下的Debug信息：
+### USB2.0 HOST Debugging
+
+Debug information in Host mode:
+
 ```
 # cd /sys/kernel/debug/usb/ehci/mv-ehci1/
-bandwidth: 可以查看控制器当前分配的带宽。
-periodic: 可以查看当前周期性传输的Debug信息。
-register: dump ehci控制器寄存器。
+bandwidth: View the currently allocated bandwidth of the controller.
+periodic: View debug information for current periodic transfers.
+register: Dump the EHCI controller registers.
 ```
-### USB3.0 DRD Debug介绍
-Device模式下的Debug信息：
+
+### USB3.0 DRD Debugging
+
+Debug information in Device mode:
+
 ```
 # cd /sys/kernel/debug/usb/c0a00000.dwc3
-link_state: 查看Device模式下时的链路状态。
+link_state: View the link state in Device mode.
 ```
-Host模式下的Debug信息：
+
+Debug information in Host mode:
+
 ```
 # cd /sys/kernel/debug/usb/xhci/xhci-hcd.0.auto
-# 查看USB3.0 USB2.0 Port端口信息
+# View USB3.0 USB2.0 Port information
 cat ports/port01/portsc
 Powered Connected Enabled Link:U0 PortSpeed:3 Change: Wake:
-# 查看USB3.0的SS Port信息
+# View USB3.0 SS Port information
 cat ports/port02/portsc
-Powered Connected Enabled Link:U3 PortSpeed:4 Change: Wake: WDE WOE
+Powered Connected Enabled Link:U3 PortSpeed:4 Change: Wake: WDE WO
 ```
-DRD的Debug信息：
+
+Debug information for DRD:
+
 ```
 cat /sys/kernel/debug/usb/c0a00000.dwc3/mode
 device
-# 手动切换数据角色(需要DTS配置dr_mode=otg)
+# Manually switch data roles (requires DTS configuration dr_mode=otg)
 echo host > /sys/kernel/debug/usb/c0a00000.dwc3/mode
 cat /sys/kernel/debug/usb/c0a00000.dwc3/mode
 host
 ```
-### 其他 Debug 介绍
-目前支持通过spacemit_onboard_hub驱动配置开机自动配置部分USB相关上电逻辑，也提供了部分debug支持：
-路径在usb的debugfs目录下，名称为spacemit_onboard_hub的dts路径名称如usb2hub。
+
+### Other Debugging
+
+Currently, the `spacemit_onboard_hub` driver supports automatic power-up logic for some USB-related components at boot and also provides some debug support:
+The path is under the USB debugfs directory, named after the DTS path name of `spacemit_onboard_hub`, such as `usb2hub`.
+
 ```
 # cd /sys/kernel/debug/usb/usb2hub/
-hub_on: R/W，hub-gpios的开关情况。可写入 0/1 控制。
-vbus_on: R/W, vbus-gpios的开关情况。可写入 0/1 控制。
-suspend_power_on: R/W, 控制系统休眠时是否关闭电源，由DTS配置默认值。
+hub_on: The power status of hub-gpios. Can write 0/1 to control.
+vbus_on: The power status of vbus-gpios. Can write 0/1 to control.
+suspend_power_on: Controls whether to turn off power during system suspend, configured by DTS with a default value.
 ```
-# FAQ
+
+## Testing
+
+USB device recognition can be checked using the application layer tool `lsusb`, and you can also use `lsub -tv` to view the tree-shaped detailed information.
+```
+$ lsusb
+Bus 003 Device 002: ID 2109:0817 VIA Labs, Inc. USB3.0 Hub
+Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+.....
+```
+
+USB device descriptors can be viewed using the application layer tool `lsusb -v`.
+```
+$ lsusb -v -s 001:001
+
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            9 Hub
+.....
+```
+
+For USB peripherals, performance and functionality tests can be completed using third-party tools, for example:
+- Read/write tests for USB storage can be performed using the FIO tool, which is already integrated on Bianbu Linux.
+- Mouse and keyboard functionality can be verified by examining the input subsystem (tools like evtest, getevent can be used).
+- Network card functionality can be tested using commands like ping and tools like iperf3.
+
+## FAQ

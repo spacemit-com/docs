@@ -1,77 +1,111 @@
-介绍SDHC的功能和使用方法。
-# 模块介绍
-SDHC是多媒体卡（MMC）/安全数字（SD）/安全数字输入输出（SDIO）模块的控制器。
-## 功能介绍
+# SDHC
+
+SDHC Functionality and Usage Guide.
+
+## Overview
+
+SDHC (Secure Digital High Capacity) is the controller for multimedia cards (MMC), secure digital cards (SD), and secure digital input/output (SDIO) modules。
+
+### Functional Description
+
 ![](static/MMC.png)
 
-MMC框架图可以分为以下几个层次：  
-MMC Host：这是MMC控制器驱动层，负责初始化MMC控制器以及底层的数据收发操作，直接控制底层寄存器。  
-MMC Core：这是核心层，负责抽象出虚拟的card设备，并提供接口供上层使用。  
-MMC Block：这是块设备层，负责实现块设备驱动程序，对接内核其他框架（如块设备、TTY、wifi等）。  
-这些层次结构共同构成了Linux系统中MMC子系统的完整框架，确保了MMC设备在系统中的正常运行和数据传输。
-## 源码结构介绍
-控制器驱动代码在drivers/mmc/host目录下：
+The MMC subsystem comprises three layers:  
+- **MMC Host**: This is the MMC controller driver layer, responsible for initializing the MMC controller and handling low-level data transmission and reception operations, directly controlling the underlying registers.
+- **MMC Core**: This is the core layer, responsible for abstracting virtual card devices and providing interfaces for upper layers to use.
+- **MMC Block**: This is the block device layer, responsible for implementing the block device driver program and interfacing with other kernel frameworks (such as block devices, TTY, wifi, etc.).
+
+These layers together form the complete framework of the MMC subsystem in the Linux system, ensuring the normal operation and data transmission of MMC devices in the system.
+
+### Source Code Structure
+
+The controller driver code is located in the `drivers/mmc/host`  directory:
+
 ```
 drivers/mmc/host
-|-- sdhci.c		        #sdhci标准代码
-|-- sdhci-pltfm.c               #sdhci平台层
-|-- sdhci-of-k1x.c		#k1 sdhci驱动
+|-- sdhci.c         # Standard sdhci code
+|-- sdhci-pltfm.c   # sdhci platform laye
+|-- sdhci-of-k1x.c  # K1 sdhci driver
 ```
-# 关键特性
-## 特性
-| 特性 | 特性说明 |
+
+## Key Features
+
+### Features
+
+| Feature | Description |
 | :-----| :----|
-| 支持eMMC5.1 | 支持eMMC5.1协议，包括HS400,HS200 |
-| 支持sd3.0 | 支持sd3.0协议的卡，兼容sd2.0协议 |
-| 支持DMA | 支持DMA数据传输 |
-## 性能参数
-| eMMC型号 | 顺序读(MB/s) | 顺序写(MB/s) | 随机读(MB/s) | 随机写(MB/s) |
+| Support for eMMC5.1 | Compliant with eMMC 5.1 spec (HS400/HS200) |
+| Support for SD3.0 | Supports SD3.0 protocol cards, compatible with SD2.0 protocol |
+| Support for DMA | Supports DMA data transfer |
+
+### Performance Parameters
+
+| eeMMC Model | Sequential Read (MB/s) | Sequential Write (MB/s) | Random Read (MB/s) | Random Write (MB/s) |
 | :-----| :----| :----: | :----: |:----: |
 | KLMAG1JETD-B041 | 295 | 53.3 | 65.4 | 45.2 |
-| FEMDME008G-A8A39 | 304 | 107 | 32.3 | 44 |
+| EMDME008G-A8A39 | 304 | 107 | 32.3 | 44 |
 
-测试方法
+Testing Methods
+
 ```
 fio -name=randread -direct=1 -iodepth=64 -rw=randread -ioengine=libaio -bs=4k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
 fio -name=randwrite -direct=1 -iodepth=64 -rw=randwrite -ioengine=libaio -bs=4k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
 fio -name=read -direct=1 -iodepth=64 -rw=read -ioengine=libaio -bs=512k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
 fio -name=write -direct=1 -iodepth=64 -rw=write -ioengine=libaio -bs=512k -size=1G -numjobs=1 -runtime=1000 -group_reporting -filename=/1
 ```
-***默认配置HS400 200M***
-# 配置介绍
-主要包括驱动使能配置和dts配置
-## CONFIG配置
-CONFIG_MMC 为MMC总线协议提供支持，默认情况，此选项为Y
+
+***Default Configuration: HS400 200M***
+
+## Configuration
+
+It mainly includes driver enablement configuration and dts configuration.
+
+### CONFIG Configuration
+
+CONFIG_MMC: Provides support for the MMC bus protocol, with a default value of `Y`
+
 ```
 Device Drivers
         MMC/SD/SDIO card support (MMC [=y])     
 ```
-CONFIG_MMC_BLOCK为安装文件系统的MMC块设备驱动提供支持，默认情况，此选项为Y
+
+CONFIG_MMC_BLOCK: Provides support for the MMC block device driver, which is necessary for mounting filesystems on MMC devices, with a default value of `Y`
+
 ```
 Device Drivers
-	MMC/SD/SDIO card support (MMC [=y])
-    	HW reset support for eMMC (PWRSEQ_EMMC [=y])
+ MMC/SD/SDIO card support (MMC [=y])
+     HW reset support for eMMC (PWRSEQ_EMMC [=y])
         Simple HW reset support for MMC (PWRSEQ_SIMPLE [=y])
-    	MMC block device driver (MMC_BLOCK [=y])
+     MMC block device driver (MMC_BLOCK [=y])
 ```
-CONFIG_MMC_SDHCI 为MMC控制器驱动提供支持，默认情况下，此选型为Y
+
+CONFIG_MMC_SDHCI: Provides support for the MMC controller driver. By default, this option is set to `Y`
+
 ```
 Device Drivers
-	MMC/SD/SDIO card support (MMC [=y])
-    	Secure Digital Host Controller Interface support (MMC_SDHCI [=y])
-        	SDHCI platform and OF driver helper (MMC_SDHCI_PLTFM [=y])
-    			SDHCI OF support for the Spacemit K1X SDHCI controllers (MMC_SDHCI_OF_K1X [=y])
+ MMC/SD/SDIO card support (MMC [=y])
+     Secure Digital Host Controller Interface support (MMC_SDHCI [=y])
+         SDHCI platform and OF driver helper (MMC_SDHCI_PLTFM [=y])
+       SDHCI OF support for the Spacemit K1X SDHCI controllers (MMC_SDHCI_OF_K1X [=y])
 ```
-## dts配置
-### pinctrl
 
-sdhc 一共有三个 slot，slot1 支持 sd/sdio(1/4 bit)，slot2 支持 sdio/emmc(1/4 bit)，slot3 只支持 emmc(1/4/8 bit)。
+### DTS Configuration
 
-方案上一般 slot1 用于 sd，slot2 用于 sdio，slot3 用于 emmc。
+#### pinctrl
 
-sd 和 sdio 都需要配置卡的信号线对应的 pinctl 为 mode0 模式，分别对应 pinctrl_mmc1 和 pinctrl_mmc2。
+SDHC Slots Configuration:
+- slot1 supports SD/SDIO (1/4 bit)
+- slot2 supports SDIO/eMMC (1/4 bit)
+- slot3 supports only eMMC (1/4/8 bit)
 
-mmc1 的 pinctl 还有一个 fast 模式，在时钟高于 100M 时需要切换到 pinctrl_mmc1_fast 模式。
+Typical Configuration for SDHC Slots. In general, the slots are used as follows:
+- slot1 is used for SD cards.
+- slot2 is used for SDIO.
+- slot3 is used for eMMC.
+
+SD/SDIO signal lines must be configured for mode0 (pinctrl_mmc1/pinctrl_mmc2).
+
+mmc1 supports a fast mode (pinctrl_mmc1_fast) for clocks >100 MHz.
 
 ```c
     pinctrl_mmc1: mmc1_grp {
@@ -97,9 +131,9 @@ mmc1 的 pinctl 还有一个 fast 模式，在时钟高于 100M 时需要切换�
     };
 ```
 
-### gpio
+#### GPIO
 
-sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检测的 gpio。
+SD detection uses GPIO and the GPIO for card detection needs to be configured according to the actual schematic.
 
 ```c
 &sdhci0 {
@@ -108,7 +142,7 @@ sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检�
 };
 ```
 
-比如方案使用 gpio80 来做卡的检测，还需要配置 gpio80 的 pintcl 功能。
+For example, if the solution uses gpio80 for card detection, the pintcl function of gpio80 also needs to be configured.
 
 ```c
 &pinctrl {
@@ -124,11 +158,11 @@ sd 的检测是通过 gpio 完成的，需要按实际原理图来配置卡检�
 };
 ```
 
-### 电源配置
+#### Power Supply Configuration
 
-sd 和 sdio 需要配置两个电源，分别是 vmmc-supply 和 vqmmc-supply，分别对应卡的功能和 io 供电，vqmmc-supply 会根据卡的运行模式动态切换电源，硬件设计上需要确保能支持 3.3v 和 1.8v。
+SD and SDIO require two power supplies to be configured, namely **vmmc-supply** and **vqmmc-supply**, which correspond to the **card's functionality** and **IO power supply**, respectively. The **vqmmc-supply** dynamically switches the power supply based on the card's operating mode, and the hardware design must ensure support for both 3.3V and 1.8V.
 
-emmc 设计上会保证供电，不需要配置电源。
+For eMMC, power supply is guaranteed by the design and does not require power configuration.
 
 ```c
 &sdhci0 {
@@ -137,13 +171,13 @@ emmc 设计上会保证供电，不需要配置电源。
 };
 ```
 
-### tuning 配置
+#### Tuning Configuration
 
-sd 跑高速模式下需要进行 tuning，不同的硬件版型都需要调整 tx 和 rx 的相关参数。
+Signal tuning is mandatory for SD high-speed modes to optimize the performance. Different hardware versions need to adjust the TX and RX parameters accordingly.
 
-### dts 配置示例
+#### dts Configuration Example
 
-sd 的完整方案配置如下：
+Full SD card DTS configuration:
 
 ```c
 &sdhci0 {
@@ -183,7 +217,7 @@ sd 的完整方案配置如下：
 };
 ```
 
-emmc 的完整方案配置如下：
+The complete configuration for eMMC in the solution is as follows:
 
 ```c
 /* eMMC */
@@ -205,27 +239,33 @@ emmc 的完整方案配置如下：
         status = "okay";
 };
 ```
-# 接口描述
-## 测试介绍
-MMC/SD等存储可以通过第三方工具完成性能和功能测试，eg：fio，bonnie++，目前bianbu-linux上已集成fio工具。可以通过fio工具进行读写性能，老化测试。
-## API介绍
-Linux操作系统包括一个实施MMC总线协议的MMC总线驱动、MMC块驱动处理文件系统读/写调用，并使用MMC主控制器接口驱动向uSDHC发送命令。
-k1 mmc控制器驱动实现了init，exit，request，resume，suspend和set_ios的接口，主要有：
-- init函数sdhci_pltfm_init()初始化平台硬件并注册sdhci_k1x_pdata结构
-- exit函数spacemit_sdhci_remove()取消平台硬件初始化，并释放分配的存储器
 
-## Debug介绍
-### sysfs
+## Interface
 
+### API
+
+Linux implements an MMC bus driver that implements the MMC bus protocol, an MMC block driver that handles file system read/write calls, and uses the MMC host controller interface driver to send commands to uSDHC.
+The K1 MMC controller driver implements the following interfaces: init, exit, request, resume, suspend, and set_ios. The main ones are:
+
+- The init function `sdhci_pltfm_init()` initializes the platform hardware and registers the sdhci_k1x_pdata structure.
+- The exit function `spacemit_sdhci_remove()` deinitializes the platform hardware and releases allocated memory.
+
+### Debugging
+
+#### sysfs
+
+`sd_card_pmux`
+This node is used to switch the SD card pin to jtag function. 
+- `0` indicates SD card function
+- `1` indicates jtag function
+
+`tx_delaycode`
+The value of tx_delaycode is specified in the solution dts by default. It can be dynamically modified through this node under sysfs for verification during the debugging phase.
+
+#### debugfs
+
+Commonly used to check MMC working status, including frequency, bus width, and mode.
 ```
-sd_card_pmux
-该节点用于切换sd卡的pin为jtag功能，0表示sd卡功能，1表示jtag功能。
-tx_delaycode
-tx_delaycode的值默认是在方案dts中指定，可以通过sysfs下的该节点进行动态修改，方便调试阶段的验证。
-```
-### debugfs
-```
-常用于查询mmc的工作状态，包括频率，位宽，模式等信息。
 cat /sys/kernel/debug/mmc0/ios
 clock:          204800000 Hz
 actual clock:   204800000 Hz
@@ -238,4 +278,9 @@ timing spec:    6 (sd uhs SDR104)
 signal voltage: 1 (1.80 V)
 driver type:    0 (driver type B)
 ```
-# FAQ
+
+## Testing
+
+MMC/SD storage devices can be tested for performance and functionality using third-party tools such as FIO and bonnie++. Currently, bianbu-linux includes the FIO tool for evaluating read/write performance and conducting stress tests.
+
+## FAQ

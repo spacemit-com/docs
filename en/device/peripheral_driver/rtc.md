@@ -1,16 +1,20 @@
-介绍rtc的功能和使用方法。
+# RTC
 
-# 模块介绍
-RTC(real-time-clock)简称实时时钟，主要用来计时，产生闹钟等；并维护系统时间；RTC一般有一个备用电池，所以即使系统关机掉电，rtc也能在备份电池的供电下继续正常工作。
+RTC (Real-Time Clock) Functionality and Usage Guide.
 
-## 功能介绍
+## Overview
+
+RTC (Real-Time Clock) is primarily used for timekeeping, generating alarms, and system time maintenance. Typically, an RTC is equipped with a backup battery, which allows it to continue functioning normally even when the system is powered off, ensuring that the time is accurately maintained.
+
+### Functional Description
+
 ![](static/rtc.png)  
 
-1. dev/sysfs/proc 即接口层，负责向用户空间提供操作的节点及相关接口
-2. rtc-core层为rtc驱动提供一套API，完成设备和驱动的注册等等
-3. rtc驱动层，具体负责rtc驱动的实现，如设置时间，设置闹钟等
+1. `dev/sysfs/proc` Layer: Interface layer responsible for providing operation nodes and related interfaces to user space.
+2. `rtc-core` Layer: Provides a set of APIs for RTC drivers, completing device and driver registration, among other tasks.
+3. `RTC Driver` Layer: Implements the core functions of the RTC, such as setting the time and setting alarms.
 
-## 源码结构介绍
+### Source Code Structure
 
 ```
 drivers/rtc/
@@ -25,35 +29,37 @@ drivers/rtc/
 ├── rtc-spt-pmic.c
 ├── sysfs.c
 ```
-# 关键特性
 
-## 特性
-| 特性 |
-| :-----|
-| 支持日历、闹钟、秒计数 |
+## Key Features
 
-# 配置介绍
-主要包括驱动使能配置和dts配置
+### Features
 
-## CONFIG配置
+- Supports calendar, alarm, and second-level timekeeping
+
+## Configuration
+
+The primary configurations are **driver enablement** and **DTS (Device Tree Source) configuration**.
+
+### CONFIG Configuration
 
 ```
-	CONFIG_RTC_DRV_SPT_PMIC:
+ CONFIG_RTC_DRV_SPT_PMIC:
 
-	If you say yes here you will get support for the
-	RTC of Spacemit spm8xxx PMIC.
+ If you say yes here you will get support for the
+ RTC of Spacemit spm8xxx PMIC.
 
-	Symbol: RTC_DRV_SPT_PMIC [=y]
-	Type  : tristate
-	Defined at drivers/rtc/Kconfig:721
-	Prompt: Spacemit spm8xxx RTC
-	Depends on: RTC_CLASS [=y] && I2C [=y] && MFD_SPACEMIT_PMIC [=y]
-	Location:
-		-> Device Drivers
-			-> Real Time Clock (RTC_CLASS [=y])
-				-> Spacemit spm8xxx RTC (RTC_DRV_SPT_PMIC [=y])      
+ Symbol: RTC_DRV_SPT_PMIC [=y]
+ Type  : tristate
+ Defined at drivers/rtc/Kconfig:721
+ Prompt: Spacemit spm8xxx RTC
+ Depends on: RTC_CLASS [=y] && I2C [=y] && MFD_SPACEMIT_PMIC [=y]
+ Location:
+  -> Device Drivers
+   -> Real Time Clock (RTC_CLASS [=y])
+    -> Spacemit spm8xxx RTC (RTC_DRV_SPT_PMIC [=y])      
 ```
-## dts配置
+
+### DTS Configuration
 
 ```
 &i2c8 {
@@ -67,7 +73,7 @@ drivers/rtc/
                 interrupt-parent = <&intc>;
                 interrupts = <64>;
                 status = "okay";
-				....
+    ....
 
                 ext_rtc: rtc {
                         compatible = "pmic,rtc,spm8821";
@@ -76,34 +82,31 @@ drivers/rtc/
 };
 ```
 
-# 接口描述
-RTC驱动注册生成的字符设备节点/dev/rtcN，应用层使用时只需遵循Linux系统中标准的RTC编程方法即可  
+## Interface
 
-## 测试介绍
+After the RTC driver is registered, it will create a character device node `/dev/rtcN`. The application layer can access it simply by following the standard RTC programming method in the Linux system.
 
-```
-具体可参考：
-Documentation/ABI/testing/rtc-cdev
+### API
 
-下面用伪代码的方式阐述测试方法：
-
-1. fd = open("/dev/rtcN", xxx)
-2. ioctl(fd, RTC_SET_TIME, ...) --> 设置rtc时间
-3. ioctl(fd, RTC_RD_TIME, ...)  --> 获得rtc时间
-4. ioctl(fd, RTC_ALM_SET, ...)  --> 设置rtc闹钟
-5. ioctl(fd, RTC_AIE_ON, ...)  --> 使能rtc
-6. ioctl(fd, RTC_ALM_READ, ...)  --> 读取rtc闹钟 
-```
-## API介绍
 ```
 #define devm_rtc_register_device(device) \
         __devm_rtc_register_device(THIS_MODULE, device)
-int __devm_rtc_register_device(struct module *owner, struct rtc_device *rtc)  -- rtc设备注册
+int __devm_rtc_register_device(struct module *owner, struct rtc_device *rtc)  -- RTC device registration
 
 ```
 
-## Debug介绍
-### sysfs
+## Testing
 
-### debugfs
-# FAQ
+For details, see the kernel documentation: `Documentation/ABI/testing/rtc-cdev`
+
+Test procedure (pseudocode)：
+```
+1. fd = open("/dev/rtcN", xxx)  // Open the RTC device
+2. ioctl(fd, RTC_SET_TIME, ...) // Set the RTC time
+3. ioctl(fd, RTC_RD_TIME, ...)  // Read the RTC time
+4. ioctl(fd, RTC_ALM_SET, ...)  // Set the RTC alarm
+5. ioctl(fd, RTC_AIE_ON, ...)   // Enable the RTC alarm interrupt
+6. ioctl(fd, RTC_ALM_READ, ...) // Read the RTC alarm 
+```
+
+## FAQ

@@ -4,6 +4,25 @@ sidebar_position: 3
 
 # Bianbu Linux 2.2更新说明
 
+## v2.2.6更新说明
+
+发布日期：2025-7-17
+
+对比 2.2.4，2.2.6 修复了若干问题，并提供了全新的内核分支 k1-bl-v2.2.y（基于 6.6.63），包含了每一笔修改。
+
+### 主要更新
+
+- 支持 小内存方案
+- 支持 spi nand 启动方案
+- 支持 MUSE-Pi-Pro 板级 led 模式为心跳模式
+- 支持 remoteproc VIRTIO_F_ACCESS_PLATFORM 功能
+- 修复 display 休眠唤醒老化卡死问题
+- 修复 emac 最大执行抖动延时
+- 修复 i2s 系统时钟分频器参数以降低 sysclk 抖动
+- 修复 camera 多个传感器无法同时通电的问题
+- 修复 husb239 部分适配器无法协商 12v 的问题
+- 修复 rtl8852bs rg_interface 锁未初始化的警告、休眠唤醒过程中 oops 问题
+
 ## v2.2.4更新说明
 
 发布日期：2025-6-25

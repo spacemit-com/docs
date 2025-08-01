@@ -4,20 +4,15 @@ sidebar_position: 3
 
 # ISP PQ Tool User Guide
 
-## Revision History
+## Overview
 
-| Revision | Date       | Author    | Description                                                                                             |
-|----------|------------|-----------|---------------------------------------------------------------------------------------------------------|
-| 1.0      | 2024/07/09 | Zhirongli | Initial drift                                                                                           |
-| 1.1      | 2024/10/08 | Zhirongli | 更新部分参数描述;新增AEM运动检测;更新CCM插件功能;更新AWB插件功能;版本匹配AsrlspToolV3.2.0.0 |
+This document mainly introduces SpacemiT image tuning, including 
+- The tuning tool
+- Calibration plugins
+- Image analysis tool (VRF Viewer)
+- Platform debugging support
 
-## 简介
-
-### 概述
-
-本文档主要介绍 SpacemiT 图像调试，包含调试工具（Tuning Tool）、定标插件（Calibration Plugins）、图像分析工具（VRF viewer），平台调试辅助等。
-
-### 缩略语
+## Abbreviations
 
 | Name      | Description                           |
 |-----------|---------------------------------------|
@@ -50,1782 +45,1809 @@ sidebar_position: 3
 | HDR       | High Dynamic Range                    |
 | Qn        | Accuracy, 2n is double                |
 
-## Tuning Tool 概述
+## Tuning Tool Overview
 
-### Tuning Tool 框架
+### Tuning Tool Architecture
 
-![](./static/H9bObTXA6oxcU9xLgCWctorfn2e.png)
+![](./static/ISPtool.png)
 
-Figure - ISP Tool 框架
+### PC-Side Tuning Tool Installation
 
-### PC 端 tuning tool 安装
+The tuning software is a portable compressed package — no installation is required. Simply extract the file named `AsrIspToolVX.X.X.X.rar` to use it.
+The tool can be downloaded from the following link: [https://archive.spacemit.com/tools/isp-tunning/](https://archive.spacemit.com/tools/isp-tunning/)
 
-调试软件是免安装的压缩文件，解压即可使用，文件名 AsrIspToolVX.X.X.X.rar
+After extraction, the following files are included:
 
-解压后包含如下文件：
 
 ![](./static/RJ3wbCncao9oW1xqY3Fc3itinQg.png)
 
-Figure - ISP Tool 文件
+### Debugging Environment Setup
 
-### 调试环境准备
+#### Hardware and Software Requirements
 
-#### 软硬件需求
+- **Hardware Environment**
+  - Desktop or laptop computer
+  - 1GHz or faster processor
+  - 1GB RAM (32-bit) / 2GB RAM (64-bit)
+  - At least 10GB of available hard disk space 
+  - Screen resolution of 1920 × 1080 or higher
+  - USB port
+  - Terminal device integrated with ASR ISP
 
-- **硬件环境**
+- **Software Environment**
 
-  - 台式电脑或笔记本电脑
-  - 1GHz 或更快的处理器
-  - 1GB RAM（32 位） 2GB RAM（64 位）
-  - 至少 10GB 可用硬盘空间
-  - 1920 x 1080 屏幕分辨率或更高
-  - USB 端口
-  - 集成了 ASR ISP 的终端设备
+  - Windows 7 64-bit or later version of the operating system
 
-- **软件环境**
+#### Device Connection
 
-  - Windows 7 64 位或以上版本的操作系统
+AsrIspTool connects to the terminal device via USB and communicates with the device through ADB.
 
-#### 设备连接
+>**Note.** Before connecting, the device must first start the tuning server thread, i.e., start the camera.
 
-AsrIspTool 通过 USB 与终端设备连接,通过 ADB 与设备交互。
+## Basic Operations of the Tuning Tool
 
-【注:连接之前设备需先启动 tuning server 线程,即启动 camera】
+### Main Interface of the Tuning Tool
 
-## Tuning Tool 基本操作
-
-### Tuning Tool 主界面
-
-双击 AsrIspTool.exe ，启动调试工具，主界面如 Figure 3.1-1 所示
+Double-click `AsrIspTool.exe` to launch the tuning tool. The main interface is shown below:
 
 ![](./static/QyG4bB7vRoxN4pxHi8ecF1WKn2d.png)
 
-Figure - ISP Tool 主界面
+- **Menu: Functional Menu Area**
+  - **Open**: Open parameter file.
+  - **Save**: Save parameter file.
+  - **Save As**: Save parameter file under a new name.
+  - **IP Address**: Reserved.
+  - **ADB (SN)**: Connect to the terminal device via ADB; supports manual input of ADB serial number.
+  - **Connect**: Connect to the terminal device.
+  - **View**: Switch between single-window, horizontal split, and vertical split display modes.
+  - **Format**: Toggle between decimal and hexadecimal display.
+  - **Display**: Switch between matrix editing, row editing, and column editing modes.
+  - **Plugins**: Plugins.
+  - **Frequency**: Adjust parameter refresh rate.
+  - **Capture**: Capture VRF data (vrf).
+  - **Register**: ISP register read/write tool.
+  - **I2C**:  I2C read/write tool.
+  - **Push**:  Reserved.
+  - **Transfer**: Reserved.
+  - **VRF**: Image viewer tool.
+  - **DNG**: Reserved.
 
-- **menu:菜单功能区**
+- **Module list & Filter list: Module and filter list**
+- **Parameter list: List of parameter**
+- **Log: Log area**
 
-  - Open:打开参数文件
-  - Save:保存参数文件
-  - SaveAS:参数文件另存为
-  - IP Address:reserved
-  - ADB(SN):ADB 方式连接终端设备,支持输入 ADB serial
-  - Connect:连接终端设备
-  - Vied:单/水平叠加/垂直叠加 窗口显示
-  - Format:十进制/十六进制显示切换
-  - Display:矩阵编辑/行编辑/列编辑模式切换
-  - Plugins:插件
-  - Frequency:参数刷新速度调节
-  - Capture:抓取 VRF 数据（vrf）
-  - Register:ISP 寄存器读写工具
-  - I2C:I2C 读写工具
-  - Push: reserved
-  - Transfer: reserved
-  - VRF:看图工具
-  - DNG:reserved
-- **Module list & Filter list:模块列表**
-- **parameter list:参数列表**
-- **Log:日志区**
+### Basic Online Operations
 
-### Online 基本操作
+#### Connecting to the Terminal Device
 
-#### 连接终端设备
+After launching the tool, select **ADB (SN)** and click **Connect**. Once the connection is successful, the tool will automatically read the parameters of all current modules and periodically refresh the read-only parameters every 500 ms (this interval can be adjusted via the **Frequency** option in the menu).
+If multiple terminal devices are connected to the PC, you can specify the serial number manually.
 
-打开 tool 之后，在选择 ADB(SN)，点击 Connect，连接成功会自动读取当前所有模块的参数，并以 500ms(功能菜单可修改 Frequency)为周期定时刷新只读参数。(多台终端与 PC 相连,可指定 serial)
+To enable periodic refreshing of read-write parameters as well, check the **AutoUpdate** option in the upper-right corner (Note. Parameters cannot be modified while this option is checked).
 
-如果想将可读写参数也定时刷新，将右上角 AutoUpdate 勾选即可（勾选之后参数不可设置）。
-
-如果想单次读取所有参数，点击右上角 Read 按钮。
+To perform a one-time read of all parameters, click the **Read** button in the upper-right corner.
 
 ![](./static/VfaobKikkom8AmxikFAcFpr5nsc.png)
 
-Figure - ISP Tool 连接界面
+**Note**. The ADB connection method is only applicable for projects using the Android system. We primarily use TCP network connections to tune the development board.
 
-注意：ADB 连接方式只适用于使用 Android 系统的项目，我们主要使用 TCP 网络连接开发板进行 tunning。
-
-#### 参数类型说明
+#### Parameter Type Description
 
 ![](./static/P0oCbyHqao9Yfpxl6wScqVpCn3e.png)
 
-Figure - 参数说明
+- **Adjustable Parameters**
+  - Parameters that can be checked, for example, `m_bAutoCalculateAEMWindow`.
+  - Editable parameters, for example, `m_nPreEndingPercentage`.
+  - Editable array parameters, for example, `m_pSubROIPermil`. For two-dimensional arrays, you can switch between matrix, row, and column editing modes.
 
-- **可调参数**
+- **Read-Only (Gray)**
+  - Read-only parameters, for example, `m_nAdjacentLumaSAD`.
 
-  - 可勾选参数，如 m_bAutoCalculateAEMWindow
-  - 可编辑参数，如 m_nPreEndingPercentage
-  - 可编辑数组参数，如 m_pSubROIPermil，若为二维数组，可切换矩阵/行/列编辑模式
-- **只读（灰色）**
+- **Special Notes**
+  - After modifying parameters in plugins or the parameter list, the changed content will be highlighted in red. Hovering the mouse over it will display the original value.
 
-  - 只读，如 m_nAdjacentLumaSAD
-- **特别说明**
+#### Real-Time Parameter Modification
 
-  - 在插件或参数列表中修改参数，会标红显示修改的内容，鼠标覆盖时会显示原值。
+1. Expand the module list for the module you want to debug.
+2. Click the desired module in the module list area.
+3. Adjust the parameter value using the slider or by directly editing the value in the parameter list area. The changes take effect immediately.
 
-#### 实时修改参数
+#### Capturing VRF Images
 
-1. 在模块列表区展开想要调试的模块列表
-2. 在模块列表区点击想要修改的模块
-3. 在参数列表区通过滑动条或者直接修改参数值，参数即时生效。
+1. Click the **Capture** button in the menu area.
+2. Select **RAW** and set the save path.
+3. Click Start Capturing to generate raw images with the `.vrf` file extension.
 
-#### 抓取 VRF 图
-
-1. 在菜单功能区点击 Capture 按钮
-2. 选择 RAW，设置保存路径
-3. 点击 Start Capturing 可生成后缀为 vrf 的原始图像
-
-#### Register 读写
+#### Register Read/Write
 
 ![](./static/AXhhbCplsoM4IYxa3d6cu3p4nMd.png)
 
-Figure - Register 读写
+1. Click the **Register** button in the menu area.
+2. Set the **Address** (register address).
+3. Set the **Value (8bit)** (register value).
+   - **Read**: Read the register.
+   - **Write**: Write to the register.
+4. Set the **Value (32bit)** (register value).
+   - **Read**: Read the register.
+   - **Write**: Write to the register.
 
-- 在菜单功能区点击 Register 按钮
-- 设置 Address（寄存器地址）
-- Value(8bit)（寄存器值）
-
-  - Read 读寄存器
-  - Write 写寄存器
-- Value(32bit)（寄存器值）
-
-  - Read 读寄存器
-  - Write 写寄存器
-
-#### I2C 读写
+#### I2C Read/Write
 
 ![](./static/TMzDbydbgoiWlYxX5XocLzHmnVf.png)
 
-Figure - I2C 读写
+1. Click the **I2C** button in the menu area.
+2. Set the **Device ID** (I2C device number).
+3. Set the **Device Address** (slave device address).
+4. Set the **Address Bytes** (register address byte width).
+5. Set the **Register Address** (register address).
+6. Set the **Value Bytes** (register value byte width).
+7. Set the **Value** (register value).
+   - **Read**: Read the register.
+   - **Batch Read**: Batch read registers by importing a file.
+   - **Write**: Write to the register.
+   - **Batch Write**: Batch write registers by importing a file.
 
-- 在菜单功能区点击 I2C 按钮
-- 设置 Device ID （I2C 设备号）
-- 设置 Device Address （从设备地址）
-- 设置 Address Bytes（寄存器地址位宽）
-- 设置 Register Address（寄存器地址）
-- 设置 Value Bytes（寄存器值位宽）
-- Value（寄存器值）
 
-  - Read 读寄存器 / Batch Read 文件导入批量读寄存器
-  - Write 写寄存器 / Batch Write 文件导入批量写寄存器批量读写寄存器文件格式如下，`{Address, Value }`,  批量读写寄存器点击 Batch Read / Batch Write 导入 reg_batch.txt。读取结果会在红色框中显示对应 log，同时会生成同名_read.txt 用于后续查看。
-    ![](./static/BfTFbluLmoBmPYxTWsvceubLnCh.png)
+**Batch Register Read/Write File Format**  
+The file format should be `{Address, Value}`.
+When performing batch register operations, click **Batch Read** or **Batch Write** to import the `reg_batch.txt` file.
+The results will be displayed in the red log area, and a file with the same name ending in `_read.txt` will be generated for later review.
 
-批量读写寄存器文件格式示例
+
+  ![](./static/BfTFbluLmoBmPYxTWsvceubLnCh.png)
+
+**Example of Batch Register Read/Write File Format**
 
 ![](./static/YTMBbCIXIoLGK7xgYlic7UDon9b.png)
 
-Figure - I2C 批量读
+#### Saving Parameters
 
-#### 保存参数
+1. Click the **Save** button in the menu area.
+2. Choose the path and set a file name.
+3. Click Save to generate the parameter file.
 
-1. 在菜单功能区点击 Save 按钮
-2. 选择路径并设置文件名
-3. 点击保存生成参数文件
+#### Opening a Local Parameter File
 
-#### 打开本地参数文件
+Click the **Open** button in the menu area, or simply drag the parameter file into the corresponding module in the tool. This operation will directly write the parameters to the hardware.
 
-在菜单功能区点击 Open 按钮或者直接拖曳对应参数文件到工具对应模块中,该操作将把参数直接写入硬件;
+### Basic Offline Operations
 
-### Offline 基本操作
+**Open a Local Parameter File**
 
-**打开本地参数文件**
+- Click the **Open** button in the menu area, or drag the parameter file into the tool directly.
 
-1. 在菜单功能区点击 Open 按钮或者直接拖曳参数文件到工具中;
+**Modify Parameters**
 
-**修改参数**
+1. Expand the module list for the module you want to debug.
+2. Click the desired module in the module list area.
+3. Adjust parameter values using the slider or by directly editing the values in the parameter list.
+4. If it is a one-dimensional vector, click the waveform button in the parameter editing interface to enter curve editing mode.
 
-1. 在模块列表区展开想要调试的模块列表;
-2. 在模块列表区点击想要修改的模块;
-3. 在参数列表区通过滑动条或者直接修改参数值;
-4. 如果是一维向量，在参数编辑界面点击波形按钮可进入曲线编辑模式;
+**Calibration Plugins**
 
-**定标插件**
+- Click the **Plugins** drop-down menu in the menu area to select a plugin.
 
-1. 在菜单功能区点击 Plugins 下拉菜单选择插件;
+**Save Parameters**
 
-**保存参数**
+- Click the **Save** button in the menu area, enter a file name, and the parameters will be saved to a local file
 
-1. 在菜单功能区点击 Save 按钮，输入文件名，参数将保存至本地文件;
+## ISP Plugins
 
-## ISP 插件
+This section introduces calibration and tuning for BLC, LSC, AWB, CCM, Curve, Noise, PDC, and PDAF, as well as auxiliary debugging tools like General Information and Raw Preprocessor.
 
-本节介绍 BLC、LSC、AWB、CCM、Curve、Noise、PDC、PDAF 定标调试，以及调试辅助工具 General Information、Raw preprocessor。
+Calibration plugins support both **online（connecting device)** and **offline（importing paqrameter files)** modes. The plugin can only be opened when the corresponding Filter parameters are enabled.
 
-标定插件支持 online（连接设备）与 offline（导入参数文件），只有打开对应 Filter 参数时，插件才能打开。
+### BLC Calibration and Tuning
 
-### BLC 定标与调试
+#### VRF Image Requirements for BLC Calibration
 
-#### BLC 定标 VRF 图要求
+Capture VRF data in a completely dark environment or with the lens fully covered.
 
-在全黑环境或将镜头完全遮挡采集 VRF 数据。
+#### BLC Calibration Steps
 
-#### BLC 定标步骤
-
+The BLC calibration interface is shown below:
 ![](./static/Bv0JbfQfVoCa1NxxevYch701nIb.png)
 
-Figure - BLC 定标界面
+1. In the BLC plugin, click **Load** to import the VRF image.
+2. Select the **Pipe ID** (optional if not a single pipeline).
+3. Select the **Channel ID**.
+4. Click **Calibrate**. The calibration result will be displayed in the **Calibrated Result** section. If the result is unsatisfactory, you can also manually edit the **Result**.
+5. Click **Update** to apply the parameters to the parameter list. If the result is unsatisfactory, click **Cancel** to recalibrate.
 
-1. 在 BLC 插件中点击 Load 导入 VRF 图；
-2. 选择 Pipe ID（非单 pipeline 可选）；
-3. 选择 Channel ID；
-4. 点击 Calibrate，校正结果显示在 Calibrated Result 界面，若结果不理想亦可手动修改 Result；
-5. 点击 Update，参数将更新到参数列表，若结果不理想，可点击 Cancel 重新校正；
+#### Notes on BLC Calibration
 
-#### BLC 定标说明
-
-- Calibrated Result panel 显示 4 个通道，10bits 与 8bits 的值，参数保存到文件中会映射到 12bits。
-- Channel ID:表示对应 2 ᵅ[倍 gain 下的 BLC 参数，BLC 可随 Gain 调整，从 1x 倍 gain 到 2048 倍 gain，共 12 个等级(见 Gain-BlackValue 示意图)；最后一档 manual 在 manual mode 使能时生效，此时 BLC 不随 gain 调整。
+- The **Calibrated Result panel** displays the values of 4 channels in both 10-bit and 8-bit formats. When the parameters are saved to a file, they are mapped to 12-bit values.
+- **Channel ID**: Indicates the BLC parameters corresponding to a specific gain level of 2ᵅ. BLC can be adjusted dynamically with gain, ranging from 1x to 2048x gain, for a total of 12 levels (see the **Gain–BlackValue diagram** below). The final level, **manual**, takes effect only when **manual mode** is enabled; in this mode, BLC does not adjust with gain.
 
 ![](./static/CPWGbI87NoUWSXxGp0OcvEo1nFF.png)
 
-Gain – BlackValue 示意图
+Gain – BlackValue Diagram
 
-#### BLC 调试说明
+#### Notes on BLC Tuning
 
-BLC 参数位于 CDigitalGainFirmwareFilter
+BLC parameters are located in **CDigitalGainFirmwareFilter**.
 
-- 若 BLC 不随增益变化，将 m_bManualMode 置为 1，此时 BLC 值为 m_pGlobalBlackValueManual
-- 若 BLC 随增益变化，将 m_bManualMode 置为 0，此时 BLC 值为 m_pGlobalBlackValue
+- If BLC should not change with gain, set **m_bManualMode** to 1. In this case, the BLC value is taken from **m_pGlobalBlackValueManual**.
+- If BLC should change with gain, set **m_bManualMode** to 0. In this case, the BLC value is taken from **m_pGlobalBlackValue**.
 
-### LSC 定标与调试
+### LSC Calibration and Tuning
 
-#### LSC 定标 VRF 图要求
+#### VRF Image Requirements for LSC Calibration
 
-在灯箱环境（D65、 CWF、 A 光）或存在 shading 的环境中使用 diffuse 挡住镜头，拍摄若干进光均匀的图片。
+Capture several uniformly illuminated images using a diffuse cover over the lens in a lightbox environment (D65, CWF, or A light) or any environment with shading.
 
-#### LSC 定标步骤
+#### LSC Calibration Steps
+
+The LSC calibration interface is shown below:
 
 ![](./static/HL7wbuzstoOKcyxjSKBce4sJngf.png)
 
-Figure - LSC 定标界面
+1. In the LSC plugin, click **Load** to import the VRF image.
+2. Select the **Pipe ID** (optional if not a single pipeline).
+3. Select the **Channel ID**.
+4. Adjust the compensation ratio using **Current Percentage**. It is recommended to start with 100%; you can later fine-tune the compensation intensity using **strength**.
+5. Click **Calibrate**. The simulated correction result will be displayed in **Calibrated Image**.
+6. Click **Update** to apply the parameters to the parameter list. If the result is not satisfactory, click **Cancel** to recalibrate.
 
-1. 在 LSC 插件中点击 Load 导入 VRF 图；
-2. 选择 Pipe ID（非单 pipeline 可选）；
-3. 选择 Channel ID；
-4. 调整补偿的比例 Current Percentage，建议先设为 100%，后期可修改 strength 控制补偿强度；
-5. 点击 Calibrate，校正仿真结果显示在 Calibrated Image；
-6. 点击 Update，参数将更新到参数列表，若结果不理想，可点击 Cancel 重新校正；
 
-#### LSC 定标说明
+#### Notes on LSC Calibration
 
-- Channel ID: 0 为低色温补偿表；1 为中色温补偿表；2 为高色温补偿表；manual 在 manual mode 使能时生效，此时 LSC 不随色温调整。
+- **Channel ID**: 
+  - `0`: Low color temperature compensation table
+  - `1`: Medium color temperature compensation table
+  - 2: High color temperature compensation table
+  - **manual**: Effective when **manual mode** is enabled; in this mode, LSC does not adjust with color temperature changes.
 
-#### LSC 调试说明
+#### Notes on LSC Tuning
 
-LSC 可随 CT 或 CorrelatedCT 调整(见 CT-LSCProfile 示意图)
+LSC can be adjusted according to **CT** or **CorrelatedCT** (see the **CT-LSCProfile diagram below**).
 
-CT 定义: 256\*AWB_RGain/AWB_BGain（可通过 AWB plugin 中的 CT 信息/4 获得）;
+- **CT** Definition: 256 × AWB_RGain / AWB_BGain (can be obtained via CT info / 4 in the AWB plugin).
+- **CorrelatedCT** Definition: Correlated color temperature, representing how closely the light emitted by a source matches the blackbody radiation at a certain color temperature.
 
-CorrelatedCT 定义：相关色温，光源发出的光与某一色温的黑体辐射光相似的程度
 
 ![](./static/Cza4bQxuboELiHxu4Q6cu8YNnCb.png)
 
-CT – LSCProfile 示意图
+LSC parameters are located in CLSCFirmwareFilter.
 
-LSC 参数位于 CLSCFirmwareFilter
+- If LSC needs to change with color temperature, set an appropriate **m_pCTIndex** to select the shading table for different color temperatures.
+- **Recommended to use**: **m_nCorrelationCT** (read from **CCTCalculatorFilter**).
 
-- LSC 需随色温变化，设置合适的 m_pCTIndex，以设置不同色温下的 Shading 表。
-
-【注：LSC 插值依据可选择 AWBFilter 计算结果 CT（在 AWB 插件中读取 CT）或 CCTCalculatorFilter 计算结果 CCT（在 WbFirmwareFilter 中读取 m_nCorrelationCT），推荐使用 m_nCorrelationCT】
+**Note.** LSC interpolation can be based on either the CT result calculated by **AWBFilter** (read **CT** in AWB plugin) or the **CCT** result calculated by **CCTCalculatorFilter** (read **m_nCorrelationCT** in **WbFirmwareFilter**)
 
 ![](./static/U1RmbqcooohmnEx7d29cVkK6nfH.png)
 
-### CCM 与 CCT 定标与调试
+### CCM and CCT Calibration and Tuning
 
-#### CCM 定标 VRF 图要求
+#### VRF Image Requirements for CCM Calibration
 
-在灯箱环境中使用拍摄 24 色卡，画面中色卡尽量对正，色卡居中，占画面约 1/9。
+Capture an image of a 24-color chart in a lightbox environment. The color chart should be as centered and aligned as possible, occupying about 1/9 of the frame.
+**D65**, **CWF**, and **A light sources** are required.
 
-D65 、CWF 、 A 光是必要的光源。
+#### CCM Calibration Steps
 
-#### CCM 定标步骤
+The CCM calibration interface is shown below:
 
 ![](./static/TH3Rbs3dQoiGwoxi6AMcVmtMn5e.png)
 
-Figure - CCM 定标界面
+1. In the CCM plugin, click **Load** to import the VRF image. The VRF image should be compensated for LSC and PDF (if PD pixels exist) using the Raw **Preprocessor plugin**.
+2. Select the entire color chart in the image by drawing a box, ensuring all 24 ROIs fall within the color patches. If the image is misaligned or heavily distorted, click **Start**, check the ROIs you want to adjust individually, and then manually drag the ROIs.
+3. Set the desired saturation for calibration.
+4. Click **Calibrate**. The calibration simulation result will be displayed in **Calibrated Result**.
+5. Select the **Pipe ID** (optional if not a single pipeline).
+6. Select the **Channel ID**.
+7. Click **Update** to apply the parameters to the parameter list. If the result is not satisfactory, you can adjust the saturation of individual blocks in the **Saturation Table** and then recalibrate.
 
-1. 在 CCM 插件中点击 Load 导入 VRF 图，VRF 使用 Raw preprocessor 插件补偿 LSC 和 PDF(如存在 PD 像素)；
-2. 在图中框选完整的色卡，保证 24 个 ROI 都落在色块之内，若拍摄图片不正或畸变严重，可点击 start，勾选期望单独调整的 ROI，然后手动拖动 ROI；
-3. 设定期望校正的饱和度；
-4. 点击 Calibrate，校正仿真结果显示在 Calibrated Result；
-5. 选择 Pipe ID（非单 pipeline 可选）；
-6. 选择 Channel ID；
-7. 点击 Update，参数将更新到参数列表，若结果不理想，可在 Saturation Table 中针对修改某一个 block 的饱和度，然后重新 calibrate；
+#### CCT Calibration Steps
 
-#### CCT 定标步骤
+The CCM calibration interface is shown below:
 
 ![](./static/O8xmbKq8soVjc8xtrebcw7n6nJf.png)
 
-Figure - CCM 定标界面
+1. The CCT calibration can be performed simultaneously with CCM calibration. CCT requires only **A** and 
+**D65** light sources.
+2. After calibrating CCM with **A** light, select **profile 2850K** and click **UpdateCTMatrix**.
+3. After calibrating CCM with **D65** light, select **profile 6500K** and click **UpdateCTMatrix**.
+4. The results will automatically update in **CCTCalculatorFilter** under **m_pCTMatrix_low** / **m_pCTMatrix_high**.
 
-1. 定标步骤与 CCM 定标可同时进行, CCT 只需要 A 与 D65；
-2. CCM Calibrate A 光之后，选择 profile 2850K，点击 UpdateCTMatrix；
-3. CCM Calibrate D65 光之后，选择 profile 6500K，点击 UpdateCTMatrix；
-4. 结果将自动更新到 CCTCaluatorFilter 中 m_pCTMatrix_low / high 中；
+#### Notes on CCM Calibration
 
-#### CCM 定标说明
-
-- **Use Internal Curve – Calibration**: 无需勾选
-- **Use Internal Curve – Render**: 无需勾选
-- **Use AGTM**: 勾选
-- **Target**：保持 D50
-- **View Environment**：保持 D50
-- **Calibrated Result**: 显示校正之后的仿真结果
-- **CCM Result**: 列出了校正之后的色彩矩阵，此处亦可手动修改，点击 set 设到硬件中；
-- **Channel ID**：0 为低色温 CCM 参数；1 为中色温 CCM 参数；2 为高色温 CCM 参数；manual 在 manual mode 使能时生效，此时 CCM 不随色温调整。
+- **Use Internal Curve – Calibration**: No need to check.
+- **Use Internal Curve – Render**: No need to check.
+- **Use AGTM**: Check this option.
+- **Target**: Keep as **D50**。
+- **View Environment**: Keep as **D50**。
+- **Calibrated Result**: Displays the simulated result after calibration.
+- **CCM Result**: Lists the calibrated color matrix. This can also be manually edited here. Click **Set** to apply it to the hardware。
+- **Channel ID**: 
+  - `0`: Low color temperature CCM parameters
+  - `1`: Medium color temperature CCM parameters
+  - 2: High color temperature CCM parameters
+  - **manual**: Effective when **manual mode** is enabled; CCM does not adjust with color temperature changes.
 - **Make DNG Profile**: reserved
-- **UpdateCTMatrix**：更新 CCT matrix
-- **SaveImage**：保存 render 出的图片
+- **UpdateCTMatrix**: Update the CCT matrix
+- **SaveImage**: Save the rendered image
 
-#### CCM 调试说明
+#### Notes on CCM Tuning
 
-CCM 可随色温调整(见图 CCM-色温控制曲线)
+CCM can be adjusted based on color temperature (see the **CCM–Color Temperature Control Curve below**).
 
 ![](./static/Tm8ZbZsTQosPkVxDBVvcNIi5nLg.png)
 
-CT – CCM index 示意图
+CCM parameters are located in **CColorMatrixFirmwareFilter**.
 
-CCM 参数位于 CColorMatrixFirmwareFilter
+- If CCM needs to change with color temperature, set an appropriate **m_pCTIndex** to select the color matrix for different color temperatures.
+- **Recommended to use**: **CorrelatedCT**.
 
-- CCM 需随色温变化，设置合适的 m_pCTIndex，以设置不同色温下的色彩矩阵，推荐使用 CorrelatedCT。
-
-【注：CCM 插值依据可选择 AWBFilter 计算结果 CT（在 AWB 插件中读取 CT）或 CCTCalculatorFilter 计算结果 CCT（在 WbF irmwareFilter 中读取 m_nCorrelationCT）】
+**Note**. CCM interpolation can be based on either the CT result calculated by **AWBFilter** (read **CT** in the AWB plugin) or the **CCT** result calculated by **CCTCalculatorFilter** (read **m_nCorrelationCT** in **WbFirmwareFilter**).
 
 ![](./static/Wii6bCvr0osUzdxZdn2cSw5vnPd.png)
 
-### AWB 定标与调试
+### AWB Calibration and Tuning
 
-#### AWB 白点定标 VRF 图要求
+#### VRF Image Requirements for AWB White Point Calibration
 
-AWB 定标无需额外拍图，完成 CCT 定标即可进行。
+No additional images are needed for AWB calibration; it can be performed after completing CCT calibration.
 
-#### AWB 白点定标步骤
+#### AWB White Point Calibration Steps
+
+The AWB calibration interface is shown below:
 
 ![](./static/A8FQbARlQotmwGxVRx2cjIeInud.png)
 
-Figure - AWB 定标界面
+1. Open the AWB plugin.
+2. Click **Optimize**. The calibration parameters will be automatically updated in the parameter interface.
 
-1. 打开 AWB 插件。
-2. 点击 Optimize，定标参数将自动更新到参数界面；
+#### AWB Brightness Calibration
 
-#### AWB 亮度定标
+After AE tuning is completed, brightness calibration of the module is required to obtain the Lux value needed by AWB. The calibration steps are as follows:
 
-在 AE 调试完成之后，需对模组亮度进行定标, 从而得到 AWB 需要的 Lux，定标步骤如下:
+1. Place the camera in the lightbox and capture the lightbox wall with the light source set to **D65**.
+2. Measure the lightbox illuminance using a color temperature illuminance meter and enter the value into **m_nCalibSceneLux** in the **AECFilter**.
+3. Read **m_nExpIndexLong** from **AECFilter** and enter it into **m_nCalibExposureIndex** in **AECFilter**.
+4. Read **m_nLumQ16** from **AECFilter** and enter it into **m_nCalibSceneLum** in **AECFilter**.
 
-1. 相机置于灯箱,拍摄灯箱壁,光源选择 D65；
-2. 使用色温照度计测量灯箱照度，填入 AECFilter 中 m_nCalibSceneLux；
-3. 在 AECFilter 中读取 m_nExpIndexLong，填入 AECFilter 中 m_nCalibExposureIndex；
-4. 在 AECFilter 中读取 m_nLumQ16，填入 AECFilter 中 m_nCalibSceneLum；
-
-| 参数名                | 说明                                   | 建议调试 | 特殊性 |
-| --------------------- | -------------------------------------- | -------- | ------ |
-| m_nCalibExposureIndex | 亮度定标的曝光索引                     | 是       |        |
-| m_nCalibSceneLum      | 亮度定标的场景亮度                     | 是       |        |
-| m_nCalibSceneLux      | 定标场景对应的实际照度                 | 是       |        |
-| m_nSceneLux           | AWB debug参数,当前AE计算得到的场景照度 | -        | 只读   |
+| Parameter Name        | Description                                                     | Recommended to Tune | Special Notes |
+| --------------------- | ----------------------------------------------------------------| ------------------- | ------------- |
+| m_nCalibExposureIndex | Exposure index for brightness calibration                       | Yes                 |               |
+| m_nCalibSceneLum      | Scene brightness for brightness calibration                     | Yes                 |               |
+| m_nCalibSceneLux      | Actual illuminance corresponding to calibration scene           | Yes                 |               |
+| m_nSceneLux           | AWB debug parameter, current scene illuminance calculated by AE | -                   | Read-Only     |
 
 #### AWB Debug
 
-##### Block debug 信息
+##### Block Debug Information
 
-连接设备，点击 AWB 插件，每个 block 的落点将以蓝色点显示在坐标轴上，AWB 统计图像显示为缩略图。
+When connected to the device, open the AWB plugin. The position of each block will be displayed as a blue dot on the coordinate axis, and the AWB statistics image will be shown as a thumbnail.
 
-统计图上可框选区域(默认展示所有区域的落点)，框选之后只会显示框中 block 的落点。
+You can select a region on the statistics chart (by default, points from all regions are displayed). After selection, only the points within the selected blocks will be shown.
 
 ![](./static/W42KbmVcZozYu3xCDLKc4Zc9ndf.png)
 
-Figure - AWB 插件界面
+##### White Points within ROI
 
-##### ROI 中的白点
-
-点击 Show ROI， 可以看到不同 ROI 中包含的 block 情况，白色为参与白平衡计算的 block，即落入 ROI 区域的 block。
-
-下图可见具体 32X24 个 block 所属 ROI。
+Click **Show ROI** to view the blocks contained within different ROIs. The white blocks are those participating in the white balance calculation, meaning the blocks that fall inside the ROI area.
+The image below shows the specific affiliation of 32 x 24 blocks to their respective ROIs
 
 ![](./static/KCGYbdLdLojsnqxafgUc6umTnPd.png)
 
-Figure - ROI 信息界面
+##### Block Weight
 
-##### Block 的权重
+Checking **auto update** will periodically refresh the lux value and statistics chart, and calculate the block weights in real-time.
 
-勾选 auto update 会定时更新 lux 及统计图，并实时计算 block 的权重。
+By adjusting the **Weight Percentage** slider, you can control the ratio between the actual scene and the blocks participating in the white balance calculation on the debug image.
 
-拖动 Weight Percentage，可以调整 debug 图上实际场景与参与白平衡计算的 block 的比例。0% 显示实际场景，100% 显示参与白平衡计算的 block 的权重（权重参考热力图）。
+- At 0%, the image shows the actual scene.
+- At 100%, it shows the weights of blocks participating in the white balance calculation (weights are referenced in the heatmap).
 
-若设为 100%，画面显示为全黑，表示该 lux 下所有 block 权重为 0。
+If set to 100%, the screen may appear completely black, indicating that all blocks have zero weight under the current lux.
 
 ![](./static/TBU2b8qGcobYnpxtTnOcGRidnDe.png)
 
-Figure – AWB 插件界面
-
-设置 Weight Percentage 为 100%，以热力图形式显示 block 的权重，可以将鼠标拖动到期望了解的 block，热力图右侧会显示对应 block 的权重(AWB Frameinfo 也可以看到 debug 信息)，上图鼠标选择的是 block[12][2]，权重为 16
+Setting **Weight Percentage** to 100% displays the block weights as a heatmap. You can hover the mouse over any block to see its weight displayed on the right side of the heatmap (debug info is also available in **AWB Frameinfo**).In the image below, the mouse is selecting block[12][2], which has a weight of 16.
 
 ![](./static/OnTVbtlSNo69fHxX6yxc4LUHnQe.png)
 
-##### 白平衡 gain 的落点
+##### White Balance Gain Position
 
-RGB gain panel 模块，勾选 enabled，填入 Q12 精度的 RGB gain (debug 信息 CurrentResult)，对应白平衡 gain 在色温坐标系中以蓝色方块呈现，色温坐标系通过鼠标从左上到右下框选放大，从右下到左上框选缩小。
+In the **RGB gain panel** module, check **enabled**, and enter RGB gain values in Q12 precision (from debug info **CurrentResult**).
+The corresponding white balance gain will be displayed as a blue square in the chromaticity (color temperature) coordinate system.
+You can zoom in by dragging the mouse from the top-left to the bottom-right, and zoom out by dragging from the bottom-right to the top-left.
 
-当前白平衡 gain 在色温坐标系中以红色方块呈现。
+The current white balance gain is shown as a red square in the chromaticity coordinate system.
+
 
 ![](./static/NgDNb7QCVolcwox3LTXcX1Iqnvd.png)
 
-Figure – 白平衡落点
+#### AWB Debug Description
 
-#### AWB 调试说明
+- **Calibration Panel**
 
-- **定标 Panel**
+  - **Calibrate Panel**
+    - **Visible**: When checked, this ROI will be shown in the chromaticity coordinate system.
+    - **Enable**: When checked, this ROI is enabled for calibration.
+  - **Calibrate Files Panel**
+    - **Percentage**: Proportion of the VRF image to be used for calibration. For example, 20% means the central 20% area of the image will be used, as the center is less affected by shading.
+    - **Optimize**: Performs automatic calibration.
+    - **Load config**: Reserved.
+    - **Save config**: Reserved.
+    - **Load**: Import VRF file.
+    - **Calibrate**: Reserved.
+    - **Update**: Update parameters to the parameter list.
+    - **Cancel**: Cancel parameter updates.
+    - **ShowROI**: Show the white points within each ROI.
 
-  - Calibrate Panel
-    - Visible：勾选将在坐标中显示该 ROI
-    - Enable：勾选将使能该 ROI
-  - Calibrate Files Panel
-    - Percentage：选取 VRF 图的比例。20%，表示选择中心 20% 的区域用于定标，图像中心的区域受到 shading 的影响较小。
-    - Optimize：自动定标
-    - Load config: (reserved)
-    - Save config: (reserved)
-    - Load：导入 VRF
-    - Calibrate：reserved
-    - Update：更新参数到参数列表
-    - Cancel：取消参数更新
-    - ShowROI：显示各个 ROI 的百点情况
-- **调试 Panel**
+- **Debugging Panel**
 
-  - Control Panel
-    - Pipe ID：当前的 pipeline ID（非单 pipe 可选）
-    - Auto Update：online 状态自动更新当前亮度与统计窗口（勾选时，在插件中将不能修改参数）
-    - Manual Lux：固定当前亮度
-    - Weight Percentage：debug 参数，调整显示白平衡统计块与块的权重。0% 显示统计块，100% 显示块权重热力图。
-    - RGB Gain：debug apply 的 gain，对应色温坐标系中红色的点。
-    - Luminance Boundary：参与 AWB 统计的像素的亮度区间(8 bit)
-    - Valid Number：白平衡计算所需最少有效 block，[0,768]
-    - Correct Limit Panel：block 限制区间，超出 Limit 且处于 ROI 的 block 将会在 XY 上方向映射。
-  - Green Shift Panel
-    - Shift Max Weight：shift 权重，与 exposure shift 相乘得到最终的 shift 权重，最大 32，完全偏向 outdoor gain
-    - Green Number Threshold：落在 G 区的 block 的数目，在此区间则进入 green shift
-    - Outdoor RGB Gain：green shift 目标 gain
-    - Shift Weight：依据 exposure 调整 weight
-  - Luminance Panel
-    - Lux：亮度索引
-    - Weight：对应 ROI 在当前亮度下的权重
-    - Min / Max：luma 区间(8 bit)
+  - **Control Panel**
+    - **Pipe ID**: Current pipeline ID (selectable when not using a single pipe).
+    - **Auto Update**: Automatically updates the current brightness and statistics window when online (when checked, parameters in the plugin cannot be modified).
+    - **Manual Lux**: Fixes the current brightness.
+    - **Weight Percentage**: Debug parameter to adjust the display of white balance statistic blocks and their weights.
+      - **0%** shows the statistic blocks;
+      - **100%** shows a heatmap of block weights.
+    - **RGB Gain** Debug-applied gain, corresponding to the red point in the chromaticity coordinate system.
+    - **Luminance Boundary**: Brightness range (8-bit) of pixels participating in AWB statistics.
+    - **Valid Number**: Minimum number of valid blocks required for white balance calculation, range [0,768]。
+    - **Correct Limit Panel**: Block range limits. Blocks that exceed the limits and fall within the ROI will be remapped in the XY direction.
+
+  - **Green Shift Panel**
+    - **Shift Max Weight**: Shift weight; multiplied by exposure shift to get the final shift weight. Maximum is 32, which fully biases toward the outdoor gain.
+    - **Green Number Threshold**: Threshold: The number of blocks falling into the "G region"; if within this range, green shift is activated.
+    - **Outdoor RGB Gain**: Target gain for green shift.。
+    - **Shift Weight**: Weight adjusted based on exposure.
+
+  - **Luminance Panel**
+    - **Lux**:  Brightness index.
+    - **Weight**: The weight of the corresponding ROI at the current brightness level.
+    - **Min / Max**: Luminance range (8-bit).
+
 - **Debug Panel**
 
-  - RGB Gain Panel
-    - enabled：用于展示白平衡 gain 在色温坐标系的位置
-    - RGB：白平衡 gain
-  - Gain Panel：debug 信息，鼠标在色温坐标系上滑动，可显示对应位置的 debug 信息。
-    - X Y：色温坐标系上点对应 XY 坐标
-    - CT：色温坐标系上点对应 CT 值, 可用于提供 LSC、CCM 插值依据。
-    - RGB：色温坐标系上点对应白平衡 gain
-    - CCT 、Tint：色温坐标系上点对应 CCT 与 Tint, 可用于提供 LSC、CCM 插值依据。
-    - CCT curve：色温坐标系上显示 CCT curve。
-    - Vaild only：色温坐标系上只展示有效统计块。
-    - Applied Gain：当前场景白平衡 gain 落点，对应色温坐标系中红色的点。
-    - Block 、Weight：鼠标在统计图上滑动，可显示对应 block 的位置及权重。
+  - **RGB Gain Panel**
+    - **enabled**: Used to display the white balance gain position in the color temperature coordinate system.
+    - **RGB**: White balance gain.
 
-### Curve 调试
+  - **Gain Panel**: Debug information. Hovering the mouse over the color temperature coordinate system will display the corresponding debug info.
+    - **X Y**: The XY coordinates of the point on the color temperature coordinate system.。
+    - **CT**: The correlated color temperature (CT) value at the point, which can be used as a reference for LSC and CCM interpolation.
+    - **RGB**: The white balance gain at the point on the color temperature coordinate system.
+    - **CCT**、**Tint**: The correlated color temperature and tint at the point, also usable for LSC and CCM interpolation.
+    - **CCT curve**: Displays the CCT curve on the color temperature coordinate system.
+    - **Vaild only**: Displays only the valid statistic blocks on the color temperature coordinate system.
+    - **Applied Gain**: The white balance gain point of the current scene, shown as a red dot on the color temperature coordinate system.。
+    - **Block**、**Weight**: When hovering the mouse over the statistics image, the corresponding block position and weight are displayed.
 
-#### Curve 调试步骤
+### Curve Debugging
+
+#### Curve Debugging Steps
+
+The Curve debugging interface is shown below:
 
 ![](./static/AGhPb6uK4oyHyMx5nG5cqycZnvd.png)
 
-Figure - Curve 调试界面
+1. Open the Curve plugin.
+2. Select **Pipe ID** (applicable if not using a single pipeline).
+3. Select **Channel ID**.
+4. Move the mouse to the point on the curve you want to adjust, then left-click and drag it to the desired position.
+5. Click **Update** to apply the parameters to the parameter list. If the result is unsatisfactory, click **Cancel** to redo the calibration.
 
-1. 打开 Curve 插件;
-2. 选择 Pipe ID（非单 pipeline 可选）；
-3. 选择 Channel ID；
-4. 鼠标滑至 Curve 上想要调节的点，左键拖动到期望位置；
-5. 点击 Update，参数将更新到参数列表，若结果不理想，可点击 Cancel 重新校正；
+#### Curve Debugging Description
 
-#### Curve 调试说明
+- **Channel ID**: 
+  - **BacklightCurveManual**: Controls the background brightness. It is recommended to keep the curve unchanged and only adjust the **strength**.
+  - **ContrastCurveManual**: Controls the contrast. It is recommended to keep the curve unchanged and only adjust the **strength**.
+  - **GTMCurve0**: Curve used when the gain equals **m_pGainIndex[0]** (Q4 precision).
+  - **GTMCurve1**: Curve used when the gain equals **m_pGainIndex[1]** (Q4 precision).
+  - **GTMCurve2**: Curve used when the gain equals **m_pGainIndex[2]** (Q4 precision).
 
-- **Channel ID:**
-  - BacklightCurveManual：用于控制背景亮度，建议保持曲线不变，调整 strength 即可；
-  - ContrastCurveManual：用于控制对比度，建议保持曲线不变，调整 strength 即可；
-  - GTMCurve0：gain 为 m_pGainIndex[0] (Q4 精度)时的曲线
-  - GTMCurve1：gain 为 m_pGainIndex[1] (Q4 精度)时的曲线
-  - GTMCurve2：gain 为 m_pGainIndex[2] (Q4 精度)时的曲线
-
-【注：当 m_nCurveSelectOption 设为 0 时，curve 依据当前 gain 做插值(见 Curve-Gain 控制曲线示意图)】
+**Note**. When **m_nCurveSelectOption** is set to 0, the curve is interpolated based on the current gain (see diagram below: **Curve-Gain Control Curve Diagram**).
 
 ![](./static/EOSkbycFLoUbzOxDQxgcTQtmnje.png)
 
-Gain– Curve index 示意图
+Curve parameters are located in **CCurveFirmwareFilter**.
 
-Curve 参数位于 CCurveFirmwareFilter
-
-- **Curve 可随 gain 变化，设置合适的 m_pGainIndex，以设置不同 gain 下的 curve。**
+- The curve can vary with gain. Set appropriate **m_pGainIndex** values to specify different curves for different gains.
 
 ![](./static/LqAZbSYKLoAke8xMceLcQ6IjnEe.png)
 
-### Noise 定标与调试
+### Noise Calibration and Debugging
 
-#### Noise 定标 RAW 图要求
+#### RAW Image Requirements for Noise Calibration
 
-在实验室环境中使用拍摄 24 色卡，画面中色卡尽量对正，色卡居中，占比约 1/9。
+In a laboratory environment, use a 24-color chart for shooting. Ensure that the color chart is as straight/aligned as possible, centered in the frame, and occupies approximately 1/9 of the image.
 
-控制灯光亮度，依次拍摄 1、2、4、8、16、32、64、128、256、512、1024、2048 倍 Gain 下的色卡。
+Adjust the lighting brightness accordingly, and sequentially capture images of the color chart under the following gain settings:
+1×, 2×, 4×, 8×, 16×, 32×, 64×, 128×, 256×, 512×, 1024×, and 2048× gain.
 
-#### Noise 定标步骤
+#### Noise Calibration Steps
+
+The calibration interface is shown in the figure below:
 
 ![](./static/NA7mbfZEKomduexvZUXcBCm2nYc.png)
 
-Figure 5.6.2 Noise 定标界面
+1. In the Noise plugin, click **Load** to import the RAW image. Use the **Raw Preprocessor** plugin to compensate for LSC and PDF (if there are PD pixels).
+2. In the image, select the bottom 6 color patches on the color chart. Ensure that all 6 ROIs fall entirely within the color blocks. If the image is tilted or has noticeable distortion, click **Start**, check the ROIs you want to manually adjust, and drag them into the correct position.
+3. Set the desired **Denoise Strength**.
+4. Click **Calibrate**. The calibrated noise levels will appear under **Noise Result**.
+5. Select the **Pipe ID**.
+6. Select the **Channel ID**.
+7. Click **Update** to apply the parameters to the parameter list. If the result is not satisfactory, click **Cancel** to re-calibrate
 
-1. 在 Noise 插件中点击 Load 导入 RAW 图，VRF 使用 Raw preprocessor 插件补偿 LSC 和 PDF(如存在 PD 像素)；
-2. 在图中框选色卡最下方的 6 个块，保证 6 个 ROI 都落在色块之内，若拍摄图片不正或畸变严重，可点击 sta rt，勾选期望单独调整的 ROI,然后手动拖动 ROI；
-3. 设定期望 Denois Strength；
-4. 点击 Calibrate，标定噪声水平显示在 Noise Result；
-5. 选择 Pipe ID；
-6. 选择 Channel ID；
-7. 点击 Update，参数将更新到参数列表，若结果不理想，可点击 Cancel 重新校正；
 
-#### Noise 定标说明
+#### Noise Calibration Description
 
-- Noise Result 显示标定的噪声水平；
-- Channel ID: 0 为 1 倍 gain 下的去噪参数；1 为 2 倍 gain 下的去噪参数；以此类推，11 为 2048 倍 gain 下的去噪参数；manual 为 manual mode 下的去噪参数。
+- **Noise Result**: Displays the calibrated noise level.
+- **Channel ID**: 
+  - `0`: Denoise parameters at 1× gain.
+  - `1`: Denoise parameters at 2× gain.
+  - And so on, up to 1`1`: Denoise parameters at 2048× gain.
+  - **manual**: Denoise parameters used in manual mode.
 
-### PDAF 定标
+### PDAF Calibration
 
-#### PDAF 定标 VRF 图要求
+#### PDAF Calibration VRF Image Requirements
 
-在实验室环境中拍摄棋盘格，拍摄物距 2 米，棋盘格和 sensor 平行。
-
-控制灯光亮度，使得增益尽量接近 1 倍。
-
-拍摄马达从有效位置最小值到有效位置最大值的图像(将整个扫描区域均分成 30 段， 31 个位置)，共 31 张(vrf 文件名命名规范为 position.vrf ，PD raw files 文件名 position_L.raw，position_R.raw)
+Capture a checkerboard pattern in a laboratory environment, with the object distance at 2 meters, and the checkerboard parallel to the sensor.
+Control the lighting brightness so that the gain is as close to 1× as possible.
+Capture images from the motor moving from the minimum to the maximum valid position (divide the entire scan area into 30 segments, resulting in 31 positions), for a total of 31 images.
+(VRF file naming convention: **position.vrf**; PD raw files naming convention: **position_L.raw**, **position_R.raw**).
 
 ![](./static/WOQWbeBXKoqnQKxvCTjctR3FnNh.png)
 
-#### PDAF 定标步骤
+#### PDAF Calibration Steps
+
+The PDAF calibration interface is shown below:
 
 ![](./static/FDUibp2uAoon7pxxXMRckoYJnEd.png)
 
-Figure - PDAF 定标界面
+1. In the **PDC** plugin, click **Load** to select the folder containing VRF files (if importing already extracted PD raw files, you will also need to input the raw width and height).
+2. Click **Calibrate**, which will display a **position – shift** map corresponding to the image divided into 5x5 blocks.
+3. Select the **Pipe ID** (applicable if not a single pipeline).
+4. Click **Update**, and the **m_pPDShiftPositionLUT** parameter in **CAFFilter** will be updated.
+5. If the result is unsatisfactory, click **Cancel** to recalibrate.
 
-1. 在 PDC 插件中点击 Load 选择 VRF 文件夹(若导入的是已抽出 PD 的 raw files，还需填写 raw 的宽高)；
-2. 点击 Calibrate，将显示图像分割为 5x5 的块所对应的块的 position – shift 图；
-3. 选择 Pipe ID（非单 pipeline 可选）；
-4. 点击 Update，CAFFilter 中 m_pPDShiftPositionLUT 参数将更新，
-5. 若结果不理想，可点击 Cancel 重新校正；
+### PDC Calibration
 
-### PDC 定标
+PDC is used to compensate the brightness of PD pixels or shadow pixels to normal brightness for use by the PDAF autofocus algorithm.
+Given the known PD points and shadow distribution (via **m_pPixelMask** and **m_pPixelTypeMask**), PDC parameters **m_pRatioBMap** are calibrated using images containing the PD pixel distribution.
 
-PDC 用于将 PD 像素或 shadow 像素亮度补偿到正常亮度供 PDAF 对焦算法使用。
+#### PDC Calibration VRF Image Requirements
 
-已知 PD 点，shadow 分布情况（m_pPixelMask 和 m_pPixelTypeMask）下，通过含 PD 点分布的图像，对 PDC 参数 m_pRatioBMap 进行标定。
+In a lightbox environment **D65**, shoot the lightbox wall using frosted glass.
 
-#### PDC 定标 VRF 图要求
-
-在灯箱环境 D65 中，使用毛玻璃拍摄灯箱壁。
-
-#### PDC 定标步骤
+#### PDC Calibration Steps
 
 ![](./static/XjGFbPHPvog9dqxMMYzc69Zsnec.png)
 
-Figure - PDC 定标界面
+1. In the PDC plugin, click **Analyze**. The plugin will check whether the settings for **m_pPixelMask** and **m_pPixelTypeMask** are reasonable. If not, these two parameters need to be adjusted.
+2. After the **Analyze** process confirms the settings are reasonable, the **Load** button becomes enabled. For QuadBayer PD, you can select the compensation mode (channel 0-1 complementary or channel 2-3 complementary; if the number of PD points in the four channels is equal, four-channel complementary compensation is also available).
+3. After successfully **Loading** the image, the right panel will display small images composed of extracted PD points for the corresponding channels. Press the **Calibrate** button to calculate the **m_pRatioBMap** based on the image, and the compensated PD points using the new **m_pRatioBMap** will be displayed on the right.
+4. The **Update** button updates the **m_pRatioBMap** parameter in PDC. If the result is unsatisfactory, click Cancel to recalibrate.
+5. Select the **Pipe ID** (if multiple pipelines are used).
+6. Click **Update** to apply the parameters to the parameter list. If the result is unsatisfactory, click **Cancel** to recalibrate.
 
-1. 在 PDC 插件中点击 Analyze，pdc plugin 判断 setting 中 m_pPixelMask 和 m_pPixelTypeMask 设置是否合理，如果不合理需要调整这两个参数。
-2. Analyze 分析 setting，合理后，Load 按钮有效化。QuadBayer PD 可选择补偿方式（0-1 通道互补或 2-3 通道互补，四通道 PD 点数目相同时，还可选择四通道互补）。
-3. Load 图像成功后，右边会显示对应通道抽取的 PD 点组成的小图像。按下 Calibrate 按钮，会计算根据图像计算得到的 m_pRatioBMap，并会将用新的 m_pRatioBMap 补偿过的 P D 点组成的小图像显示在右图中。
-4. Update 按钮会更新 PDC 参数中 m_pRatioBMap，若结果不理想，可点击 Cancel 重新校正。
-5. 选择 Pipe ID（非单 pipeline 可选）。
-6. 点击 Update，参数将更新到参数列表，若结果不理想，可点击 Cancel 重新校正。
 
-#### PDC 定标说明
+#### PDC Calibration Explanation
 
-**m_pPixelMask，m_pPixelTypeMask 说明**
+**Explanation of m_pPixelMask and m_pPixelTypeMask**
 
-1. 两个参数标定图像 PD，shadow 分布，分布以 32x32 周期分布。如果 m_pPixelMask=1，则当前点为 PD 点，m_pPixelTypeMask 表示像素遮蔽的四种方向；如果 m_pPixelMask=0，m_pPixelTypeMask\>0，则当前点为 s hadow 点。
-2. 两个参数一般由 sensor 厂商提供，如果没有则拍摄 RAW 图手工标定。
+1. These two parameters calibrate the distribution of PD and shadow pixels in the image, with a 32x32 periodic pattern.
+- If **m_pPixelMask = 1**, the current pixel is a PD pixel, and **m_pPixelTypeMask** indicates one of four directions of pixel shadowing.
+- If **m_pPixelMask = 0** and **m_pPixelTypeMask > 0**, the current pixel is a shadow pixel.
+2. These two parameters are usually provided by the sensor manufacturer. If not available, manual calibration can be performed by capturing RAW images.
 
-### Raw preprocessor 插件
+### Raw Preprocessor Plugin
 
-#### Raw preprocessor 插件说明
+#### Raw Preprocessor Plugin Description
 
-Raw preprocessor 插件用于 raw 预处理，支持 PD 点矫正，LSC 补偿，Unpack VRF(ASR RAW packed format)功能。
+The Raw Preprocessor plugin is used for raw data preprocessing. It supports PD pixel correction, LSC compensation, and unpacking VRF files (ASR RAW packed format).
 
-#### Raw preprocessor 插件使用
+#### Using the Raw Preprocessor Plugin
+
+The Raw Preprocessor interface is shown below
 
 ![](./static/VbYvb8uExoZr3oxylbycmzhon88.png)
 
-Figure - Raw preprocessor 界面
+1. Set the **input** and **output** VRF files in the Raw Preprocessor plugin.
+2. Select the corresponding **pipe** and **LSC channel**.
+3. Choose the desired preprocessing functions: PDF, LSC, and Unpack.
+4. Click **Preprocess**.
+5. **Batch preprocess** supports importing folders for batch processing of VRF files.
 
-1. 在 Raw preprocessor 插件中设置 input 和 output VRF 文件；
-2. 选择对应的 pipe 以及 LSC channel；
-3. 选择期望的预处理功能，PDF，LSC，Unpack；
-4. 点击 Preprocess
-5. Batch preprocess 支持文件夹导入，批处理 VRF 文件
+### General Information Plugin
 
-### General Information 插件
+The General Information plugin is used to connect to the device and display some debug information in real-time.
 
-General Information 插件用于连接设备实时显示一些 debug 信息
+### General Information Display
 
-### General Information 显示
-
-默认配置了如下信息供调试工程师参考
+By default, the following information is configured for debugging engineers’ reference:
 
 ![](./static/Ru42bu2NQoRfcSxtqxacrgTDnAJ.png)
 
-Figure - General Information 信息
+#### General Information Extension
 
-#### General Information 拓展
-
-点击 setting，出现如下信息编辑页，可以自由编辑想要关注的信息。一行为一个显示条目，格式说明详见 Expression Manual
+Click **Setting** to open the information editing page as shown below. You can freely edit the information you want to monitor. Each line represents one display item. For format details, refer to the **Expression Manual**.
 
 ![](./static/QJerblj9loAfZUxFgquc500pnwc.png)
 
-Figure - General Information 拓展
-
 ## ISP Tuning
 
-### CTopFirmwareFilter 调试说明
+### CTopFirmwareFilter Debug Explanation
 
-CTopFirmwareFilter 用于配置 ISP Top 信息。
+CTopFirmwareFilter is used to configure ISP Top information.
 
-#### TOP 参数
+#### TOP Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description| Recommended to Tune | Special Notes |
 |---|---|---|---|
-| m_nBayerPattern | Bayer模式:0: RGGB        1: GRBG        2: GBRG        3: BGGR        4: monochrome | 依据硬件设置 |   |
-| m_bAELinkZoom | AE窗口关联zoom | 用户设置 |   |
-| m_bAFLinkZoom | AF关联zoom | 用户设置 |   |
-| m_bAWBLinkZoom | AWB关联zoom | 用户设置 |   |
-| m_nPreviewZoomRatio | 预览zoom系数，Q8 | 用户设置 |   |
-| m_bPreviewLowPowerMode | 预览低功耗模式 | 用户设置 |   |
-| m_nAEProcessPosition | AE处理时机0: eof        1: sof | 用户设置 |   |
-| m_nAEProcessFrameNum | AE处理频率，支持：eof每帧处理 / eof 每两帧处理 / sof每帧处理 / sof 每三帧处理 | 用户设置 |   |
+| m_nBayerPattern | Bayer pattern mode:  `0`: RGGB;   `1`: GRBG;   `2`: GBRG;   `3`: BGGR;   `4`: Monochrome mode | According to hardware settings |    |
+| m_bAELinkZoom | AE window linked to zoom | User setting |   |
+| m_bAFLinkZoom | AF linked to zoom | User setting |   |
+| m_bAWBLinkZoom | AWB linked to zoom | User setting |   |
+| m_nPreviewZoomRatio | Preview zoom ratio, Q8 format | User setting |   |
+| m_bPreviewLowPowerMode | Preview low power mode | User setting |   |
+| m_nAEProcessPosition | AE processing timing   `0`: eof;   `1`: sof | User setting |   |
+| m_nAEProcessFrameNum | AE processing frequency:  EOF every frame  EOF every two frames  SOF every frame  SOF every three frames | User setting |   |
 | m_bHighQualityPreviewZoomEnable | Reserved |   |  |
 
-### CAEMFirmwareFilter 参数说明
+### CAEMFirmwareFilter Parameter Description
 
-CAEMFirmwareFilter 模块用于配置自动曝光统计模块。
+The CAEMFirmwareFilter module is used to configure the Auto Exposure (AE) statistics module.
 
-#### AEM 使能及参数
+#### AEM Enable and Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended to Tune | Special Note |
 |---|---|---|---|
-| m_bEnable | AEM使能：0：关闭自动曝光统计模块        1：使能自动曝光统计模块 | 否 |   |
-| m_nAEStatMode | AE统计模块模式：0：统计信息不经过白平衡        1：统计信息经过白平衡 | 否 |   |
-| m_bZSLHDRCapture | 零延迟HDR抓拍使能0：不启动 1：启动零延迟HDR抓拍功能 | 用户设置 |   |
-| m_nInitialExpTime | 初始化曝光时间 | 是 |   |
-| m_nInitialAnaGain | 初始化模拟增益 | 是 |   |
-| m_nInitialSnsTotalGain | 初始化sensor总增益 | 是 |   |
-| m_nInitialTotalGain | 初始化总增益 | 是 |   |
-| m_nStableTolerance | AE稳定容忍度百分比：若当前曝光量与前一次曝光量的差值小于前一次曝光量的m_nStableTolerance%，则给出AE StableFlag信号，供其他模块如LTM参考 | 用户设置 |   |
-| m_nStableToleranceExternal | AE稳定容忍度百分比，共外部系统使用 | 用户设置 |   |
-| m_bAutoCalculateAEMWindow | AE统计窗口计算方式：0：由hardware配置        1：由firmware控制 | 否 |   |
-| m_nPreEndingPercentage | 不参与AE统计模块的行数相对于图像高的百分比 | 否 |   |
-| m_bDRCGainSyncOption | DRCgain同步：0：每帧同步 1：AE稳定后同步 | 否 |   |
-| m_pSceneChangeSADThr | 判断场景变化的SAD门限 | 用户设置 |   |
-| m_pSubROIPermil | 6个子统计模块的起始坐标及结束坐标相对于图像宽高的千分比可根据人脸测光或对焦测光联动，由application修改 | 用户设置 |   |
-| m_nSubROIScaleFactor | 副窗口缩放百分比系数 | 用户设置 |   |
-| m_nFaceLumaOption | 人脸亮度统计方式：0：硬件统计（pixel） 1：软件统计（block） | 否 |   |
-| m_bMotionDetectEnable | 运动检测开关：0：关闭运动检测 1：使能运动检测 | 用户设置 |  |
-| m_bMotionDetectExt | 运动检测方式：0： 使用内部 AEM 统计 1：使用外部 gyro sensor | 用户设置 |  |
-| m_nMotionStrengthExt | 外部运动强度控制，运动检测方式为外部 gyro 时有效 | 用户设置 |  |
-| m_nSADIntervalFrame | 计算 SAD 的间隔帧数，运动检测方式内部 AEM 统计时有效  | 否 |  |
-| m_nMotionThreshold | 判断运动的 SAD 门限，运动检测方式内部 AEM 统计时有效  | 否 |  |
-| m_nMotionDetectFrame | 连续 m_nMotionDetectFrame 帧检测到 SAD 超过门限，则认为是运动场景  | 否 |  |
-| m_nFaceDetFrameID | 侦测到人脸的帧号 |  - | 只读 |
-| m_nAdjacentLumaSAD | 当前SAD |  - | 只读 |
-| m_pMainRoiCoordinate | 主窗口坐标 |  - | 只读 |
-| m_pSubRoiCoordinate | 副窗口坐标 |  - | 只读 |
+| m_bEnable | AEM Enable:  `0`: Disable AE statistics module;    `1`:  Enable AE statistics module | No |   |
+| m_nAEStatMode | AE statistics mode: `0`: Statistics without white balance    `1`: Statistics with white balance | No |   |
+| m_bZSLHDRCapture | Zero Shutter Lag HDR capture enable   `0`: Disable   `1`: Enable zero shutter lag HDR capture | User setting |   |
+| m_nInitialExpTime | vInitial exposure time | Yes |   |
+| m_nInitialAnaGain | Initial analog gain | Yes |   |
+| m_nInitialSnsTotalGain | Initial sensor total gain | Yes |   |
+| m_nInitialTotalGain | Initial total gain | Yes |   |
+| m_nStableTolerance | AE stability tolerance percentage: If the difference between current exposure and previous exposure is less than previous exposure * m_nStableTolerance%, AE StableFlag is issued for use by other modules like LTM | User setting|   |
+| m_nStableToleranceExternal | AE stability tolerance percentage for external systems | User setting |   |
+| m_bAutoCalculateAEMWindow | AE statistics window calculation method:   `0`: Configured by hardware;   `1`: Controlled by firmware | No |   |
+| m_nPreEndingPercentage | Percentage of rows (relative to image height) excluded from AE statistics | No |   |
+| m_bDRCGainSyncOption | DDRC gain synchronization:  `0`: Sync every frame;   `1`: Sync after AE stable | No |   |
+| m_pSceneChangeSADThr | SAD threshold for scene change detection | User setting |   |
+| m_pSubROIPermil | Start and end coordinates of 6 sub-statistics modules relative to image width and height in permille; modifiable by application (e.g., face metering or focus metering linkage) | User setting |   |
+| m_nSubROIScaleFactor | Sub-window scaling percentage factor | User setting |   |
+| m_nFaceLumaOption | Face luminance statistics method:   `0`: Hardware statistics (pixel) ;  `1`: Software statistics (block) | No |   |
+| m_bMotionDetectEnable | Motion detection enable:  `0`: Disable   `1`:  Enable| User setting |  |
+| m_bMotionDetectExt | Motion detection method:   `0`:  Use internal AEM statistics;   `1`: Use external gyro sensor | User setting |  |
+| m_nMotionStrengthExt | External motion strength control, effective when motion detection method is external gyro | User setting |  |
+| m_nSADIntervalFrame | Interval frame count for SAD calculation, effective when motion detection method is internal AEM statistics  | No |  |
+| m_nMotionThreshold | SAD threshold to judge motion, effective when motion detection method is internal AEM statistics  | No |  |
+| m_nMotionDetectFrame | Number of consecutive frames with SAD exceeding threshold to consider as motion scene | No |  |
+| m_nFaceDetFrameID | Frame ID where face was detected |  - | Read-only |
+| m_nAdjacentLumaSAD | Current SAD |  - | Read-only |
+| m_pMainRoiCoordinate | Main window coordinates |  - | Read-only |
+| m_pSubRoiCoordinate | Sub-window coordinates |  - | Read-only |
 
-### CDigitalGainFirmwareFilter 参数说明
+### CDigitalGainFirmwareFilter Parameter Description
 
-CDigitalGainFirmwareFilter 模块用于配置数字增益和黑电平。
+The CDigitalGainFirmwareFilter module is used to configure digital gain and black level.
 
-#### DigitalGain 使能及参数
+#### Digital Gain Enable and Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description| Recommended to Tune | Special Note |
 |---|---|---|---|
-| m_bEnable | digital gain使能：0：关闭数字gain        1： 使能数字gain | 用户设置 |   |
-| m_nISPGlobalOffsetValue12bit | 0：在stretch中扣除黑电平1：在digital gain中完全扣除黑电平2-511：完全扣除黑电平后,12bit添加的offset（此offset会在stretch扣除） | 用户设置 |   |
-| m_bManualMode | 手动模式使能 0: 自动模式1: 打开手动模式，此时黑电平参数不随gain变化，使用manual参数，用于debug |   |   |
-| m_pGlobalBlackValueManual | 手动模式参数，作用和自动一致 |   |   |
-| m_pGlobalBlackValueManualCapture | 同上，拍照起效 |   |   |
-| m_pGlobalBlackValue | R/ GR/ GB/ B四个通道的黑电平（见Gain-BlackValue示意图） | 定标结果参数 | 可随gain变化 |
-| m_pGlobalBlackValueCapture | 同上，拍照起效 | 定标结果参数 | 可随gain变化 |
-| m_pWBGoldenSignature | 白平衡golden模组特征 |  - | 只读 |
-| m_pWBCurrentSignature | 白平衡当前模组特征 |  - | 只读 |
+| m_bEnable | Digital gain enable:   `0`: Disable digital gain;    `1`: Enable digital gain | User setting |   |
+| m_nISPGlobalOffsetValue12bit | `0`: Subtract black level in stretch;   `1`: Subtract black level fully in digital gain;   `2-511`: Offset added after black level subtraction at 12-bit (this offset is subtracted in stretch) | User setting |   |
+| m_bManualMode | Manual mode enable   `0`: Auto mode   `1`: Enable manual mode; black level parameters do not change with gain and use manual parameters; for debug use |   |   |
+| m_pGlobalBlackValueManual | Manual mode parameters, function same as auto mode |   |   |
+| m_pGlobalBlackValueManualCapture | Same as above, effective during capture |   |   |
+| m_pGlobalBlackValue | Black levels for R/GR/GB/B channels (see Gain-BlackValue illustration) | Calibration result | Can vary with gain |
+| m_pGlobalBlackValueCapture | Same as above, effective during capture | Calibration result | Can vary with gain |
+| m_pWBGoldenSignature | White balance golden module signature |  - | Read-only |
+| m_pWBCurrentSignature | White balance current module signature |  - | Read-only |
 
+The BlackValue diagram is as follows:
 ![](./static/B2wmbYVkfoTzx3xrE78cEYJknVe.png)
 
-Gain – BlackValue 示意图
+### CWBGainFirmwareFilter Parameter Description
 
-### CWBGainFirmwareFilter 参数说明
+The CWBGainFirmwareFilter module is used for Auto White Balance (AWB) gain.
 
-CWBGainFirmwareFilter 模块用于自动白平衡增益。
+#### WB Gain Enable
 
-#### WBGain 使能
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended to Tune| Special Note |
 |---|---|---|---|
-| m_bEnable | WB gain使能：0：关闭白平衡gain        1： 使能白平衡gain | 否 |  |
+| m_bEnable | WB gain enable:  `0`: Disable white balance gain;   `1`:  Enable white balance gain | No |  |
 
-### CStretchFirmwareFilter 参数说明
+### CStretchFirmwareFilter Parameter Description
 
-CStretchFirmwareFilter 模块用于弥补扣除黑电平之后像素不饱和。
+The CStretchFirmwareFilter module is used to compensate for pixel undersaturation after black level subtraction.
 
-#### Stretch 使能
+#### Stretch Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended to Tune| Special Note |
 |---|---|---|---|
-| m_bEnable | stretch使能：常开，用于弥补扣除黑电平，并补偿像素不饱和 | 否 |  |
+| m_bEnable | Stretch enable: always on, used to compensate for black level subtraction and pixel undersaturation | No |  |
 
-### CColorMatrixFirmwareFilter 参数说明
+### CColorMatrixFirmwareFilter Parameter Description
 
-CColorMatrixFirmwareFilter（CCM）模块用于色彩校正。
+The CColorMatrixFirmwareFilter (CCM) module is used for color correction.
 
-#### CCM 使能
+#### CCM Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name| Description | Recommended to Tune | Special Note |
 |---|---|---|---|
-| m_bEnable | CMC使能：0：关闭色彩校正矩阵        1：使能色彩校正矩阵 | 否 |  |
+| m_bEnable | CCM enable:  `0`: Disable the color correction matrix;    `1`: Enable the color correction matrix | No |  |
 
-#### CCM 参数及调试
+#### CCM Parameters and Tuning
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bUseCorrelatedCT | 插值依据选项：0：使用AWB的CT 1：使用WbFirmwareFilter中m_nCorrelationCT（CCT matrix需要标定） | 用户设置 |   |
-|  m_pColorTemperatureIndex | 色温分段控制点。（示例见图cmc-色温控制曲线）色温位于[0，Index[0]]区间，认定为低色温区间，使用CMC0的色彩校正矩阵；色温位于[Index[0]，Index[1]]区间，使用CMC0与CMC1插值的色彩校正矩阵；色温位于[Index[1]，Index[2]]区间，认定为中色温区间，使用CMC1的色彩校正矩阵；色温位于[Index[2]，Index[3]]区间，使用CMC1与CMC2插值的色彩校正矩阵；色温位于[Index[3]，8192]区间，认定为高色温区间，使用CMC2的色彩校正矩阵； |  是 |   |
-| m_pCMC0 | 低色温色彩校正矩阵，由CCM插件定标得到。R'G'B' to RGB ，Q12精度。 | 定标结果参数 | 可依据色温调用 |
-| m_pCMC1 | 中色温色彩校正矩阵，由CCM插件定标得到。R'G'B' to RGB ，Q12精度。 | 定标结果参数 | 可依据色温调用 |
-| m_pCMC2 | 高色温色彩校正矩阵，由CCM插件定标得到。R'G'B' to RGB ，Q12精度。 | 定标结果参数 | 可依据色温调用 |
+| m_bUseCorrelatedCT | Interpolation basis option: `0`: Use AWB's CT; `1`: Use `m_nCorrelationCT` from `WbFirmwareFilter` (CCT matrix needs calibration) | User-defined |   |
+| m_pColorTemperatureIndex | Color temperature segmentation control points. (See example below: cmc-color temperature control curve)   If the color temperature is in the range [0, Index[0]], it is considered a low color temperature range, and CMC0 is used;   In [Index[0], Index[1]], an interpolated matrix between CMC0 and CMC1 is used;   In [Index[1], Index[2]], it is considered a medium color temperature range, and CMC1 is used;   In [Index[2], Index[3]], an interpolated matrix between CMC1 and CMC2 is used;   In [Index[3], 8192], it is considered a high color temperature range, and CMC2 is used; | Yes |   |
+| m_pCMC0 | Low color temperature correction matrix, calibrated by the CCM plugin. R'G'B' to RGB, Q12 precision. | Calibration result parameter | Callable based on color temperature |
+| m_pCMC1 | Medium color temperature correction matrix, calibrated by the CCM plugin. R'G'B' to RGB, Q12 precision. | Calibration result parameter | Callable based on color temperature |
+| m_pCMC2 | High color temperature correction matrix, calibrated by the CCM plugin. R'G'B' to RGB, Q12 precision. | Calibration result parameter | Callable based on color temperature |
 
+
+cmc-Color Temperature Control Curve (see figure below)  
 ![](./static/LrvNbO5yioeg6Pxa3NLcbyYunJH.png)
 
-图 cmc-色温控制曲线
+#### CCM Color Fringe Suppression Function and Parameters
 
-#### CCM 彩边抑制功能及参数
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bColorFringleRemoveEnable | 彩边抑制使能：0：关闭        1： 使能 | 用户设置 |   |
-| m_nColorFringRemovalStrength | 彩边抑制强度:值越大，彩边抑制效果越强 | 是 |  |
+| m_bColorFringleRemoveEnable | Color fringe suppression enable:  `0`: Disable   `1`: Enable | User-defined |   |
+| m_nColorFringRemovalStrength | Color fringe suppression strength: The larger the value, the stronger the suppression effect | Yes |  |
 
-备注：Final CFR_Ratio=HueRatio\*EdgeRatio\>\>HighFreqTransShiftNum
+Note. Final CFR_Ratio = HueRatio\*EdgeRatio\>\>HighFreqTransShiftNum
 
-- **Hue 控制参数**
+- **Hue Control Parameters**
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_nHueTransShiftNum | Hue过渡带偏移系数:（示例见图HueTrans-HueRatio控制曲线）Hue落入[(ColorFringeHueRange[0]-(1&lt;&lt;ShiftNum)，ColorFringeHueRange[0]]区间做平滑处理；Hue落入[ColorFringeHueRange[1]，(ColorFringeHueRange[1]+(1&lt;&lt;ShiftNum)]区间做平滑处理； | 是 |   |
-| m_pColorFringeHueRange | 彩边抑制的Hue区间（示例见图HueTrans-HueRatio控制曲线）HueRange[0] 需小于 HueRange[1] | 是 |  |
+| m_nHueTransShiftNum | Hue transition zone offset coefficient: (See example below: HueTrans-HueRatio control curve) Hue values falling in the range [(ColorFringeHueRange[0]-(1&lt;&lt;ShiftNum)，ColorFringeHueRange[0]]  will be smoothed; Hue values in the range [ColorFringeHueRange[1]，(ColorFringeHueRange[1]+(1&lt;&lt;ShiftNum)] will also be smoothed; | Yes |   |
+| m_pColorFringeHueRange | Hue range for color fringe suppression (see example below: HueTrans-HueRatio control curve). HueRange[0] must be less than HueRange[1] | Yes |  |
 
-ColorFringeHueRange[0],[1]用于选定彩边抑制的 Hue 区间;
+ColorFringeHueRange[0],[1] is used to define the Hue range for color fringe suppression;
 
-HueTransShiftNum 用于设定平滑过渡带：
+HueTransShiftNum is used to set the smoothing transition zone:
 
 ![](./static/KYwJb2nmYowsqxx4YbbcECYAnee.png)
 
-图 HueTrans-HueRatio 曲线
 
-- **Freq 控制参数**
+- **Freq Control Parameters**
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_nHighFreqThreshold    | 彩边抑制频率下限（示例见HighFreqTrans-EdgeRatio曲线）值越大，更少边缘进入彩边抑制区域 | 是 |   |
-| m_nHighFreqTransShiftNum  | 高频过渡带偏移系数（示例见HighFreqTrans-EdgeRatio曲线）频率落入[HighFreqThreshold, HighFreqThreshold +(1&lt;&lt;HighFreqTransShiftNum)]区间做平滑处理 | 是 |  |
+| m_nHighFreqThreshold    | Lower frequency threshold for color fringe suppression (see example in HighFreqTrans-EdgeRatio curve). The larger the value, the fewer edges enter the color fringe suppression area | Yes |   |
+| m_nHighFreqTransShiftNum  | High-frequency transition band offset coefficient (see example in HighFreqTrans-EdgeRatio curve). Frequencies falling into the range [HighFreqThreshold, HighFreqThreshold +(1&lt;&lt;HighFreqTransShiftNum)] are smoothed | Yes |  |
 
+HighFreqTrans-EdgeRatio curve shown below  
 ![](./static/Du34bsO1roaHMuxBUsIcZMQ8nNd.png)
 
-图 HighFreqTrans-EdgeRatio 曲线
 
-#### CCM Manual 参数
+#### CCM Manual Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 0: 自动模式1: 打开手动模式，此时色彩校正矩阵参数不随色温变化，使用manual参数，用于debug |  - | Debug参数 |
-| m_pCMCManual | 手动模式参数，作用和自动一致 |  - | Debug参数 |
+| m_bManualMode | Manual mode enable   `0`: Automatic mode;   `1`: Enable manual mode; in this case, the color correction matrix parameters do not change with color temperature, manual parameters are used; for debugging |  - | Debug parameter |
+| m_pCMCManual | Manual mode parameters, same function as automatic |  - | Debug parameter |
 
-#### CCM 其他参数
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### CCM Other Parameters
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bDisgardHFEnable | 丢弃高频信息使能：0：添加高频信息        1：丢弃高频信息 | 用户设置 |   |
-| m_pCMCSaturationList | 饱和度控制 |   | 可随Gain变化 |
+| m_bDisgardHFEnable | Discard high-frequency information enable:  `0`: Add high-frequency information;    `1`: Discard high-frequency information | User-defined |   |
+| m_pCMCSaturationList | Saturation control |   | Can vary with Gain |
 
-### CBPCFirmwareFilter 调试说明
 
-CBPCFirmwareFilter（BPC）模块用于去坏点。
+### CBPCFirmwareFilter Tuning Description
 
-#### BPC 使能
+CBPCFirmwareFilter (BPC) module is used for bad pixel correction.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### BPC Enable
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bEnable | BPC使能0: 关闭坏点校正 1: 打开坏点校正 | 用户设置 |  |
+| m_bEnable | BPC enable   `0`: Disable bad pixel correction;   `1`: Enable bad pixel correction | User-defined |  |
 
-#### BPC 动态控制参数
 
-BPC 强度可随增益与亮度动态调节。
+#### BPC Dynamic Control Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+BPC strength can be dynamically adjusted according to gain and brightness.
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_pBpcGainIndex | 增益索引，建议保持缺省值 | 否 | Gain控制节点 |
-| m_pSegG | 亮度索引，相邻两档间跨度须保证为2的整数幂，建议保持缺省值 | 否 | Lum控制节点 |
+| m_pBpcGainIndex | Gain index, it is recommended to keep the default value | No | Gain control node |
+| m_pSegG | Brightness index, the interval between adjacent levels must be a power of 2, it is recommended to keep the default value | No | Lum control node |
 
-- 增益控制参数为 m_pBpcGainIndex ，0-11 共十二组，16 为 1 倍增益，增益处于两个节点之间时，参数为两个节点参数插值的结果。
+- The gain control parameter is m_pBpcGainIndex, with twelve groups from 0 to 11; 16 corresponds to 1x gain. When the gain is between two nodes, the parameter is the interpolation result of the two node parameters.
 
 ![](./static/FzClb3bksoSX9OxRcLfcInZpn9e.png)
 
-- 亮度控制参数为 m_pSegG，0-8 共九组，其中第 8 组固定为 255 不可改，对应 VRF 数据像素值（映射到 8 比特），亮度处于两个节点之间时，参数为两个节点参数插值的结果，相邻两档间跨度须保证为 2 的整数幂，建议保持缺省值。
+- The brightness control parameter is m_pSegG, with nine groups from 0 to 8, where the 8th group is fixed at 255 and cannot be changed, corresponding to VRF data pixel value (mapped to 8 bits). When brightness is between two nodes, the parameter is the interpolation result of the two node parameters. The interval between adjacent levels must be a power of 2, it is recommended to keep the default value.
 
 ![](./static/QjlsbDwzIoHbpTxTl3xc53zvnGc.png)
 
-- 强度控制参数，可随增益和亮度的变化动态调节。
+- The strength control parameter can be dynamically adjusted with changes in gain and brightness.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_pCrossChnStrength | 跨通道强度，值越大，参考更多其他通道信息,也更容易受其他通道的坏像素干扰 | 是 | 可随Gain变化 |
-| m_pSlopeG | G通道控制曲线参数，值越大，容忍度越大，去坏点能力越弱 | 是 | 可随Gain和Lum变化 |
-| m_pInterceptG | G通道控制曲线参数，值越大，容忍度越大，去坏点能力越弱 | 是 | 可随Gain和Lum变化 |
-| m_pSlopeRB | RB通道控制曲线参数，值越大，容忍度越大，去坏点能力越弱 | 是 | 可随Gain和Lum变化 |
-| m_pInterceptRB | RB通道控制曲线参数，值越大，容忍度越大，去坏点能力越弱 | 是 | 可随Gain和Lum变化 |
+| m_pCrossChnStrength | Cross-channel strength; the larger the value, the more other channel information is referenced, but it is also more susceptible to bad pixels from other channels | Yes | Can vary with Gain |
+| m_pSlopeG | G channel control curve parameter; the larger the value, the greater the tolerance and the weaker the bad pixel correction ability | Yes | Can vary with Gain and Lum |
+| m_pInterceptG | G channel control curve parameter; the larger the value, the greater the tolerance and the weaker the bad pixel correction ability | Yes | Can vary with Gain and Lum |
+| m_pSlopeRB | RB channel control curve parameter; the larger the value, the greater the tolerance and the weaker the bad pixel correction ability | Yes | Can vary with Gain and Lum |
+| m_pInterceptRB | RB channel control curve parameter; the larger the value, the greater the tolerance and the weaker the bad pixel correction ability | Yes | Can vary with Gain and Lum |
 
-以 m_pSlopeG 为例：
+Taking m_pSlopeG as an example:
 
-Column 表示 Gain 的档位，与 m_pBpcGainIndex 一一对应。
+- Column represents the Gain level, corresponding one-to-one with m_pBpcGainIndex.
 
-Row 表示 Lum 档位，与 m_pSegG 一一对应。
+- Row represents the Lum level, corresponding one-to-one with m_pSegG.
 
 ![](./static/JAlIbd1wAoKOfUxLK7Fc223ontg.png)
 
-- 参数随 Lum 变化插值说明
+- Parameter interpolation with Lum change explanation
 
 ![](./static/LNJCbJMKJocZrxxR9SEc7QgtnDc.png)
 
-【注：上述随 Lum 变化的 Value 包含 Slope, Intercept】
+**Notes:**
+- The above values changing with Lum include Slope and Intercept
+- Final tolerance is jointly determined by Slope, Intercept, and Ratio. Tolerance = (Lum\*Current_Slope + Current_Intercept)\* Ratio. The greater the tolerance, the weaker the bad pixel correction
 
-【注：最终容忍度由 Slope, Intercept, Ratio 共同决定，容忍度 = (Lum\*Current_Slope+Current_Intercept)\*Ratio. 容忍度越大，去坏点越弱】
+**Explanation:** Current_Slope and Current_Intercept are interpolated based on Lum and gain changes. Explanation: Ratio is divided into Dead/SpikeRatio and RB/G, totaling 4 cases.
 
-说明：Current_Slope 与 Current_Intercept 均根据 Lum 和 gain 变化插值得出说明：Ratio 分为 Dead/SpikeRatio 与 RB/G，共 4 种情况
 
-#### BPC 功能模块及参数
+#### BPC Functional Modules and Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_nMinThrEn | 暗点检测通道选择Bit 0:参考跨通道信息使能；Bit 1:参考GrGb通道信息使能；Bit 2:参考相同通道信息使能。 | 否 |   |
-| m_nMaxThrEn | 亮点检测通道选择Bit 0:参考跨通道信息使能；Bit 1:参考GrGb通道信息使能；Bit 2:参考相同通道信息使能。 | 否 |   |
-| m_nNearThr | 使用跨通道的亮度下限值，只有亮度大于此阈值时，才会使用跨通道信息。 | 否 |   |
-| m_bDeadEnable | 暗点矫正使能 | 用户设置 |   |
-| m_nDeadRatioG | G通道暗点系数，值越大，G通道暗点容忍度越大，去坏点能力越弱 | 是 |   |
-| m_nDeadRatioRB | RB通道暗点系数，值越大，RB通道暗点容忍度越大，去坏点能力越弱 | 数 |   |
-| m_bSpikeEnable | 亮点矫正使能 | 用户设置 |   |
-| m_nSpikeRatioG | G通道亮点系数，值越大，G通道亮点容忍度越大，去坏点能力越弱 | 是 |   |
-| m_nSpikeRatioRB | RB通道亮点系数，值越大，RB通道亮点容忍度越大，去坏点能力越弱 | 是 |   |
-| m_bSameChnNum | 相同通道预矫正使能1：打开相同通道预矫正，开启后可排除相同通道坏点干扰 | 用户设置 |   |
-| m_nDeltaThr | 相同通道预矫正阈值，建议保持缺省值 | 否 |   |
-| m_nRingGRatio | 相同通道预矫正阈值，建议保持缺省值 | 否 |   |
-| m_nRingMeanRatio | 相同通道预矫正阈值，建议保持缺省值 | 否 |   |
-| m_bCornerDetEn | 拐角检测使能使能可保护拐角 | 用户设置 |   |
-| m_pSlopeCorner | 拐角控制曲线参数，值越大，保护的拐角越少，与容忍度无关 | 是 | 可随Gain和Lum变化 |
-| m_pInterceptCorner | 拐角控制曲线参数，值越大，保护的拐角越少，与容忍度无关 | 是 | 可随Gain和Lum变化 |
-| m_bEdgeDetEn | 边缘检测使能使能可保护边缘 | 用户设置 |   |
-| m_nEdgeTimes | 边缘判定门限，值越小，边缘保护的越多 | 是 |   |
-| m_bGrGbNum | GrGb通道预矫正使能1：打开GrGb通道预矫正，开启后可排除GrGb通道坏点干扰 | 用户设置 |   |
-| m_bAroundDetEn | 亮块检测使能使能可保护亮度突变的像素块 | 用户设置 |   |
-| m_bBlockDetEn | 2x2 坏块检测使能使能可排除2x2坏块干扰 | 用户设置 |   |
+| m_nMinThrEn | Dark pixel detection channel selection   Bit `0`: Enable reference to cross-channel information;  Bit `1`: Enable reference to GrGb channel information;  Bit `2`: Enable reference to the same channel information. | No |   |
+| m_nMaxThrEn | Bright pixel detection channel selection   Bit `0`: Enable reference to cross-channel information;  Bit `1`: Enable reference to GrGb channel information;  Bit `2`: Enable reference to the same channel information. | No |   |
+| m_nNearThr | Lower brightness threshold for using cross-channel information; cross-channel information is used only when brightness is above this threshold. | No |   |
+| m_bDeadEnable | Dark pixel correction enable | User-defined |   |
+| m_nDeadRatioG | G channel dark pixel coefficient; the larger the value, the greater the tolerance for G channel dark pixels and the weaker the bad pixel correction ability | Yes |   |
+| m_nDeadRatioRB | RB channel dark pixel coefficient; the larger the value, the greater the tolerance for RB channel dark pixels and the weaker the bad pixel correction ability | Number |   |
+| m_bSpikeEnable | Bright pixel correction enable | User-defined |   |
+| m_nSpikeRatioG | G channel bright pixel coefficient; the larger the value, the greater the tolerance for G channel bright pixels and the weaker the bad pixel correction ability | Yes |   |
+| m_nSpikeRatioRB | RB channel bright pixel coefficient; the larger the value, the greater the tolerance for RB channel bright pixels and the weaker the bad pixel correction ability | Yes |   |
+| m_bSameChnNum | Same channel pre-correction enable; `1`: enable same channel pre-correction, which can exclude interference from bad pixels in the same channel | User-defined |   |
+| m_nDeltaThr | Same channel pre-correction threshold; it is recommended to keep the default value | No |   |
+| m_nRingGRatio | Same channel pre-correction threshold; it is recommended to keep the default value | No |   |
+| m_nRingMeanRatio | Same channel pre-correction threshold; it is recommended to keep the default value | No |   |
+| m_bCornerDetEn | Corner detection enable; can protect corners | User-defined |   |
+| m_pSlopeCorner | Corner control curve parameter; the larger the value, the fewer corners are protected; unrelated to tolerance | Yes | Can vary with Gain and Lum |
+| m_pInterceptCorner | Corner control curve parameter; the larger the value, the fewer corners are protected; unrelated to tolerance | Yes | Can vary with Gain and Lum |
+| m_bEdgeDetEn | Edge detection enable; can protect edges | User-defined |   |
+| m_nEdgeTimes | Edge determination threshold; the smaller the value, the more edges are protected | Yes |   |
+| m_bGrGbNum | GrGb channel pre-correction enable; `1`: enable GrGb channel pre-correction, which can exclude interference from bad pixels in GrGb channel | User-defined |   |
+| m_bAroundDetEn | Bright block detection enable; can protect pixels with sudden brightness changes | User-defined |   |
+| m_bBlockDetEn | 2x2 bad block detection enable; can exclude interference from 2x2 bad blocks | User-defined |   |
 
 ---
 
-#### BPC Manual 参数
+#### BPC Manual Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能1: 打开手动模式，此时bpc参数不随gain变化，使用manual参数，用于debug |  - | Debug参数 |
-| m_nCrossChnStrengthManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
-| m_pSlopeGManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
-| m_pInterceptGManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
-| m_pSlopeRBManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
-| m_pInterceptRBManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
-| m_pSlopeCornerManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
-| m_pInterceptCornerManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
+| m_bManualMode | Manual mode enable   `1`: Enable manual mode; in this case, BPC parameters do not change with gain and manual parameters that are used; for debugging |  - | Debug parameter |
+| m_nCrossChnStrengthManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
+| m_pSlopeGManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
+| m_pInterceptGManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
+| m_pSlopeRBManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
+| m_pInterceptRBManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
+| m_pSlopeCornerManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
+| m_pInterceptCornerManual | Manual mode parameter, functionally consistent with automatic mode |  - | Debug parameter |
 
-### CLSCFirmwareFilter 参数说明
 
-CLSCFirmwareFilter 模块用于镜头阴影矫正。
+### CLSCFirmwareFilter Parameter Description
 
-#### LSC 使能
+CLSCFirmwareFilter module is used for lens shading correction.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### LSC Enable
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bEnable | LSC使能0: 关闭镜头阴影校正        1: 打开镜头阴影校正 | 用户设置 |   |
-| m_bUseOTP | LSC OTP使能 | 用户设置 |  |
+| m_bEnable | LSC enable   `0`: Disable lens shading correction;   `1`: Enable lens shading correction | User-defined |   |
+| m_bUseOTP | LSC OTP enable | User-defined |   |
 
-#### LSC 参数
+#### LSC Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bAutoScale | AutoScale使能：0: 关闭自动计算缩放参数功能        1: 打开自动计算缩放参数功能 | 否 |   |
-| m_bEnhanceEnable | Enhance使能：当前模组期望补偿倍数超过4倍时需要打开0: 关闭shading增强功能        1: 打开shading增强功能 | 用户设置 |   |
-| m_nProfileSelectOption | shading补偿表选择：0：依据色温自动选择                1：使用LSC Profile[0] 2：使用LSC Profile[2]        3：使用LSC Profile[2] | 否 |   |
-| m_nFOVCropRatioH | 水平方向裁剪比例 | 是 | binning尺寸决定 |
-| m_nFOVCropRatioV | 垂直方向裁剪比例 | 是 | binning尺寸决定 |
-| m_pLSCStrength | shading补偿强度：（示例见Gain-strength示意图）64表示1倍； 32表示1/2倍； 16表示1/4倍； 其他值以此类推 | 是 | 可依据gain调整 |
-| m_bUseCorrelatedCT | 插值依据选项：0：使用AWB的CT 1：使用WbFirmwareFilter中m_nCorrelationCT（CCT matrix需要标定） | 用户设置 |   |
-|  m_pCTIndex | 色温分段控制选择LSC profile（示例见图LSC-色温控制曲线）：当m_nProfileSelectOption设置为0时有效。色温位于[0，CTIndex[0]]区间，认定为低色温区间，使用LSCProfile[0]的补偿表；色温位于[CTIndex[0]，CTIndex[1]]区间，使用LSCProfile[0]与LSCProfile[1]插值的补偿表；色温位于[CTIndex[1]，CTIndex[2]]区间，认定为中色温区间，使用LSCProfile[1]的补偿表；色温位于[CTIndex[2]，CTIndex[3]]区间，使用LSCProfile[1]与LSCProfile[2]插值的补偿表；色温位于[CTIndex[3]，8192]区间，认定为高色温区间，使用LSCProfile[2]的补偿表； |  是 |   |
-| m_pLSCProfile | LSC补偿表，由LSC插件定标得到 | 定标结果参数 | 可依据色温调用 |
+| m_bAutoScale | AutoScale enable:  `0`: Disable automatic scaling parameter calculation;  `1`: Enable automatic scaling parameter calculation | No |   |
+| m_bEnhanceEnable | Enhance enable: Enable when the current module’s expected compensation multiple exceeds 4x  `0`: Disable shading enhancement; `1`: Enable shading enhancement | User-defined |   |
+| m_nProfileSelectOption | Shading compensation table selection:  `0`: Automatically select based on color temperature;  `1`: Use LSC Profile[0];  `2`: Use LSC Profile[1];  `3`: Use LSC Profile[2] | No |   |
+| m_nFOVCropRatioH | Horizontal cropping ratio | Yes | Determined by binning size |
+| m_nFOVCropRatioV | Vertical cropping ratio | Yes | Determined by binning size |
+| m_pLSCStrength | Shading compensation strength (see Gain-strength illustration)  64 represents 1x;  32 represents 1/2x;  16 represents 1/4x;  Other values follow similarly | Yes | Can be adjusted based on gain |
+| m_bUseCorrelatedCT | Interpolation basis option:  `0`: Use AWB’s CT  `1`: Use `m_nCorrelationCT` in `WbFirmwareFilter` (CCT matrix needs calibration) | User-defined |   |
+| m_pCTIndex | Color temperature segment control for LSC profile (see LSC-color temperature control curve below): Effective when m_nProfileSelectOption is set to 0.  When color temperature is in [0, CTIndex[0]], considered low color temperature range, use compensation table of LSCProfile[0];  When in [CTIndex[0], CTIndex[1]], use interpolation of LSCProfile[0] and LSCProfile[1];  When in [CTIndex[1], CTIndex[2]], considered medium color temperature range, use compensation table of LSCProfile[1];  When in [CTIndex[2], CTIndex[3]], use interpolation of LSCProfile[1] and LSCProfile[2];  When in [CTIndex[3], 8192], considered high color temperature range, use compensation table of LSCProfile[2]; | Yes |   |
+| m_pLSCProfile | LSC compensation table, calibrated by LSC plugin | Calibration result parameter | Can be called based on color temperature |
 
+LSC-color temperature control curve below  
 ![](./static/JMPabWdtVomXsJx1sTnc7MnanLe.png)
 
-图 LSC-色温控制曲线
-
+Gain-strength illustration below  
 ![](./static/CHr0bp58jojXhaxbF8RcNveJnmh.png)
 
-Gain-strength 示意图
 
-#### 自适应 color shading 参数
+#### Adaptive Color Shading Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bLSCCSCEnable | 自适应color shading校正使能（CSC） | 用户设置 |   |
-| m_bAdjustCSCTblMinEnable | 依据R/G（B/G）最小值调节CSC表 | 否 |   |
-| m_nDifThr | 向量中值滤波后dif阈值，dif大于该值，则该块不参与计算CSC | 否 |   |
-| m_nDifThrMinPerc | 向量中值滤波后dif阈值，dif小于DifThrMinPerc*DifThr，则计算CSC不考虑角度 | 否 |   |
-| m_nAngleThr | 向量中值滤波后角度阈值，角度大于该值，则该块不参与计算CSC | 否 |   |
-| m_nDifThrVMF | 向量中值滤波前后dif阈值，dif大于该值，则该块不参与计算CSC | 否 |   |
-| m_nAngleThrVMF | 向量中值滤波前后角度阈值，角度大于该值，则该块不参与计算CSC | 否 |   |
-| m_nGradThrMin | 向量中值滤波后有效梯度最小值 | 否 |   |
-| m_nGradThrMax | 向量中值滤波后有效梯度最大值 | 否 |   |
-| m_nGradMaxError | CSC估计统计值梯度与真实统计值梯度最大误差容忍值 | 是 |   |
-| m_nGradThrConv | CSC两次计算的梯度差异门限，梯度差异小于该值，不更新CSC | 是 |   |
-| m_nGradMax | CSC最大补偿强度 | 是 |   |
-| m_nTblAlpha | 收敛速度，值越大收敛越快 | 是 |   |
-| m_nCSCGlobalStrength | CSC全局强度 | 是 |   |
-| m_nEffPNumAll | 全图像有效块门限 | 否 |   |
-| m_nEffPNumHalf | 1/2图像有效块门限 | 否 |   |
-| m_nEffPNumQuarter | 1/4图像有效块门限 | 否 |   |
-| m_pEffNumRing | 三个ROI对应的有效块门限，ROI0为中心6x4，ROI1为中心12x8(不包含ROI0)，ROI2为12x12（不包含ROI0,ROI1） | 否 |   |
-| m_pCSCCTIndex | CSC色温控制点，CT &gt; CSCCTIndex[1]时CSC失效 | 是 |   |
-| m_pCSCLuxIndex | CSC亮度控制点，Lux &gt; CSCLuxIndex[1]时CSC失效 | 是 |   |
+| m_bLSCCSCEnable | Adaptive color shading correction enable (CSC) | User-defined |   |
+| m_bAdjustCSCTblMinEnable | Adjust CSC table based on minimum R/G (B/G) values | No |   |
+| m_nDifThr | Dif threshold after vector median filtering; if dif is greater than this value, the block is excluded from CSC calculation | No |   |
+| m_nDifThrMinPerc | Dif threshold after vector median filtering; if dif is less than DifThrMinPerc*DifThr, angle is not considered in CSC calculation | No |   |
+| m_nAngleThr | Angle threshold after vector median filtering; if angle is greater than this value, the block is excluded from CSC calculation | No |   |
+| m_nDifThrVMF | Dif threshold before and after vector median filtering; if dif is greater than this value, the block is excluded from CSC calculation | No |   |
+| m_nAngleThrVMF | Angle threshold before and after vector median filtering; if angle is greater than this value, the block is excluded from CSC calculation | No |   |
+| m_nGradThrMin | Minimum effective gradient after vector median filtering | No |   |
+| m_nGradThrMax | Maximum effective gradient after vector median filtering | No |   |
+| m_nGradMaxError | Maximum tolerance for error between CSC estimated gradient and real gradient statistics | Yes |   |
+| m_nGradThrConv | Threshold for gradient difference between two CSC calculations; if difference is less than this value, CSC is not updated | Yes |   |
+| m_nGradMax | Maximum CSC compensation strength | Yes |   |
+| m_nTblAlpha | Convergence speed; the larger the value, the faster the convergence | Yes |   |
+| m_nCSCGlobalStrength | CSC global strength | Yes |   |
+| m_nEffPNumAll | Effective block threshold for entire image | No |   |
+| m_nEffPNumHalf | Effective block threshold for half image | No |   |
+| m_nEffPNumQuarter | Effective block threshold for quarter image | No |   |
+| m_pEffNumRing | Effective block thresholds for three ROIs:  ROI0 is center 6x4  ROI1 is center 12x8 (excluding ROI0)  ROI2 is 12x12 (excluding ROI0, ROI1) | No |   |
+| m_pCSCCTIndex | CSC color temperature control points; CSC invalid when CT &gt; CSCCTIndex[1] | Yes |   |
+| m_pCSCLuxIndex | CSC brightness control points; CSC invalid when Lux &gt; CSCLuxIndex[1] | Yes |   |
 
-#### LSC Manual 及 frameinfo
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### LSC Manual and frameinfo
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能：1: 打开手动模式，此时LSC参数不随色温变化，使用manual参数，用于debug |   | Debug参数 |
-| m_nLSCStrengthManual | 手动模式参数, 具体功能和自动功能一致 |   | Debug参数 |
-| m_pLSCProfileManual | 手动模式参数, 具体功能和自动功能一致 |   | Debug参数 |
-| m_nRGPolyCoefRO | 当前CSC补偿R ratio |   | 只读 |
-| m_nBGPolyCoefRO | 当前CSC补偿B ratio |   | 只读 |
-| m_pRGRatio | 16x12 统计块对应R/G ratio |   | 只读 |
-| m_pBGRatio | 16x12 统计块对应B/G ratio |   | 只读 |
-| m_pOTPProfileInternal | OTP shading表 |   | 只读 |
+| m_bManualMode | Manual mode enable:  `1`: Enable manual mode; in this case LSC parameters do not change with color temperature and manual parameters are used; for debugging |   | Debug parameter |
+| m_nLSCStrengthManual | Manual mode parameter, functionally consistent with automatic mode |   | Debug parameter |
+| m_pLSCProfileManual | Manual mode parameter, functionally consistent with automatic mode |   | Debug parameter |
+| m_nRGPolyCoefRO | Current CSC compensation R ratio |   | Read only |
+| m_nBGPolyCoefRO | Current CSC compensation B ratio |   | Read only |
+| m_pRGRatio | R/G ratio corresponding to 16x12 statistical blocks |   | Read only |
+| m_pBGRatio | B/G ratio corresponding to 16x12 statistical blocks |   | Read only |
+| m_pOTPProfileInternal | OTP shading table |   | Read only |
 
-### CDemosaicFirmwareFilter 调试说明
 
-CDemosaicFirmwareFilter（Demosaic）模块用于 Bayer 插值。
+### CDemosaicFirmwareFilter Parameter Description
 
-#### Demosaic 子功能使能
+CDemosaicFirmwareFilter (Demosaic) module is used for Bayer interpolation.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### Demosaic Subfunction Enable
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bIfEdgeGenerate | 高频信息生成功能开关:可用于inline sharpen(inline sharpen功能需要cmc模块配合使用) 0：关闭        1：打开 | 用户设置 |   |
-| m_bIfGbGrRebalance | GbGr差异消除功能开关0：关闭        1：打开 | 否 |   |
-| m_bIfDNS | inline 去噪功能开关, 建议关闭0：关闭        1：打开 | 否 |  |
+| m_bIfEdgeGenerate | High-frequency information generation enable: can be used for inline sharpen (inline sharpen function requires cooperation with cmc module)   `0`: Disable;   `1`: Enable | User-defined |   |
+| m_bIfGbGrRebalance | GbGr difference elimination enable   `0`: Disable;   `1`: Enable | No |   |
+| m_bIfDNS | Inline denoise enable, recommended to disable   `0`: Disable;   `1`: Enable | No |   |
 
-#### Demosaic 动态控制参数
 
-Demosaic 参数可随 gain 动态调节。
+#### Demosaic Dynamic Control Parameters
 
-增益控制节点 N 从 0-11，共十二组，节点为 2 的 N 次方倍 gain，即第 0 档为 1 倍 gain；第 11 档为 2048 倍 gain。
+Demosaic parameters can be dynamically adjusted with gain.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+Gain control nodes N range from 0 to 11, twelve groups in total. The gain at node N is 2^N times, i.e., node 0 corresponds to 1x gain; node 11 corresponds to 2048x gain.
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_nInterpOffset | 四方向噪声容忍度 | 否 | 可随Gain变化 |
-| m_nInterpOffsetHV | 水平垂直噪声容忍度 | 否 | 可随Gain变化 |
-| m_nNoiseSTD | 噪声容忍度标准差 | 否 | 可随Gain变化 |
-| m_nLowpassGLevel | 插值频率控制参数, 越小越倾向于4方向插值结果, 越大越倾向于无方向低通插值的结果 | 是 | 可随Gain变化 |
-| m_nGbGrThr | GbGr差异消除功能对应的阈值,越小GbGr差异消除功能越弱, 反之则越强 | 是 | 可随Gain变化 |
-| m_nSharpenStrength | 高频信息放大倍率，值越大，锐化越强 | 是 | 可随Gain变化 |
-| m_nShpThreshold | 高频信息软阈值处理时的阈值, 建议保持缺省值 | 否 | 可随Gain变化 |
-| m_nDenoiseThreshold | inline 去噪功能软阈值, 越大去噪能力越强, 建议保持缺省值 | 否 | 可随Gain变化 |
-| m_nNoiseAddbackLevel | inline 去噪功能噪声回加强度, 越大去噪能力越弱, 建议保持缺省值 | 否 | 可随Gain变化 |
-| m_pDenoiseLumaStrength | 依据亮度控制去噪强度缩放系数，亮度区间为8bit下[8，16，32]，亮度64以上系数为32，不缩放 | 否 | 可随Gain变化 |
-| m_nChromaNoiseThreshold | 去除彩噪功能阈值, 越大去除彩噪能力越强, 建议保持缺省值 | 否 | 可随Gain变化 |
-| m_pUSMFilter | USMFilter = conv([1 2 1], [usm2 usm1 usm0 64-2*(usm0+usm1+usm2) usm0 usm1 usm2]), 建议保持缺省值 | 否 | 可随Gain变化 |
+| m_nInterpOffset | Noise tolerance in four directions | No | Can change with Gain |
+| m_nInterpOffsetHV | Noise tolerance in horizontal and vertical directions | No | Can change with Gain |
+| m_nNoiseSTD | Noise tolerance standard deviation | No | Can change with Gain |
+| m_nLowpassGLevel | Interpolation frequency control parameter; smaller values favor 4-direction interpolation results, larger values favor directionless low-pass interpolation results | Yes | Can change with Gain |
+| m_nGbGrThr | Threshold corresponding to GbGr difference elimination function; smaller values weaken the function, larger values strengthen it | Yes | Can change with Gain |
+| m_nSharpenStrength | High-frequency information amplification factor; larger values mean stronger sharpening | Yes | Can change with Gain |
+| m_nShpThreshold | Threshold for soft threshold processing of high-frequency information; recommended to keep default value | No | Can change with Gain |
+| m_nDenoiseThreshold | Soft threshold for inline denoise function; larger values mean stronger denoise; recommended to keep default value | No | Can change with Gain |
+| m_nNoiseAddbackLevel | Noise feedback strength for inline denoise; larger values weaken denoise; recommended to keep default value | No | Can change with Gain |
+| m_pDenoiseLumaStrength | Luma-based scaling coefficient for denoise strength; luma levels in 8-bit [8,16,32]; for luma above 64, coefficient is 32, no scaling | No | Can change with Gain |
+| m_nChromaNoiseThreshold | Threshold for chroma noise removal; larger values mean stronger removal; recommended to keep default value | No | Can change with Gain |
+| m_pUSMFilter | USMFilter = conv([1 2 1], [usm2 usm1 usm0 64-2*(usm0+usm1+usm2) usm0 usm1 usm2]); recommended to keep default value | No | Can change with Gain |
 
-以 m_nSharpenStrength 为例：
 
-Column 表示 Gain 的档位，Column[0]表示 1 倍 gain 下对应的值；Column[11]表示 2048 倍 gain 下对应的值
+Taking **m_nSharpenStrength** as an example:
+
+Column represents the gain level
+
+- Column[0] corresponds to the value at 1x gain  
+- Column[11] corresponds to the value at 2048x gain
 
 ![](./static/GrX6bMFrCoPYUBx1zVUcAh6zn1f.png)
 
+Gain – Sharpen illustrative chart as below  
 ![](./static/S8vmbd56NoR3DHxROWMcN4YTnKb.png)
 
-Gain – Sharpen 示意图
+#### Demosaic Other Parameters
 
-#### Demosic 其他参数
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_pHFFragShiftIndex | 高频信息分段增益处理的分段信息, 建议保持缺省值 | 否 |   |
-| m_pHFFragGainIndex | 高频信息分段增益处理的增益信息, 建议保持缺省值 | 否 |   |
+| m_pHFFragShiftIndex | Segment information for high-frequency segmented gain processing; recommended to keep default value | No |   |
+| m_pHFFragGainIndex | Gain information for high-frequency segmented gain processing; recommended to keep default value | No |   |
 
-#### Demosaic Manual 参数
+#### Demosaic Manual Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 0: 自动模式1: 手动模式，此时demosaic参数不随gain变化，使用manual参数，用于debug |  - | Debug参数 |
-| Manual结尾参数 | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
+| m_bManualMode | Manual mode enable   `0`: Automatic mode;   `1`: Manual mode; in this case demosaic parameters do not change with gain, manual parameters are used; for debug |  - | Debug parameter |
+| Parameters ending with Manual | Manual mode parameters, functionally consistent with automatic mode |  - | Debug parameter |
 
-### CRawDenoiseFirmwareFilter 调试说明
+### CRawDenoiseFirmwareFilter Parameter Description
 
-CRawDenoiseFirmwareFilter（RawDenoise）模块用于 RAW 域去噪。
+CRawDenoiseFirmwareFilter (RawDenoise) module is used for RAW domain denoise.
 
-#### RawDenoise 使能
+#### RawDenoise Enable
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
+| Parameter Name | Description | Recommended Change | Special Notes |
 |---|---|---|---|
-| m_bEnable | RAW denoise 模块使能开关0: 关闭RAW域去噪        1: 打开RAW域去噪 | 依据用户设置 |  |
+| m_bEnable | RAW denoise module enable switch   `0`: Disable RAW domain denoise;   `1`: Enable RAW domain denoise | Based on user settings |   |
 
-#### RawDenoise 动态控制参数
+#### RawDenoise Dynamic Control Parameters
 
-RawDenoise 参数可随 gain 动态调节。
+RawDenoise parameters can be dynamically adjusted with gain.
 
-增益控制节点 N 从 0-11，共十二组，节点为 2 的 N 次方倍 gain，即第 0 档为 1 倍 gain；第 11 档为 2048 倍 gain.（见 Gain-Denoise_strength 示意图）
+Gain control nodes N range from 0 to 11, twelve groups in total. The gain at node N is 2^N times, i.e., node 0 corresponds to 1x gain; node 11 corresponds to 2048x gain. (See Gain-Denoise_strength illustrative chart)
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
+| Parameter Name | Description | Recommended Change | Special Notes |
 |---|---|---|---|
-| m_pMaxSpacialDenoiseThreGain | 边角最大去噪强度, Q8精度, 值越大, 边角能达到的去噪强度越强 | 是 | 可随Gain变化 |
-| m_pSigma | 去噪强度阈值, 值越大去噪强度越强 | 是 | 可随Gain变化 |
-| m_pGns | G通道去噪强度, 值越大去噪强度越强 | 是 | 可随Gain变化 |
-| m_pRbns | RB通道去噪强度, 值越大去噪强度越强 | 是 | 可随Gain变化 |
-| m_pL0 | 对应1.5%亮度下的去噪强度伸缩系数, Q5精度, 值越大, 该亮度下去噪强度越强 | 是 | 可随Gain变化 |
-| m_pL1 | 对应7.8%亮度下的去噪强度伸缩系数, Q5精度, 值越大, 该亮度下去噪强度越强 | 是 | 可随Gain变化 |
-| m_pL2 | 对应20%亮度下的去噪强度伸缩系数, Q5精度, 值越大, 该亮度下去噪强度越强 | 是 | 可随Gain变化 |
-| m_pL3 | 对应45%亮度下的去噪强度伸缩系数, Q5精度, 值越大, 该亮度下去噪强度越强 | 是 | 可随Gain变化 |
+| m_pMaxSpacialDenoiseThreGain | Maximum corner denoise strength, Q8 precision; the larger the value, the stronger the denoise strength achievable at corners | Yes | Can change with Gain |
+| m_pSigma | Denoise strength threshold; the larger the value, the stronger the denoise strength | Yes | Can change with Gain |
+| m_pGns | G channel denoise strength; the larger the value, the stronger the denoise strength | Yes | Can change with Gain |
+| m_pRbns | RB channel denoise strength; the larger the value, the stronger the denoise strength | Yes | Can change with Gain |
+| m_pL0 | Denoise strength scaling coefficient at 1.5% brightness, Q5 precision; the larger the value, the stronger the denoise strength at this brightness | Yes | Can change with Gain |
+| m_pL1 | Denoise strength scaling coefficient at 7.8% brightness, Q5 precision; the larger the value, the stronger the denoise strength at this brightness | Yes | Can change with Gain |
+| m_pL2 | Denoise strength scaling coefficient at 20% brightness, Q5 precision; the larger the value, the stronger the denoise strength at this brightness | Yes | Can change with Gain |
+| m_pL3 | Denoise strength scaling coefficient at 45% brightness, Q5 precision; the larger the value, the stronger the denoise strength at this brightness | Yes | Can change with Gain |
 
-m_pL0 - m_pL3 对应不同亮度下的去噪强度
+m_pL0 - m_pL3 correspond to denoise strength at different brightness levels, as shown in the figure below:
 
 ![](./static/QYi8bwTGhohuWixrKjycbeqDniV.png)
 
-luma-strength
 
-以 m_pSigma 为例：
+Taking **m_pSigma** as an example:
 
-Column 表示 Gain 的档位，Column[0]表示 1 倍 gain 下对应的参数；Column[11]表示 2048 倍 gain 下对应的参数；
+Column represents the Gain level:
+
+- Column[0] corresponds to the parameter at 1x gain;
+- Column[11] corresponds to the parameter at 2048x gain;
 
 ![](./static/ReeEbtPUyonDK3xyYSRcdCmInrh.png)
 
+Gain - Denoise_strength illustrative chart is shown below
+
 ![](./static/JyuGbHVjXoGaCpxkFqtc627Vnwg.png)
 
-Gain - Denoise_strength 示意图
+#### RawDenoise Functional Modules and Parameters
 
-#### RawDenoise 功能模块及参数
-
-| 参数名 | 说明 | 建议修改 | 特殊性 |
+| Parameter Name | Description | Recommended Change | Special Notes |
 |---|---|---|---|
-| m_bMergeEnable | 计算去噪权重时2x2-&gt;1x1的转换方式0: 取左下角, 1: 取2x2的均值 | 否 |   |
-| m_bLocalizedEnable | 去噪强度跟随局部亮度变化功能使能1. - 关闭2. - 打开 | 否 |   |
-| m_bSpacialEnable | 边缘去噪强度增强使能：0：关闭        1：打开 | 依据用户设置 |   |
-| m_bSpacialAddbackEnable | 边缘去噪回加使能：0：关闭        1：打开 | 依据用户设置 |   |
-| m_nSpacialOffCenterPercentage | 边缘去噪增强区域控制参数，去噪强度从Centerpercentage*R开始增强 (见R – CenterPercent示意图) | 是 |   |
-| m_pMaxSpacialDenoiseThreGain | 边缘去噪最大增强门限，最远距离所能达到的最大去噪强度(见Distance – RadialGain示意图) | 是 |  |
+| m_bMergeEnable | 2x2-&gt;1x1 conversion method when calculating denoise weight   `0`: Take lower-left corner   `1`: Take average of 2x2 | No |   |
+| m_bLocalizedEnable | Enable denoise strength variation with local brightness   `1`: Disable   2: Enable | No |   |
+| m_bSpacialEnable | Enable edge denoise strength enhancement:   `0`: Disable   `1`: Enable | Based on user settings |   |
+| m_bSpacialAddbackEnable | Enable edge denoise add-back:   `0`: Disable   `1`: Enable | Based on user settings |   |
+| m_nSpacialOffCenterPercentage | Edge denoise enhancement area control parameter; denoise strength enhancement starts from Centerpercentage*R (see R – CenterPercent illustrative chart below) | Yes |   |
+| m_pMaxSpacialDenoiseThreGain | Maximum edge denoise enhancement threshold, the maximum denoise strength achievable at the farthest distance (see Distance – RadialGain illustrative chart below) | Yes |   |
+
+R - CenterPercent illustrative chart below
 
 ![](./static/MjDzbshXVosldrx6y5hcvU7znie.png)
 
-R - CenterPercent 示意图
+Distance - RadialGain illustrative chart below
 
 ![](./static/EKIfbxmProoJh7x3MfacWYF3n3d.png)
 
-Distance - RadialGain 示意图
 
-#### RawDenoise debug 参数
+#### RawDenoise debug Parameters
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
+| Parameter Name | Description | Recommended Change | Special Notes |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 0: 自动模式1: 打开手动模式，此时raw denoise参数不随gain变化，使用manual参数，用于debug |   |   |
-| m_nSigmaManual | 手动模式参数,作用和自动一致 |   |   |
-| m_nGnsManual | 手动模式参数,作用和自动一致 |   |   |
-| m_nRbnsManual | 手动模式参数,作用和自动一致 |   |   |
-| m_nL0Manual | 手动模式参数,作用和自动一致 |   |   |
-| m_nL1Manual | 手动模式参数,作用和自动一致 |   |   |
-| m_nL2Manual | 手动模式参数,作用和自动一致 |   |   |
-| m_nL3Manual | 手动模式参数,作用和自动一致 |   |   |
+| m_bManualMode | Manual mode enable   `0`: Auto mode;   `1`: Enable manual mode; raw denoise parameters do not change with gain and manual parameters that are used for debug |   |   |
+| m_nSigmaManual | Manual mode parameter, same function as auto mode |   |   |
+| m_nGnsManual | Manual mode parameter, same function as auto mode |   |   |
+| m_nRbnsManual | Manual mode parameter, same function as auto mode |   |   |
+| m_nL0Manual | Manual mode parameter, same function as auto mode |   |   |
+| m_nL1Manual | Manual mode parameter, same function as auto mode |   |   |
+| m_nL2Manual | Manual mode parameter, same function as auto mode |   |   |
+| m_nL3Manual | Manual mode parameter, same function as auto mode |   |   |
 
-### CAFMFirmwareFilter 参数说明
+### CAFMFirmwareFilter Parameter Description
 
-CAFMFirmwareFilter 模块用于自动对焦统计模块。
+CAFMFirmwareFilter module is used for the Auto Focus Measurement (AFM) statistics module.
 
-#### AFM 使能
+#### AFM Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bEnable | AFM使能0: 关闭自动对焦统计模块        1: 打开自动对焦统计模块 | 用户设置 |  |
+| m_bEnable | AFM enable   `0`: Disable auto focus statistics module;    `1`: Enable auto focus statistics module | User setting |  |
 
-#### AFM 参数
+#### AFM Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_nAFStatMode | AF统计模块模式：0：经过白平衡        1：不经过白平衡 | 否 |   |
-| m_nWinStartXPermil | AFM水平方向起始点坐标千分比 | 用户设置 |   |
-| m_nWinStartYPermil | AFM垂直方向起始点坐标千分比 | 用户设置 |   |
-| m_nWinEndXPermil | AFM水平方向结束点坐标千分比 | 用户设置 |   |
-| m_nWinEndYPermil | AFM垂直方向结束点坐标千分比 | 用户设置 |   |
-| m_nMinWidthPermil | AFM最小宽度千分比 | 用户设置 |   |
-| m_nMinHeightPermil | AFM最小高度千分比 | 用户设置 |   |
-| m_bConfigDone | FW控制参数，AF窗口设置完成时设1 | 否 |   |
-| m_pFVList | 各对焦窗口Focus value值 |  - | 只读 |
-| m_nFVAvg | Focus value平均值 |  - | 只读 |
-| m_nWinStartX | AFM水平方向起始点坐标 |  - | 只读 |
-| m_nWinStartY | AFM垂直方向起始点坐标 |  - | 只读 |
-| m_nWinWidth | AFM宽度 |  - | 只读 |
-| m_nWinHeight | AFM高度 |  - | 只读 |
+| m_nAFStatMode | AF statistics module mode:   `0`: After white balance;    `1`: Without white balance | No |   |
+| m_nWinStartXPermil | AFM horizontal start coordinate in permillage | User setting |   |
+| m_nWinStartYPermil | AFM vertical start coordinate in permillage | User setting |   |
+| m_nWinEndXPermil | AFM horizontal end coordinate in permillage | User setting |   |
+| m_nWinEndYPermil | AFM vertical end coordinate in permillage | User setting |   |
+| m_nMinWidthPermil | AFM minimum width in permillage | User setting |   |
+| m_nMinHeightPermil | AFM minimum height in permillage | User setting |   |
+| m_bConfigDone | FW control parameter, set to 1 when AF window configuration is done | No |   |
+| m_pFVList | Focus values of each AF window |  - | Read-only |
+| m_nFVAvg | Average focus value |  - | Read-only |
+| m_nWinStartX | AFM horizontal start coordinate |  - | Read-only |
+| m_nWinStartY | AFM vertical start coordinate |  - | Read-only |
+| m_nWinWidth | AFM width |  - | Read-only |
+| m_nWinHeight | AFM height |  - | Read-only |
 
-### CPDCFirmwareFilter 参数说明
 
-CPDCFirmwareFilter 模块用于将 PD 像素或 shadow 像素补偿至正常亮度供 PDAF 算法使用。
+### CPDCFirmwareFilter Parameter Description
 
-#### PDC 使能
+CPDCFirmwareFilter module is used to compensate PD pixels or shadow pixels to normal brightness for PDAF algorithm usage.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### PDC Enable
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bEnable | PDC使能：0: 关闭PDC模块 1: 打开PDC模块 | 用户设置 |  |
+| m_bEnable | PDC enable:   `0`: Disable PDC module;   `1`: Enable PDC module | User setting |  |
 
-#### PDC 参数
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### PDC Parameters
+
+| Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_bOut | PD dump使能0: 关闭dump窗口内所有PD点        1: 打开dump窗口内所有PD点 | 否 |   |
-| m_nHOffset | 水平方向ISP处理图像相对于sensor输出图像宽度的偏移量（见窗口示意图m_nHOft） | 是 |   |
-| m_nVOffset | 垂直方向ISP处理图像相对于sensor输出图像高度的偏移量（见窗口示意图m_nVOft） | 是 |   |
-| m_bLRAdjust | 方向控制：0: 关闭镜像 1: 打开镜像 | 是 |   |
-| m_bTBAdjust | 方向控制：0: 关闭翻转 1: 打开翻转 | 是 |   |
-| m_nFullWidth | sensor输出图像宽度 | 是 |   |
-| m_nFullHeight | sensor输出图像高度 | 是 |   |
-| m_nWindowMode | 窗口模式：0: 自动计算PD dump区域；1: 通过m_nWinStartXPermil,m_nWinStartYPermil, m_nWinEndXPermil 和EndYPermil计算PD dump区域； | 否 |   |
-| m_nWindowScaleFactor | PDC统计窗相对于AFM统计窗的缩放比例 | 用户设置 |   |
-| m_nMinWidthPermil | PDC统计窗最小宽度千分比 | 用户设置 |   |
-| m_nMinHeightPermil | PDC统计窗最小高度千分比 | 用户设置 |   |
-| m_pPDFirstX | 水平方向PD区域相对于sensor输出图像宽度的偏移量（见窗口示意图） | 是 |   |
-| m_pPDFirstY | 垂直方向PD区域相对于sensor输出图像高度的偏移量（见窗口示意图） | 是 |   |
-| m_pRatioA | 四通道全局调节比例 | 是 |   |
-| m_pPixelMask | 32x32的区域内PD点的分布 | 是 |   |
-| m_pPixelTypeMask | 32x32的区域内PD点类型的分布PD点类型分为遮蔽上下左右四种 | 是 |   |
-| m_pRatioBMap | 四通道PD点补偿系数 | 是 |   |
-| m_bSoftCompEnable | 软件补偿PD亮度差异开关：0：使用硬件PDC补偿 1：软件补偿（sensor抽出PD像素） |   |   |
-| m_nWinStartXPermil | 水平方向PD dump区域左上角坐标千分比 |  - | 只读 |
-| m_nWinStartYPermil | 垂直方向PD dump区域左上角坐标千分比 |  - | 只读 |
-| m_nWinEndXPermil | 水平方向PD dump区域右下角坐标千分比 |  - | 只读 |
-| m_nWinEndYPermil | 垂直方向PD dump区域右下角坐标千分比 |  - | 只读 |
-| m_nWinStartX | PDC统计窗水平方向起始点坐标 |  - | 只读 |
-| m_nWinStartY | PDC统计窗垂直方向起始点坐标 |  - | 只读 |
-| m_nWinWidth | PDC统计窗宽度 |  - | 只读 |
-| m_nWinHeight | PDC统计窗高度 |  - | 只读 |
+| m_bOut | PD dump enable   `0`: Disable dumping all PD points inside the window;   `1`: Enable dumping all PD points inside the window | No |  |
+| m_nHOffset | Horizontal offset of ISP processed image relative to sensor output image width (see window diagram below for m_nHOft) | Yes |  |
+| m_nVOffset | Vertical offset of ISP processed image relative to sensor output image height (see window diagram below for m_nVOft) | Yes |  |
+| m_bLRAdjust | Direction control:   `0`: Disable mirror;   `1`: Enable mirror | Yes |  |
+| m_bTBAdjust | Direction control:   `0`: Disable flip;   `1`: Enable flip | Yes |  |
+| m_nFullWidth | Sensor output image width | Yes |  |
+| m_nFullHeight | Sensor output image height | Yes |  |
+| m_nWindowMode | Window mode:   `0`: Auto-calculate PD dump region;   `1`: Calculate PD dump region via m_nWinStartXPermil, m_nWinStartYPermil, m_nWinEndXPermil, and EndYPermil | No |  |
+| m_nWindowScaleFactor | Scale factor of PDC statistics window relative to AFM statistics window | User setting |  |
+| m_nMinWidthPermil | Minimum width of PDC statistics window (permille) | User setting |  |
+| m_nMinHeightPermil | Minimum height of PDC statistics window (permille) | User setting |  |
+| m_pPDFirstX | Horizontal offset of PD region relative to sensor output image width (see window diagram below) | Yes |  |
+| m_pPDFirstY | Vertical offset of PD region relative to sensor output image height (see window diagram below) | Yes |  |
+| m_pRatioA | Global adjustment ratio for four channels | Yes |  |
+| m_pPixelMask | Distribution of PD points within a 32x32 area | Yes |  |
+| m_pPixelTypeMask | Distribution of PD point types within a 32x32 area; PD types divided into shadow up, down, left, right | Yes |  |
+| m_pRatioBMap | Compensation coefficients for four-channel PD points | Yes |  |
+| m_bSoftCompEnable | Software compensation switch for PD brightness difference:   `0`: Use hardware PDC compensation;   `1`: Software compensation (sensor extracts PD pixels) |  |  |
+| m_nWinStartXPermil | Horizontal coordinate (permille) of PD dump region top-left corner |  - | Read-only |
+| m_nWinStartYPermil | Vertical coordinate (permille) of PD dump region top-left corner |  - | Read-only |
+| m_nWinEndXPermil | Horizontal coordinate (permille) of PD dump region bottom-right corner |  - | Read-only |
+| m_nWinEndYPermil | Vertical coordinate (permille) of PD dump region bottom-right corner |  - | Read-only |
+| m_nWinStartX | Horizontal start coordinate of PDC statistics window |  - | Read-only |
+| m_nWinStartY | Vertical start coordinate of PDC statistics window |  - | Read-only |
+| m_nWinWidth | Width of PDC statistics window |  - | Read-only |
+| m_nWinHeight | Height of PDC statistics window |  - | Read-only |
 
+Window diagram shown below:  
 ![](./static/YTpPbURsvoGK57xo5H8cz0SPnJe.png)
 
-窗口示意图
 
-### CPDFFirmwareFilter 参数说明
+### CPDFFirmwareFilter Parameter Description
 
-CPDFFirmwareFilter 模块用于将 PD 像素矫正到正常像素值。
+The CPDFFirmwareFilter module is used to correct PD pixels to normal pixel values.
 
-#### PDF 使能
+#### PDF Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | PDF使能0: 关闭相位对焦像素矫正 1: 打开相位对焦像素矫正 | 用户设置 |   |
+| Parameter Name | Description                                                  | Recommended Tuning | Special Notes |
+|----------------|--------------------------------------------------------------|--------------------|---------------|
+| m_bEnable      | PDF enable   `0`: Disable phase detection pixel correction;   `1`: Enable phase detection pixel correction | User setting  |            |
 
-#### PDF 参数
 
-| 参数名        | 说明                                                                       | 建议调试 | 特殊性 |
-| ------------- | -------------------------------------------------------------------------- | -------- | ------ |
-| m_nExtPRm     | PD像素奇异点矫正使能0: 关闭PD像素奇异点矫正 1: 打开PD像素奇异点矫正        | 用户设置 |        |
-| m_nWA         | 中心块权重8为50%权重，一般中心点本身是被补偿的PD点，故权重一般设小一些。   | 否       |        |
-| m_nWB         | 对角块权重8为50%权重，一般设为50%                                          | 否       |        |
-| m_nFullWidth  | sensor输出图像宽度                                                         | 是       |        |
-| m_nFullHeight | sensor输出图像高度                                                         | 是       |        |
-| m_nHOffset    | 水平方向ISP处理图像相对于sensor输出图像宽度的偏移量（见窗口示意图m_nHOft） | 是       |        |
-| m_nVOffset    | 垂直方向ISP处理图像相对于sensor输出图像高度的偏移量（见窗口示意图m_nVOft） | 是       |        |
-| m_bLRAdjust   | 方向控制：0: 关闭镜像 1: 打开镜像                                          | 是       |        |
-| m_bTBAdjust   | 方向控制：0: 关闭翻转 1: 打开翻转                                          | 是       |        |
-| m_bRefRB      | 0: 绿色通道矫正不参考RB通道 1: 绿色通道矫正参考RB通道                      | 否       |        |
-| m_bRefCnr     | 0: 绿色通道矫正不参考角点信息 1: 绿色通道矫正参考角点信息                  | 否       |        |
-| m_nRefNoiseL  | 用于判断边缘方向的当前噪声水平                                             | 否       |        |
-| m_nExtPThre   | PD像素奇异点的门限                                                         | 否       |        |
-| m_nExtPSft    | PD像素奇异点的软阈值                                                       | 否       |        |
-| m_nExtPOpt    | PD像素奇异点矫正选择                                                       | 否       |        |
-| m_pPDFirstX   | 水平方向PD区域相对于sensor输出图像宽度的偏移量（见窗口示意图）             | 是       |        |
-| m_pPDFirstY   | 垂直方向PD区域相对于sensor输出图像高度的偏移量（见窗口示意图）             | 是       |        |
-| m_pPixelMask  | 32x32的区域内PD点的分布                                                    | 是       |        |
-| m_pPDResult   | 四方向 PD shift 与 confidence                                              |          | 只读   |
+#### PDF Parameters
 
-### CPDAFFirmwareFilter 参数说明
+| Parameter Name | Description                                                                                  | Recommended Tuning | Special Notes |
+| -------------- | -------------------------------------------------------------------------------------------- | ------------------ | ------------- |
+| m_nExtPRm      | PD pixel outlier correction enable   `0`: Disable PD pixel outlier correction;   `1`: Enable PD pixel outlier correction | User setting  |    |
+| m_nWA          | Center block weight; 8 corresponds to 50% weight. Usually, the center point is a compensated PD point, so weight is generally set smaller. | No |    |
+| m_nWB          | Diagonal block weight; 8 corresponds to 50% weight, usually set to 50%.                      | No                 |               |
+| m_nFullWidth   | Sensor output image width                                                                    | Yes                |               |
+| m_nFullHeight  | Sensor output image height                                                                   | Yes                |               |
+| m_nHOffset     | Horizontal offset of ISP processed image relative to sensor output image width (see window diagram m_nHOft)       | Yes           |             |
+| m_nVOffset     | Vertical offset of ISP processed image relative to sensor output image height (see window diagram m_nVOft)        | Yes           |             |
+| m_bLRAdjust    | Direction control:   `0`: Disable horizontal mirror   `1`: Enable horizontal mirror;  | Yes                |               |
+| m_bTBAdjust    | Direction control:   `0`: Disable vertical flip;   `1`: Enable vertical flip          | Yes                |               |
+| m_bRefRB       | - `0`: Green channel correction does not reference RB channel;   `1`: Green channel correction references RB channel             | No          |    |
+| m_bRefCnr      | - `0`: Green channel correction does not reference corner info;   `1`: Green channel correction references corner info           | No          |    |
+| m_nRefNoiseL   | Current noise level used to determine edge direction                                         | No                 |               |
+| m_nExtPThre    | Threshold for PD pixel outliers                                                              | No                 |               |
+| m_nExtPSft     | Soft threshold for PD pixel outliers                                                         | No                 |               |
+| m_nExtPOpt     | Selection of PD pixel outlier correction                                                     | No                 |               |
+| m_pPDFirstX    | Horizontal offset of PD region relative to sensor output image width (see window diagram)    | Yes                |               |
+| m_pPDFirstY    | Vertical offset of PD region relative to sensor output image height (see window diagram)     | Yes                |               |
+| m_pPixelMask   | Distribution of PD points within 32x32 area                                                  | Yes                |               |
+| m_pPDResult    | Four-direction PD shift and confidence                                                       |                    | Read-only     |
 
-CPDAFFirmwareFilter 模块用于相位对焦。
+### CPDAFFirmwareFilter Parameters Description
 
-#### PDAF 查找表
+CPDAFFirmwareFilter module is used for Phase Detection Auto Focus (PDAF).
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bMirrorShift | 输出相位差取反 | 用户设置 |   |
-| m_bShiftLutEn | 查找表使能 | 用户设置 |   |
-| m_pShiftLut | 输出相位差查找表 | 否 |   |
+#### PDAF Lookup Table
 
-#### PDAF 误差控制
+| Parameter Name   | Description                                               | Recommended Tuning | Special Notes |
+|------------------|-----------------------------------------------------------|-------------------|---------------|
+| m_bMirrorShift   | Output phase difference inversion                         | User setting      |               |
+| m_bShiftLutEn    | Lookup table enable                                       | User setting      |               |
+| m_pShiftLut      | Output phase difference lookup table                      | No                |               |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nErrorDistWeight | 误差来源的权重（见相关性拟合曲线示意图）0 表示shape的权重为1；128 表示 shape和distance各占一半；256 表示distance的权重为1； | 否 |   |
-| m_nErrorDistCoef | distance（相关性拟合曲线距离）调节系数 | 否 |   |
-| m_nErrorShpCoef | shape（相关性拟合曲线形状）调节系数 | 否 |  |
+#### PDAF Error Control
+
+| Parameter Name     | Description                                                                                                     | Recommended Tuning | Special Notes |
+|--------------------|-----------------------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_nErrorDistWeight  | Weight of error source (see the correlation fitting curve below)   `0`: shape weight = 1;   `128`: shape and distance weights are equal;   `256`: distance weight = 1; | No   |      |
+| m_nErrorDistCoef   | Adjustment coefficient for distance (correlation fitting curve distance)                                        | No                |               |
+| m_nErrorShpCoef    | Adjustment coefficient for shape (correlation fitting curve shape)                                             | No                 |               |
+  
+Correlation fitting curve illustration:
 
 ![](./static/KQExbr7SRoZaHxxuMdZc1mYnntf.png)
 
-相关性拟合曲线示意图
 
-#### PDAF 动态控制参数
+#### PDAF Dynamic Control Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_pLumThre | 不同gain下的亮度阈值，（见图LumThre-gain控制曲线）当前亮度低于阈值时，置信度会降低 | 是 | 依据gain调整 |
-| m_pGainThre | 划分不同gain的区间的依据，用于依据Gain控制LumThre和SwingThre | 否 |   |
-| m_pSwingThre | 不同Gain下的幅度门限，（见图SwingThre-gain控制曲线）当前幅度值低于此门限时，置信度会降低 | 是 | 依据gain调整 |
+| Parameter Name | Description                                                                                     | Recommended Tuning | Special Notes     |
+|----------------|-------------------------------------------------------------------------------------------------|-------------------|--------------------|
+| m_pLumThre     | Brightness threshold at different gains (see LumThre-gain control curve below). When current brightness is below the threshold, confidence decreases. | Yes  | Adjust according to gain |
+| m_pGainThre    | Basis for dividing different gain intervals, used to control LumThre and SwingThre according to gain | No                |                    |
+| m_pSwingThre   | Amplitude threshold at different gains (see SwingThre-gain control curve below). When current amplitude is below this threshold, confidence decreases. | Yes | Adjust according to gain |
+
+LumThre-Gain control curve:
 
 ![](./static/UOFrbbfugowiQ0xGIFMcsYpinGg.png)
 
-图 LumThre-Gain 控制曲线
+SwingThre-Gain control curve:
 
 ![](./static/O295b9FmhoY1myxB0F5cqU7Zn2f.png)
 
-图 SwingThre-Gain 控制曲线
+#### PDAF Confidence Control Parameters
 
-#### PDAF 置信度控制参数
+| Parameter Name  | Description                                                                                              | Recommended Tuning | Special Notes |
+|-----------------|----------------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_bConfAdjust   | Confidence adjustment switch:   `1`: Increase confidence when current amplitude is above this threshold;   `0`: Confidence remains unchanged when current amplitude is above this threshold | No   |      |
+| m_nConfOff     | Confidence offset, used to adjust the final confidence value                                              | No                |               |
+| m_nConfLimit   | Maximum confidence (see Error-Confidence conversion curve below)                                          | No                |               |
+| m_nErrorThre1  | Error threshold for confidence conversion (see Error-Confidence conversion curve below)                   | Yes               |               |
+| m_nErrorThre2  | Confidence threshold for error conversion (see Error-Confidence conversion curve below)                   | Yes               |               |
+| m_nSearchRange | PD shift search range. The higher the PD pixel density, the larger this value.   Usually 0 for shield pixel density   3 for Dual PD | Yes    |        |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bConfAdjust | 置信度适配开关：1 ：当前幅度值高于此门限时，置信度增大0 ：当前幅度值高于此门限时，置信度不变 | 否 |   |
-| m_nConfOff | 置信度offset，用于调整最终置信度 | 否 |   |
-| m_nConfLimit | 最大置信度（见图Error-Confidence转换曲线） | 否 |   |
-| m_nErrorThre1 | 误差转为置信度的error门限（见图Error-Confidence转换曲线） | 是 |   |
-| m_nErrorThre2 | 误差转为置信度的confidence门限（见图Error-Confidence转换曲线） | 是 |   |
-| m_nSearchRange | PD shift搜索范围，PD像素密度越大，该值越大。一般密度shield pixel设0，Dual PD设3， | 是 |  |
+Error-Confidence conversion curve shown below:
 
 ![](./static/BIBybAjYiogHzmxrC6AcXIFun5c.png)
 
-图 Error-Confidence 转换曲线
+### CWbFirmwareFilter Parameter Description
 
-### CWbFirmwareFilter 参数说明
+The CWbFirmwareFilter module is used for white balance.
 
-CWbFirmwareFilter 模块用于白平衡。
+#### WB Enable
 
-#### WB 使能
+| Parameter Name | Description                                              | Recommended Tuning | Special Notes |
+|----------------|----------------------------------------------------------|-------------------|---------------|
+| m_bEnable      | WB enable:   `0`: Disable white balance statistics module;   `1`: Enable white balance statistics module | No   |       |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | WB使能0: 关闭白平衡统计模块        1: 打开白平衡统计模块 | 否 |  |
+#### WB Parameters
 
-#### WB 参数
+| Parameter Name         | Description                                                                                               | Recommended Tuning | Special Notes |
+|------------------------|-----------------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_bSyncWB              | HDR mode white balance synchronization method:   `0`: AWB calculated separately;   `1`: Use long exposure as AWB calculation source | No       |         |
+| m_bAutoWindow          | Window adjustment method: `0`: Fixed window size;   `1`: Automatically calculate window size based on zoom factor | No                |      |
+| m_nMode                | White balance mode selection:   `0`: auto mode;   `1`: custom;   `2`: D75;   `3`: D65;   `4`: D50; `5`: CWF   `6`: TL84; `7`: A   `8`: H   `9`: lock | No     |        |
+| m_nInitMode            | White balance initialization mode:   `0`: custom;   `1`: D75;   `2`: D65;   `3`: D50;   `4`: CWF;   `5`: TL84;   `6`: A;   `7`: H; | Yes      |           |
+| m_pManualGain          | Manual WB gain: indices 0-7 correspond to custom / D75 / D65 / D50 / CWF / TL84 / A / H                   | Yes               |              |
+| m_nAWBStableRange      | Threshold for AWB stable state: smaller value means harder to judge AWB as stable                         | Yes               |              |
+| m_nAWBStableFrameNum   | Number of frames reference for AWB stability: stable frames exceeding this value mean AWB stable          | Yes               |              |
+| m_nAWBUnStableRange    | Threshold for AWB unstable state: smaller value means easier to judge AWB as unstable                     | Yes               |              |
+| m_nAWBUnStableFrameNum | Number of frames reference for AWB instability: unstable frames exceeding this value mean AWB unstable    | Yes               |              |
+| m_nAWBStep1            | AWB relative step length for convergence: larger value means larger adjustment step, faster convergence but less accuracy | Yes              |      |
+| m_nAWBStep2            | AWB absolute step length for convergence: larger value means larger step, faster convergence but less accuracy | Yes          |              |
+| m_nLowThr              | Lower brightness threshold for AWB statistics: higher value excludes more dark regions from AWB stats    | Yes                |              |
+| m_nHighThr             | Upper brightness threshold for AWB statistics: lower value excludes more bright regions from AWB stats   | Yes                |              |
+| m_nCorrelationCT       | Current correlated color temperature                                                                     | -                  | Read-only    |
+| m_nTint                | Current tint value                                                                                       | -                  | Read-only    |
+| m_bAWBStableFlag       | Current AWB status                                                                                       | -                  | Read-only    |
+| m_nDistance            | Absolute sum of difference between applied white balance gain and target gain                            | -                  | Read-only    |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bSyncWB | HDR模式白平衡同步方式选择：0：AWB单独计算        1：使用长曝光作为AWB计算源 | 否 |   |
-| m_bAutoWindow | 窗口调整方式：0：固定窗口大小        1：依据zoom系数自动计算窗口大小 | 否 |   |
-| m_nMode | 白平衡模式选择：0: auto mode 1:custom 2:D75 3:D65 4:D50 5:CWF 6:TL84 7:A 8:H 9:lock | 否 |   |
-| m_nInitMode | 白平衡初始化模式：0:custom 1:D75 2:D65 3:D50 4:CWF 5:TL84 6:A 7:H | 是 |   |
-| m_pManualGain | 手动WB gain：0-7 对应 custom/D75/D65/D50/CWF/TL84/A/H | 是 |   |
-| m_nAWBStableRange | AWB 进入稳定状态的门限：值越小，越不容易判定为AWB稳定 | 是 |   |
-| m_nAWBStableFrameNum | AWB 进入稳定状态的参考帧数：稳定帧数大于改值，判定为AWB稳定 | 是 |   |
-| m_nAWBUnStableRange | AWB 进入不稳定状态的门限：值越小，越容易判定为AWB不稳定 | 是 |   |
-| m_nAWBUnStableFrameNum | AWB 进入不稳定状态的参考帧数：不稳定帧数大于改值，判定为AWB不稳定 | 是 |   |
-| m_nAWBStep1 | AWB 收敛的相对步长按比例计算步长，值越大，调整的比例越大，收敛的越快，准确性越低 | 是 |   |
-| m_nAWBStep2 | AWB 收敛的绝对步长值越大，步长越大，调整的越快，准确性越低 | 是 |   |
-| m_nLowThr | 参与AWB统计的亮度下限值越大，越多偏暗的区域不进行AWB统计 | 是 |   |
-| m_nHighThr | 参与AWB统计的亮度上限值越小，越多偏亮的区域不进行AWB统计 | 是 |   |
-| m_nCorrelationCT | 当前色温 |  - | 只读 |
-| m_nTint | 当前色调 |  - | 只读 |
-| m_bAWBStableFlag | AWB当前状态 |  - | 只读 |
-| m_nDistance | 当前应用的白平衡gain与target gain 差的绝对值之和 |  - | 只读 |
 
-### CCTCalculatorFilter 参数说明
+### CCTCalculatorFilter Parameter Description
 
-CCTCalculatorFilter 模块用于计算真实色温。
+CCTCalculatorFilter module is used to calculate the true color temperature (CCT).
 
-#### CCTCalculator 参数
+#### CCTCalculator Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nIterateNumber | 计算CT的迭代次数 | 否 |   |
-| m_nColorTemperatureLow | 低色温矩阵对应色温 |   |   |
-| m_nColorTemperatureHigh | 高色温矩阵对应色温 |   |   |
-| m_pCTMatrixLow | 低色温矩阵 |   | 定标结果 |
-| m_pCTMatrixHigh | 高色温矩阵 |   | 定标结果 |
+| Parameter Name           | Description                          | Recommended Tuning | Special Notes   |
+|--------------------------|------------------------------------|-------------------|---------------|
+| m_nIterateNumber         | Number of iterations for CT calculation | No           |                    |
+| m_nColorTemperatureLow   | Color temperature corresponding to the low color temperature matrix |       |           |
+| m_nColorTemperatureHigh  | Color temperature corresponding to the high color temperature matrix |      |           |
+| m_pCTMatrixLow           | Low color temperature matrix       |                   | Calibration result |
+| m_pCTMatrixHigh          | High color temperature matrix      |                   | Calibration result |
 
-### CRGB2YUVFirmwareFilter 参数说明
 
-CRGB2YUVFirmwareFilter 模块用于 RGB 转 YUV。
+### CRGB2YUVFirmwareFilter Parameter Description
 
-#### RGB2YUV 参数
+CRGB2YUVFirmwareFilter module is used for RGB to YUV conversion.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nOutputColorSpace | 输出色彩空间选择：0：Rec.601,        1：Rec.709 | 用户设置 |   |
-| m_nGlobalSaturation | 全局饱和度系数，Q7精度 | 是 |   |
-| m_pSaturationCP | 饱和度随gain控制参数（示例见图sat_CP-gain控制曲线） | 是 | 可随gain变化 |
+#### RGB2YUV Parameters
 
-#### RGB2YUV Manual 参数
+| Parameter Name       | Description                                                                       | Recommended Tuning | Special Notes   |
+|---------------------|------------------------------------------------------------------------------------|-------------------|------------------|
+| m_nOutputColorSpace  | Output color space selection:   `0`: Rec.601;   `1`: Rec.709                 | User setting      |                  |
+| m_nGlobalSaturation  | Global saturation coefficient, Q7 precision                                       | Yes               |                  |
+| m_pSaturationCP      | Saturation control parameters with gain (see example saturation CP-gain curve)    | Yes               | Changes with gain |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bManualMode | 手动模式使能：0：自动模式,饱和度可随gain变化        1：手动模式，饱和度固定为manual所设系数 |   | Debug参数 |
-| m_nSaturationManual | 手动饱和度系数，Q7精度 |   | Debug参数 |
 
+#### RGB2YUV Manual Parameters
+
+| Parameter Name      | Description                                                                                           | Recommended Tuning | Special Notes |
+|---------------------|-----------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_bManualMode       | Manual mode enable:   `0`: Auto mode, saturation varies with gain;   `1`: Manual mode, saturation fixed to manual value |          | Debug parameter |
+| m_nSaturationManual | Manual saturation coefficient, Q7 precision                                                        |                    | Debug parameter |
+
+sat_CP-gain control curve is shown below:  
 ![](./static/L1MtbvrsSoBgR6xi8cmcjbGGnVg.png)
 
-图 sat_CP-gain 控制曲线
 
-### CSpecialEffectFirmwareFilter 参数说明
+### CSpecialEffectFirmwareFilter Parameter Description
 
-CSpecialEffectFirmwareFilter 模块用于特殊效果调试。
+CSpecialEffectFirmwareFilter module is used for special effect tuning.
 
-#### SE 使能
+#### SE Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | Special effect使能0: 关闭特殊效果 1: 打开特殊效果共6个控制区域，区域0-5优先级逐渐降低 | 用户设置 |   |
+| Parameter Name | Description                                            | Recommended Tuning | Special Notes                  |
+|----------------|--------------------------------------------------------|-------------------|---------------------------------|
+| m_bEnable      | Special effect enable:   `0`: Disable special effect   `1`: Enable special effect with 6 control regions; regions 0-5 have decreasing priority | User setting    |         |
 
-##### SE 参数
 
-参数分为区域 0-5，共 6 组，每组含义一样，针对 6 个控制区域，区域 0-5 优先级逐渐降低。
+##### SE Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bZoneEb_0 | 区域0 特效使能 | 用户设置 |   |
-| m_pRyTable_0 | 亮度旋转参数，定标参数 | 定标结果参数 |   |
-| m_nSyTable_0 | 亮度平移参数，定标参数 | 定标结果参数 |   |
-| m_pRuvTable_0 | UV旋转参数，定标参数 | 定标结果参数 |   |
-| m_pSuvTable_0 | UV平移参数，定标参数 | 定标结果参数 |   |
-|  m_pMargin_0 | 渐变过渡带[Lum_min - Margin_0[0],Lum_max + Margin_0[1] 是平滑区间； [Hue_min - Margin_0[2],Hue_max + Margin_0[3] 是平滑区间； [Sat_min - Margin_0[4],Sat_max + Margin_0[5] 是平滑区间； |  是 |   |
-| m_pYTable_0 | 目标调整区域的Lum范围 | 是 |   |
-| m_pHTable_0 | 目标调整区域的Hue范围 | 是 |   |
-| m_pSTable_0 | 目标调整区域的Saturation范围 | 是 |   |
+Parameters are divided into zones 0-5, a total of 6 groups. Each group has the same meaning and corresponds to 6 control zones with decreasing priority from zone 0 to zone 5.
 
-#### SE 动态控制参数
+| Parameter Name  | Description                                                                                                 | Recommended Tuning | Special Notes   |
+|-----------------|-------------------------------------------------------------------------------------------------------------|-------------------|-----------------|
+| m_bZoneEb_0     | Zone 0 special effect enable                                                                                | User setting      |                 |
+| m_pRyTable_0    | Brightness rotation parameter, calibration parameter                                                        | Calibration result|                 |
+| m_nSyTable_0    | Brightness translation parameter, calibration parameter                                                     | Calibration result|                 |
+| m_pRuvTable_0   | UV rotation parameter, calibration parameter                                                                | Calibration result|                 |
+| m_pSuvTable_0   | UV translation parameter, calibration parameter                                                             | Calibration result|                 |
+| m_pMargin_0     | Transition margin band:   [Lum_min - Margin_0[0], Lum_max + Margin_0[1]] smooth range;   [Hue_min - Margin_0[2], Hue_max + Margin_0[3]] smooth range;   [Sat_min - Margin_0[4], Sat_max + Margin_0[5]] smooth range | Yes  |      |
+| m_pYTable_0     | Target adjustment area Lum range                                                                             | Yes               |                 |
+| m_pHTable_0     | Target adjustment area Hue range                                                                             | Yes               |                 |
+| m_pSTable_0     | Target adjustment area Saturation range                                                                      | Yes               |                 |
 
-GainWeight_0-5 共用一组 GainLut，用于针对不同亮度区间设置不同的强度。
+#### SE Dynamic Control Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nGainLut | GainWeight分段点，对应实际场景的值为exposure_time(us)*total_gain(Q8)&gt;&gt;8 |   |   |
-| m_pGainWeight_0 | 特殊效果的强度，（见图GainWeight-GainLut控制曲线）值越大，特殊效果越强 | 是 | 可依据Gainlut变化 |
+GainWeight_0-5 share one GainLut, used to set different intensities for different brightness ranges.
+
+| Parameter Name   | Description                                                                                           | Recommended Tuning | Special Notes     |
+|------------------|---------------------------------------------------------------------------------------------------|-------------------|------------------------|
+| m_nGainLut       | GainWeight segment points, corresponding actual scene value = exposure_time(us) * total_gain(Q8) >> 8 |               |                        |
+| m_pGainWeight_0  | Intensity of special effect (see GainWeight-GainLut control curve below). Larger values mean stronger special effect | Yes  | Can vary according to GainLut |
 
 ![](./static/GF87b77YCoFNpgxtHGmcTdnxnFb.png)
 
-#### SE Manual 参数
+#### SE Manual Parameters
 
-参数分为区域 0-5，共 6 组，每组含义一样
+Parameters are divided into zones 0-5, total 6 groups, each with the same meaning.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bManualMode_0 | 区域0 手动模式使能 |  - | Debug参数 |
-| m_nManualGainWeight_0 | 手动模式下特殊效果的强度 |  - | Debug参数 |
+| Parameter Name        | Description                    | Recommended Tuning | Special Notes |
+|-----------------------|--------------------------------|-------------------|----------------|
+| m_bManualMode_0       | Zone 0 manual mode enable      | -                 | Debug parameter|
+| m_nManualGainWeight_0 | Special effect intensity in manual mode | -        | Debug parameter|
 
-### CCurveFirmwareFilter 参数说明
+### CCurveFirmwareFilter Parameter Description
 
-CCurveFirmwareFilter 模块用于伽马曲线。
+CCurveFirmwareFilter module is used for gamma curve.
 
-#### Curve 使能
+#### Curve Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | Curve使能0: 关闭伽马曲线        1: 打开伽马曲线 | 用户设置 |   |
+| Parameter Name | Description                                               | Recommended Tuning | Special Notes |
+|----------------|-----------------------------------------------------------|-------------------|----------------|
+| m_bEnable      | Curve enable:   `0`: Disable gamma curve;   `1`: Enable gamma curve | User setting        |        |
 
-#### Curve 控制参数
+#### Curve Control Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEbGtmAfterLinearcurve | GTM随线性曲线改变使能：0：gtm1 curve不变, 1：gtm1 curve 随线性曲线改变 | 否 |   |
-| m_nCurveSelectOption | Curve使用选择：0： 基于gain自动计算， 1：使用GTMcurve0， 2：使用GTMcurve1, 3：使用 GTMcurve2        4：使用A-Log curve | 否 |   |
-| m_nBacklightStrengthManual | 低亮区域亮度调节参数：值越大，低亮区域的亮度提供的越多，0表示不增强低亮区域，此时BacklightCurveManu al不作用于最终的曲线 | 用户设置 |   |
-| m_nContrastStrengthManual | 对比度调节参数：值越大，对比度越高，128表示不调节对比度，此时ContrastsCurveManual不作用于最终的曲线 | 用户设置 |   |
-| m_nBrightnessStrengthManual | 亮度调节参数：值越大，整体亮度越高，4096表示一倍 | 用户设置 |   |
-| m_nAlpha | 前后帧GTM曲线融合的迭代速度。m_nAlpha值越大，越快收敛到当前帧计算得到的GTM曲线，255表示立即收敛到当前帧曲线。 | 是 |   |
-| m_pBacklightCurveManual | 用于调节低亮区域的曲线 | 否 |   |
-| m_pContrastsCurveManual | 用于调节对比度的曲线 | 否 |   |
-|  m_pGainIndex | Gain分段控制点（见Curve-Gain控制曲线示意图） 色温分段控制点。（见Curve-Gain控制曲线示意图）gain位于[128，GainIndex[0]]区间，使用GTMCurve0的曲线；gain位于[GainIndex[0]，GainIndex[1]]区间，使用GTMCurve0与GTMCurve1插值的曲线； gain位于GainIndex[2]，使用GTMCurve1的曲线；gain位于[GainIndex[1]，GainIndex[2]]区间，使用GTMCurve1与GTMCurve2插值的曲线；gain位于[GainIndex[2]，2048]区间，使用GTMCurve2的曲线； |  是 |   |
-| m_pGTMCurve0 | 曲线0 | 是 | 可依据Gain调用 |
-| m_pGTMCurve1 | 曲线1 | 是 | 可依据Gain调用 |
-| m_pGTMCurve2 | 曲线2 | 是 | 可依据Gain调用 |
+| Parameter Name | Description | Recommended Tuning | Special Notes |
+|----------------|-------------|--------------------|---------------|
+| m_bEbGtmAfterLinearcurve | GTM changes with linear curve enable:   `0`: gtm1 curve unchanged;   `1`: gtm1 curve changes with linear curve  | No     |          |
+| m_nCurveSelectOption     | Curve usage selection:   `0`: Auto calculate based on gain;   `1`: Use GTMcurve0;   `2`: Use GTMcurve1;   `3`: Use GTMcurve2;   `4`: Use A-Log curve;  | No      |        |
+| m_nBacklightStrengthManual | Low-light area brightness adjustment parameter: the larger the value, the more brightness is provided to the low-light area; `0` means no enhancement, and BacklightCurveManual does not affect the final curve   | User  |       |
+| m_nContrastStrengthManual  | Contrast adjustment parameter: the larger the value, the higher the contrast; `128` means no contrast adjustment and ContrastsCurveManual does not affect the final curve  | User setting     |            |
+| m_nBrightnessStrengthManual| Brightness adjustment parameter: the larger the value, the brighter the overall image; 4096 represents 1x brightness    | User setting      |          |    | m_nAlpha  | Iteration speed of GTM curve fusion between previous and current frames. The larger the m_nAlpha, the faster it converges to the current frame's GTM curve; 255 means immediate convergence to current frame curve   | Yes     |            |
+| m_pBacklightCurveManual    | Curve used to adjust low-light area       | No                |                       |
+| m_pContrastsCurveManual    | Curve used to adjust contrast             | No                |                       |
+| m_pGainIndex               | Gain segment control points (see Curve-Gain control curve illustration below) Color temperature segment control points.   Gain in [128, GainIndex[0]] uses GTMCurve0 curve;   Gain in [GainIndex[0], GainIndex[1]] interpolates between GTMCurve0 and GTMCurve1;   Gain at GainIndex[1] uses GTMCurve1;   Gain in [GainIndex[1], GainIndex[2]] interpolates between GTMCurve1 and GTMCurve2;   Gain in [GainIndex[2], 2048] uses GTMCurve2 curve. | Yes       |           |
+| m_pGTMCurve0               | Curve 0     | Yes               | Called based on Gain   |
+| m_pGTMCurve1               | Curve 1     | Yes               | Called based on Gain   |
+| m_pGTMCurve2               | Curve 2     | Yes               | Called based on Gain   |
 
+Curve-Gain control curve illustration below:  
 ![](./static/Urz9bne0HomGpfxKoPIcRSvenUh.png)
 
-Curve-Gain 控制曲线示意图
+### CLTMFirmwareFilter Parameter Description
 
-### CLTMFirmwareFilter 参数说明
+CLTMFirmwareFilter module is used for Local Tone Mapping (LTM).
 
-CLTMFirmwareFilter 模块用于局部色调映射。
+#### LTM Enable
 
-#### LTM 使能
+| Parameter Name | Description                                                                                   | Recommended Tuning | Special Notes |
+|----------------|-----------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_bEnable      | LTM enable:   `0`: Disable local tone mapping;   `1`: Enable local tone mapping;          | User setting      |               |
+| m_bHistEnable  | LTM histogram enable:   `0`: Disable LTM histogram;   `1`: Enable LTM histogram          | No                |               |
+| m_nOffsetY     | Horizontal image offset, determined by input image size                                       | User setting      |               |
+| m_nOffsetX     | Vertical image offset, determined by input image size                                         | User setting      |               |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | LTM使能：0: 关闭局部色调映射 1: 打开局部色调映射 | 用户设置 |   |
-| m_bHistEnable | LTM 直方图使能：0: 关闭LTM 直方图        1: 打开LTM 直方图 | 否 |   |
-| m_nOffsetY | 图像水平方向偏移，由输入图像大小确定 | 用户设置 |   |
-| m_nOffsetX | 图像垂直方向偏移，由输入图像大小确定 | 用户设置 |   |
+#### LTM Parameters
 
-#### LTM 参数
+| Parameter Name           | Description                                                                                                                              | Recommended Tuning | Special Notes     |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_nLtmStrength          | LTM strength; the larger the value, the stronger the LTM effect                                                                          | Yes               |               |
+| m_nCurveAlpha           | Convergence speed for blending the current frame's curve with the historically saved curve; smaller values converge faster               | Yes               |               |
+| m_nSlopeThr             | If Drc *DrcDark &lt; Thr, equivalent to GTM; if Drc* DrcDark >= Thr, each block calculates LTM strength individually                      | No                |               |
+| m_nPhicBeta             | LTM curve attenuation control point; smaller values cause earlier curve attenuation, reducing brightening of mid-high luminance blocks (see PhicBeta diagram) | No           |     |
+| m_nBlendCurveFP         | First control point for tone mapping curve based on DRCGain and DrcGainDark; BlendCurveFP &lt;= BlendCurveSP. Before FP, tone mapping strength depends on DRCGain * DrcGainDark. Larger BlendCurveFP means a larger brightening range in dark areas. | No   |     |
+| m_nBlendCurveSP         | Second control point; after SP, tone mapping strength depends on DRCGain; smooth transition between FP and SP. Smaller BlendCurveSP means smaller brightening range. | No    |     |
+| m_nSubDarkPercThrLow    | Sub-dark area brightening adjustment parameter; smaller values mean stronger brightening in sub-dark areas                               | No                |               |
+| m_nSubDarkPercThrHigh   | Sub-dark area brightening adjustment parameter; smaller values mean stronger brightening; SubDarkPercThrLow &lt; SubDarkPercThrHigh         | No                |               |
+| m_nSubDarkAdjMeanThr    | Sub-dark area brightening adjustment; combined with SubDarkPercThrLow, SubDarkPercThrHigh, controls LTM strength in sub-dark areas based on percentage of sub-dark points in a block. If current block mean > SubDarkAdjMeanThr and sub-dark percentage > SubDarkPercThrLow, LTM strength increases. Maximum at SubDarkPercThrHigh. | No                |               |
+| m_nDarkPercThrLow       | Dark area brightening adjustment parameter; smaller values mean stronger LTM in dark areas                                               | No                |               |
+| m_nDarkPercThrHigh      | Dark area brightening adjustment parameter; smaller values mean stronger LTM; DarkPercThrLow &lt; DarkPercThrHigh                           | No                |               |
+| m_nPhCDarkMaxExtraRatio | Dark area brightening adjustment parameter; combined with DarkPercThrLow and DarkPercThrHigh, controls LTM strength in darkest areas based on point percentage; larger values mean stronger LTM | No    |      |
+| m_pDstAlphaGainIndex    | LTM strength gain control nodes                                                                                                          | No                |               |
+| m_pDstAlphaIndex        | Controls LTM strength based on DstAlphaGainIndex; larger values mean stronger LTM                                                        | Yes               |               |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nLtmStrength | Ltm强度，值越大，Ltm效果越强 | 是 |   |
-| m_nCurveAlpha | 当前帧计算得到的曲线与历史保存曲线进行融合的收敛速度，值越小，收敛越快 | 是 |   |
-| m_nSlopeThr | Drc*DrcDark &lt; Thr，等效于GTM；Drc*DrcDark &gt;= Thr，每个块单独计算LTM强度 | 否 |   |
-| m_nPhicBeta | LTM曲线衰减控制点，值越小，曲线越早衰减，越多中高亮的块不会提亮(PhicBeta示意图) | 否 |   |
-| m_nBlendCurveFP | 根据DRCGain和DrcGainDark计算gtm曲线，BlendCurveFP和BlendCurveSP为两个控制节点，BlendCurveFP&lt;=BlendCurveSP。第一个节点FP之前，tone mapping强度与 DRCGain*DrcGainDark有关。BlendCurveFP越大，暗区提亮范围越大。 | 否 |   |
-| m_nBlendCurveSP | 第二个节点SP之后，tone mapping强度与DRCGain有关，两个节点之间平滑过渡。BlendCurveSP越小，亮度提升范围越小。 | 否 |   |
-| m_nSubDarkPercThrLow | 次暗区提亮调整参数,值越小，次暗区提亮强度越大。 | 否 |   |
-| m_nSubDarkPercThrHigh | 次暗区提亮调整参数,值越小，次暗区提亮强度越大。SubDarkPercThrLow &lt; SubDarkPercThrHigh | 否 |   |
-| m_nSubDarkAdjMeanThr | 次暗区提亮调整参数,SubDarkPercThrLow，SubDarkPercHigh和SubDarkAdjMeanThr与块的次暗区的点占所有点的百分比，控制次暗区LTM强度。如果当前块均值大于SubDarkAdjMeanThr并且当前块次暗区百分比大于SubDarkPercThrLow，则会提高次暗区LTM强度。当次暗区百分比达到SubDarkPercThrHigh，次暗区LTM强度最大。 | 否 |   |
-| m_nDarkPercThrLow | 暗区提亮调整参数,值越小，暗区LTM强度越大。 | 否 |   |
-| m_nDarkPercThrHigh | 暗区提亮调整参数,值越小，暗区LTM强度越大。DarkPercThrLow &lt; DarkPercThrHigh。 | 否 |   |
-| m_nPhCDarkMaxExtraRatio | 暗区提亮调整参数,DarkPercThrLow，DarkPercThrHigh和PhCDarkMaxExtraRatio与block的最暗区占所有点的百分比，控制暗区LTM强度。当前块暗区百分比大于DarkPercThrLow，则会提高暗区LTM强度，当最暗区百分比达到DarkPercThrHigh，暗区LTM强度最大。PhCDarkMaxExtraRatio越大，暗区LTM强度越大。 | 否 |   |
-| m_pDstAlphaGainIndex | LTM强度gain控制节点 | 否 |   |
-| m_pDstAlphaIndex | 依据DstAlphaGainIndex控制节点调整LTM强度：值越大，LTM强度越大 | 是 |  |
-
+PhicBeta diagram below:  
 ![](./static/E25Abu0eSoVImrxg46xcwvH1nvZ.png)
 
-PhicBeta 示意图
+### CUVDenoiseFirmwareFilter Parameter Description
 
-### CUVDenoiseFirmwareFilter 参数说明
+CUVDenoiseFirmwareFilter module is used for removing color noise.
 
-CUVDenoiseFirmwareFilter 模块用于去除颜色噪声。
+#### UVDenoise Enable
 
-#### UVDenoise 使能
+| Parameter Name | Description        | Recommended Tuning | Special Notes         |
+|----------------|--------------------|-------------------|------------------------|
+| m_bEnable      | UVDenoise enable   | No                | Recommended to use CPP denoise |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | UVDenoise使能 | 否 | 建议使用CPP去噪 |
+---
 
-### CEELiteFirmwareFilter 参数说明
+### CEELiteFirmwareFilter Parameter Description
 
-CEELiteFirmwareFilter 模块用于控制边缘增强。
+CEELiteFirmwareFilter module is used for controlling edge enhancement.
 
-#### EE 使能
+#### EE Enable
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | EE使能 | 用户设置 |   |
+| Parameter Name | Description        | Recommended Tuning | Special Notes |
+|----------------|--------------------|-------------------|---------------|
+| m_bEnable      | EE enable          | User setting      |               |
 
-#### CEELite 参数
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_pCurveLumaP | 正边基于亮度自适应增强，值越大边越强 | 是 |   |
-| m_pCurveLumaN | 负边基于亮度自适应增强，值越大边越强 | 是 |   |
-| m_pCurveFreqTxP | 正边基于频率自适应增强，值越大纹理越多 | 是 |   |
-| m_pCurveFreqTxN | 负边基于频率自适应增强，值越大纹理越多 | 是 |   |
-| m_nNodeFreq | 频率调节节点 |   |   |
-| m_pGlobal_SharpenStrengthP | 正边全局增强，值越大边越强 | 是 |   |
-| m_pGlobal_SharpenStrengthN | 负边全局增强，值越大边越强 | 是 |   |
-| m_pGlobal_SharpenStrengthPCapture | 拍照参数，正边全局增强，值越大边越强 | 是 |   |
-| m_pGlobal_SharpenStrengthNCapture | 拍照参数，负边全局增强，值越大边越强 | 是 |   |
-| m_pLPF1 | USMFilter滤波器参数 | 否 |   |
-| m_pLPF2 | USMFilter滤波器参数USMFilter = conv([(flt1[0]-flt2[0]) (flt1[1]-flt2[1]) 2*(flt2[0]+flt2[1] - flt1[0]-flt1[1]） (flt1[1]-flt2[1]） (flt1[0]-flt2[0]）]) | 否 |   |
-| m_pLPF1Capture | 拍照参数，USMFilter滤波器参数 | 否 |   |
-| m_pLPF2Capture | 拍照参数，USMFilter滤波器参数USMFilter = conv([(flt1[0]-flt2[0]) (flt1[1]-flt2[1]) 2*(flt2[0]+flt2[1] - flt1[0]-flt1[1]） (flt1[1]-flt2[1]） (flt1[0]-flt2[0]）]) | 否 |   |
-| m_pFreqExpLevel1 | 低频区间频率分段控制,值越大,分段越密 | 否 |   |
-| m_pFreqExpLevel2 | 高频区间频率分段控制,值越大,分段越密 | 否 |   |
-| m_pFreqOffsetTx | 频率软阈值,值越大,抗噪水平越强 | 是 |   |
-| m_pTxClipP | 纹理区域正边锐化截断处理，值越大，锐化越强 | 是 |   |
-| m_pTxClipN | 纹理区域负边锐化截断处理，值越大，锐化越强 | 是 |   |
-| m_pTxThrdP | 纹理区域正边锐化门限，值越小，锐化越强 | 是 |   |
-| m_pTxThrdN | 纹理区域负边锐化门限，值越小，锐化越强 | 是 |   |
-| m_pClipPos | 正边锐化截断处理，值越大，锐化越强 | 是 |   |
-| m_pClipNeg | 负边锐化截断处理，值越大，锐化越强 | 是 |   |
-| m_pHCStrength | 边沿halo强度控制，值越小，halo抑制越强 | 是 |   |
-| m_pCoffW | Halo区域判定参数 | 否 |   |
-| m_pGainIndex | 增益控制节点（Q4） | 否 |  |
+#### CEELite Parameters
 
-#### EE Manual 参数
+| Parameter Name              | Description                                                                                  | Recommended Tuning | Special Notes |
+|-----------------------------|----------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_pCurveLumaP               | Positive edge luminance-based adaptive enhancement; larger values increase edge strength     | Yes               |               |
+| m_pCurveLumaN               | Negative edge luminance-based adaptive enhancement; larger values increase edge strength     | Yes               |               |
+| m_pCurveFreqTxP             | Positive edge frequency-based adaptive enhancement; larger values increase texture detail    | Yes               |               |
+| m_pCurveFreqTxN             | Negative edge frequency-based adaptive enhancement; larger values increase texture detail    | Yes               |               |
+| m_nNodeFreq                 | Frequency adjustment nodes                                                                   |                   |               |
+| m_pGlobal_SharpenStrengthP  | Positive edge global sharpening; larger values increase edge strength                        | Yes               |               |
+| m_pGlobal_SharpenStrengthN  | Negative edge global sharpening; larger values increase edge strength                        | Yes               |               |
+| m_pGlobal_SharpenStrengthPCapture | Capture mode positive edge global sharpening; larger values increase edge strength     | Yes               |               |
+| m_pGlobal_SharpenStrengthNCapture | Capture mode negative edge global sharpening; larger values increase edge strength     | Yes               |               |
+| m_pLPF1                     | USMFilter filter parameters                                                                  | No                |               |
+| m_pLPF2                     | USMFilter filter parameters; calculated as conv([(flt1[0]-flt2[0]), (flt1[1]-flt2[1]), 2*(flt2[0]+flt2[1] - flt1[0]-flt1[1]), (flt1[1]-flt2[1]), (flt1[0]-flt2[0])]) | No |    |
+| m_pLPF1Capture              | Capture mode USMFilter filter parameters                                                     | No                |               |
+| m_pLPF2Capture              | Capture mode USMFilter filter parameters; same calculation as m_pLPF2                        | No                |               |
+| m_pFreqExpLevel1            | Low-frequency range frequency segmentation control; larger values mean denser segmentation   | No                |               |
+| m_pFreqExpLevel2            | High-frequency range frequency segmentation control; larger values mean denser segmentation  | No                |               |
+| m_pFreqOffsetTx             | Frequency soft threshold; larger values mean stronger noise resistance                       | Yes               |               |
+| m_pTxClipP                  | Texture region positive edge sharpening clipping; larger values increase sharpening          | Yes               |               |
+| m_pTxClipN                  | Texture region negative edge sharpening clipping; larger values increase sharpening          | Yes               |               |
+| m_pTxThrdP                  | Texture region positive edge sharpening threshold; smaller values increase sharpening        | Yes               |               |
+| m_pTxThrdN                  | Texture region negative edge sharpening threshold; smaller values increase sharpening        | Yes               |               |
+| m_pClipPos                  | Positive edge sharpening clipping; larger values increase sharpening                         | Yes               |               |
+| m_pClipNeg                  | Negative edge sharpening clipping; larger values increase sharpening                         | Yes               |               |
+| m_pHCStrength               | Edge halo strength control; smaller values mean stronger halo suppression                    | Yes               |               |
+| m_pCoffW                    | Halo region determination parameters                                                         | No                |               |
+| m_pGainIndex                | Gain control nodes (Q4 format)                                                               | No                |               |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bManualMode | 手动模式使能 |  - | Debug参数 |
-| Manual结尾参数 | 手动模式参数，与自动一致 |  - | Debug参数 |
+#### EE Manual Parameters
 
-### CBitDepthCompressionFirmwareFilter 参数说明
+| Parameter Name    | Description               | Recommended Tuning | Special Notes |
+|-------------------|---------------------------|-------------------|---------------|
+| m_bManualMode     | Manual mode enable        | -                 | Debug parameter |
+| Manual suffix parameters | Manual mode parameters, same as automatic mode | - | Debug parameter |
 
-CBitDepthCompressionFirmwareFilter 模块用于降位深压缩。
+### CBitDepthCompressionFirmwareFilter Description
 
-#### Dithering 使能
+The CBitDepthCompressionFirmwareFilter module is used for bit depth compression.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnableDithering | Dithering使能0: 关闭Dithering 1: 打开Dithering | 否 |   |
+#### Dithering Enable
 
-### CFormatterFirmwareFilter 参数说明
+| Parameter Name      | Description                                                                 | Recommended Tuning | Special Notes |
+|---------------------|-----------------------------------------------------------------------------|-------------------|---------------|
+| m_bEnableDithering   | Dithering enable:   `0`: Disable dithering;   `1`: Enable dithering   | No                |               |
 
-CFormatterFirmwareFilter 模块用于输出格式控制。
+### CFormatterFirmwareFilter Description
 
-#### Formatter 参数
+The CFormatterFirmwareFilter module is used for output format control.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nOutputFormat | 输出格式：0: NV12 1: P010 2：RGB888 | 否 |   |
-| m_nSwingOption | 0: full swing, 1: studio swing | 否 |   |
-| m_bConvertDitheringEnable | 0: rgb2yuv dithering disable, 1: rgb2yuv dithering enable | 否 |   |
-| m_bCompressDitheringEnable | 0: full swing to studio swing dithering disable, 1: full swing to studio swing dithering enable | 否 |   |
+#### Formatter Parameters
 
-### CEISFirmwareFilter 参数说明
+| Parameter Name               | Description                                                                    | Recommended Tuning | Special Notes |
+|------------------------------|--------------------------------------------------------------------------------|-------------------|---------------|
+| m_nOutputFormat              | Output format:   `0`: NV12;   `1`: P010;   `2`: RGB888                  | No                |               |
+| m_nSwingOption               | - `0`: full swing;   `1`: studio swing                                         | No                |               |
+| m_bConvertDitheringEnable    | - `0`: rgb2yuv dithering disable;   `1`: rgb2yuv dithering enable              | No                |               |
+| m_bCompressDitheringEnable   | - `0`: full swing to studio swing dithering disable;   `1`: full swing to studio swing dithering enable | No |     |
 
-CEISFirmwareFilter 模块用于电子防抖。
+### CEISFirmwareFilter Description
 
-#### EIS 使能
+The CEISFirmwareFilter module is used for electronic image stabilization (EIS).
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bEnable | EIS使能0: 关闭EIS计 1: 打开EIS | 用户设置 |   |
+#### EIS Enable
 
-##### EIS 参数
+| Parameter Name | Description                                | Recommended Tuning | Special Notes |
+|----------------|--------------------------------------------|-------------------|---------------|
+| m_bEnable      | EIS enable:   `0`: Disable EIS;   `1`: Enable EIS | User setting    |     |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bCalcEnable | Firmware计算使能0: 关闭 1: 打开 | 用户设置 |   |
-| m_bFilterEnable | 运动平滑滤波使能0: 关闭运动平滑滤波（一般设备与场景相对运动较少时关闭） 1: 打开运动平滑滤波 | 是 |   |
-| m_nRangeX | X方向检测移动的范围（单位为像素） | 否 |   |
-| m_nRangeY | Y方向检测移动的范围（单位为像素） | 否 |   |
-| m_nMarginX | LDC crop窗口的offset X | 否 |   |
-| m_nMarginY | LDC crop窗口的offset Y | 否 |   |
-| m_pFilterWeight | 运动平滑滤波权重 | 是 |   |
-| m_pPeakConfLevel | 置信度等级 | 是 |   |
-| m_pPeakErrorThre | 置信度等级对应误差容忍门限 | 是 |   |
-| m_bReverseDirectionX | 水平方向反转控制 | 是 |   |
-| m_bReverseDirectionY | 垂直方向反转控制 | 是 |   |
-| m_nCenterStatRatio | 中心统计比例，256为100% | 是 |   |
+##### EIS Parameters
 
-### CAECFilter 参数说明
+| Parameter Name         | Description                                                                                    | Recommended Tuning | Special Notes |
+|-----------------------|-------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_bCalcEnable         | Firmware calculation enable   `0`: Disable;   `1`: Enable                                  | User setting      |               |
+| m_bFilterEnable       | Motion smoothing filter enable   `0`: Disable motion smoothing filter (usually off when device/scenario motion is minimal) ;  `1`: Enable motion smoothing filter | Yes  |       |
+| m_nRangeX             | Detection range of movement in X direction (unit: pixels)                                       | No                |               |
+| m_nRangeY             | Detection range of movement in Y direction (unit: pixels)                                       | No                |               |
+| m_nMarginX            | Offset X of LDC crop window                                                                     | No                |               |
+| m_nMarginY            | Offset Y of LDC crop window                                                                     | No                |               |
+| m_pFilterWeight       | Motion smoothing filter weights                                                                 | Yes               |               |
+| m_pPeakConfLevel      | Confidence levels                                                                               | Yes               |               |
+| m_pPeakErrorThre      | Error tolerance thresholds corresponding to confidence levels                                   | Yes               |               |
+| m_bReverseDirectionX  | Horizontal direction reverse control                                                            | Yes               |               |
+| m_bReverseDirectionY  | Vertical direction reverse control                                                              | Yes               |               |
+| m_nCenterStatRatio    | Center statistics ratio, 256 equals 100%                                                        | Yes               |               |
 
-CAECFilter（AEC）模块用于自动曝光控制。
+### CAECFilter Parameters Description
 
-#### AE 基础参数
+CAECFilter (AEC) module is used for Auto Exposure Control.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-|  m_bManualAEEnable | AEC模式选择:0：自动模式1：手动模式，此时曝光值使用manual参数2：锁定模式，此时曝光值锁定,不受AEC调节3：手动曝光index，此时曝光锁定为m_pExpIndexManual |  用户设置 |   |
-| m_pMinExpTime | 最小曝光时间（参数注释包含short部分均为reserverd，以下AE参数适用此规则） | 是 |   |
-| m_pMaxExpTime | 最大曝光时间 | 是 |   |
-| m_pMinAnaGain | 最小模拟增益 | 是 |   |
-| m_pMaxAnaGain | 最大模拟增益 | 是 |   |
-| m_pMinSnsDGain | 最小sensor数字增益 | 是 |   |
-| m_pMaxSnsDGain | 最大sensor数字增益 | 是 |   |
-| m_pMinTotalGain | 最小总体增益 | 是 |   |
-| m_pMaxTotalGain | 最大总体增益 | 是 |   |
-| m_pRouteNode50Hz | 50Hz曝光表,第一列为曝光时间,第二列为总体增益,第三列为精确增益控制(reserverd) | 是 |   |
-| m_pRouteNode60Hz | 60Hz曝光表,第一列为曝光时间,第二列为总体增益,第三列为精确增益控制(reserverd) | 是 |   |
-| m_pMeteringMatrix | 16x12测光权重表 | 用户设置 |   |
-| m_bLumaCalcMode | Luma计算方式 0：RGB max 1：Y average | 用户设置 |   |
-| m_bQuickResponseEnable | AE快速响应开关，使能时立刻调节AE | 用户设置 |   |
+#### AE Basic Parameters
 
-#### AE 目标亮度控制
+| Parameter Name        | Description                                                                                                    | Recommended Tuning | Special Notes |
+|----------------------|-----------------------------------------------------------------------------------------------------------------|-------------------|---------------|
+| m_bManualAEEnable    | AEC mode selection:   `0`: Auto mode;  `1`: Manual mode, exposure value uses manual parameters;   `2`: Lock mode, exposure value locked, no AEC adjustment;   `3`: Manual exposure index mode, exposure locked to m_pExpIndexManual | User setting    |          |
+| m_pMinExpTime        | Minimum exposure time (parameters with “short” annotations are reserved; applies to AE parameters here)         | Yes               |               |
+| m_pMaxExpTime        | Maximum exposure time                                                                                           | Yes               |               |
+| m_pMinAnaGain        | Minimum analog gain                                                                                             | Yes               |               |
+| m_pMaxAnaGain        | Maximum analog gain                                                                                             | Yes               |               |
+| m_pMinSnsDGain       | Minimum sensor digital gain                                                                                     | Yes               |               |
+| m_pMaxSnsDGain       | Maximum sensor digital gain                                                                                     | Yes               |               |
+| m_pMinTotalGain      | Minimum total gain                                                                                              | Yes               |               |
+| m_pMaxTotalGain      | Maximum total gain                                                                                              | Yes               |               |
+| m_pRouteNode50Hz     | 50Hz exposure table, first column: exposure time, second: total gain, third: precise gain control (reserved)    | Yes               |               |
+| m_pRouteNode60Hz     | 60Hz exposure table, first column: exposure time, second: total gain, third: precise gain control (reserved)    | Yes               |               |
+| m_pMeteringMatrix    | 16x12 metering weight matrix                                                                                    | User setting      |               |
+| m_bLumaCalcMode      | Luma calculation method   `0`: RGB max;   `1`: Y average;                                                   | User setting      |               |
+| m_bQuickResponseEnable | AE quick response enable; when enabled, AE adjusts immediately                                                | User setting      |               |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bAdvancedAECEnable | 目标亮度控制参数0：使用m_pTargetRange[1]作为目标亮度1：动态计算目标亮度，目标亮度区间[m_pTargetRange[0], m_pTargetRange[1]] | 用户设置 |   |
-| m_nCompensation | 目标亮度补偿系数,100为一倍 | 是 |   |
-| m_nSensitivityRatio | 拍照与预览感光度比，256为一倍 | 用户设置 |   |
-| m_pSatRefBin | 饱和点参考值，Target约束为直方图[m_pSatRefBin[0],255]之间的像素占比落入[m_pSatRefPerThr [0][0]/10000)%, m_ pSatRefPerThr [0][1]/10000)%] | 是 |   |
-| m_pSatRefPerThr | 饱和点占比上下限 | 是 |   |
-| m_pExpIndexThre | 曝光门限,与四组m_pLumaBlockWeight对应,用于选择哪组m_pLumaBlockWeight参与计算权重,(见Exp_index-luma_weight示意图) | 用户设置 |   |
-| m_pLumaBlockWeight | 四组亮度块权重表,每组中Weight[i][0]对应low_luma; Weight[i][1]对应mid_luma;Weight[i][2]对应high_luma; (见Exp_index-luma_weight示意图/Luma-Weight示意图) | 用户设置 |   |
-| m_pLumaBlockThre | 亮度块门限,用于控制亮度块的权重曲线(Luma-Weight示意图) | 用户设置 |   |
-| m_pLuma7ZoneWeight | 统计窗口与 6个sub ROI权重表 | 用户设置 |   |
-| m_pTargetRange | 目标亮度门限 | 是 |   |
-| m_pTargetDeclineRatio | 目标亮度随gain调整参数,gain的节点为2的N次方 | 是 | 可随Gain变化 |
+#### AE Target Brightness Control
+
+| Parameter Name          | Description                                                                                                                       | Recommended Tuning | Special Notes      |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------|-------------------|---------------------|
+| m_bAdvancedAECEnable   | Target brightness control parameter:   `0`: Use m_pTargetRange[1] as target brightness;   `1`: Dynamically calculate target brightness in range [m_pTargetRange[0], m_pTargetRange[1]] | User setting    |         |
+| m_nCompensation        | Target brightness compensation factor, 100 means 1x                                                                              | Yes               |                       |
+| m_nSensitivityRatio    | Sensitivity ratio between capture and preview, 256 means 1x                                                                      | User setting      |                       |
+| m_pSatRefBin           | Saturation reference bin; Target constrained to histogram pixels ratio in range [m_pSatRefBin[0], 255] falling within [m_pSatRefPerThr[0][0]/10000%, m_pSatRefPerThr[0][1]/10000%] | Yes    |            |
+| m_pSatRefPerThr        | Saturation ratio upper and lower limits                                                                                          | Yes               |                       |
+| m_pExpIndexThre        | Exposure threshold, corresponds to 4 groups of m_pLumaBlockWeight, used to select which group participates in weight calculation (see Exp_index-luma_weight diagram) | User setting      |             |
+| m_pLumaBlockWeight     | Four groups of luminance block weight tables, each group:   Weight[i][0]: low luminance   Weight[i][1]: mid luminance   Weight[i][2]: high luminance (see Exp_index-luma_weight and Luma-Weight diagrams) | User setting    |             |
+| m_pLumaBlockThre       | Luminance block threshold, controls weight curve of luminance blocks (see Luma-Weight diagram)                                    | User setting     |                       |
+| m_pLuma7ZoneWeight     | Weight table for statistics window and 6 sub-ROIs                                                                                 | User setting     |                       |
+| m_pTargetRange         | Target brightness range                                                                                                           | Yes              |                       |
+| m_pTargetDeclineRatio  | Target brightness adjustment by gain; gain nodes are powers of 2                                                                  | Yes              | Can vary with Gain    |
+
+---
+
+Exp_index – luma_weight diagram:
 
 ![](./static/R0T8bjLECohzvwx6L1Gc7KVcntc.png)
 
-Exp_index – luma_weight 示意图
+Luma – weight diagram:
 
 ![](./static/MEjWbGZNDoGc4axZxQrcUjLynEh.png)
 
-Luma – weight 示意图
+#### AE Mode Control
 
-#### AE 模式控制
+| Parameter Name        | Description                                                                                                     | Recommended Tuning | Special Notes       |
+|----------------------|------------------------------------------------------------------------------------------------------------------|--------------------|---------------------|
+| m_bLumaSelectOption  | `0`: Luminance calculation does NOT reference 6 sub-ROIs in AEM;   `1`: Luminance calculation references 6 sub-ROIs in AEM |        |                     |
+| m_nStrategyMode      | AE adjustment strategy selection:   `0`: Auto mode;   `1`: Highlight priority (ensure proper exposure in bright areas)   2: Low light priority (ensure proper exposure in dark areas) |      |        |
+| m_bAntiFlickerEnable | Anti-flicker enable:   `0`: Disabled, exposure time not limited by flicker;   `1`: Enabled, exposure time limited to integer multiples of flicker period |         |            |
+| m_nAntiFlickerFreq   | Anti-flicker frequency selection:   `0`: 50Hz;   `1`: 60Hz                                                   |                   |                     |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bLumaSelectOption | 0：亮度计算不参考AEM中的6个sub ROI1：亮度计算参考AEM中的6个sub ROI |   |   |
-| m_nStrategyMode | AE调整策略选择:0：自动模式1：高光优先,即优先保证高亮部分曝光适合2：低光优先,即优先保证低亮部分曝光适合 |   |   |
-| m_bAntiFlickerEnable | 去抖使能:0：关闭去抖动,此时曝光时间不受灯光闪烁限制1：使能去抖动,此时曝光时间限制为灯光闪烁周期的整数倍 |   |   |
-| m_nAntiFlickerFreq | 去抖频率选择:0：50Hz        1：60Hz |   |   |
+#### AE Convergence Control
 
-#### AE 收敛控制
+| Parameter Name               | Description                                                                                                                                                                              | Recommended Tuning | Notes       |
+|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|-------------|
+| m_nTolerance                | Target brightness error tolerance. AE will not adjust when the measured brightness is within [target±m_nTolerance]                                                                        | Yes               |             |
+| m_nStableRange              | Stable brightness range: when AE converges, if the difference between the measured brightness (mean) and the target brightness exceeds m_nStableRange, analog gain is adjusted to compensate | Yes            |             |
+| m_nSmoothness               | AE convergence smoothness; smaller values result in smoother convergence                                                                                                                  | Yes               |             |
+| m_pStableRefFrame           | Number of stable reference frames; if the count of stable frames exceeds this, AE considers the scene stable                                                                              | Yes               |             |
+| m_pUnStableRefFrame         | Number of unstable reference frames; if the count of unstable frames exceeds this, AE considers the scene unstable                                                                        | Yes               |             |
+| m_nDualTargetBlendWeight    | Blend ratio between the previous target brightness and the current target brightness; 8 means 1:1 blend; 16 means fully use current target                                                | Yes               |             |
+| m_pFastStep                 | Large step adjustment discount ratio. When m_pFastStep = 256 (and not limited by MaxFastRatio), it means a single step adjustment to the target (see step-target diagram below)           | Yes               |             |
+| m_pFastStepRangePer         | Large step threshold; large steps used when condition |current_luma – target_luma| &gt; m_nFastStepRangePer * target_luma is met                                                          | Yes               |             |
+| m_pFastStepMinRange         | Lower limit of the large step threshold                                                                                                                                                   | Yes               |             |
+| m_pSlowStep                 | Small step adjustment discount ratio (same as m_pFastStep, see step-target diagram below)                                                                                                 | Yes               |             |
+| m_pSlowStepRangePer         | Small step threshold; used when m_nSlowStepRangePer * target &lt; |current_luma – target| &lt; m_nFastStepRangePer * target                                                               | Yes               |             |
+| m_pSlowStepMinRange         | Lower limit of the small step threshold                                                                                                                                                   | Yes               |             |
+| m_pFineStep                 | Fine step adjustment discount ratio (same as m_pFastStep, see step-target diagram below)                                                                                                  | Yes               |             |
+| m_pMaxFastRatio             | Maximum large step adjustment ratio (Q8):  When increasing exposure, max large step ratio is m_pMaxFastRatio;  When decreasing exposure, max large step ratio is 65536/m_nMaxFastRatio; | Yes               |             |
+| m_pMaxSlowRatio             | Maximum small step adjustment ratio (Q8):  When increasing exposure, small step ratio limits range is [256 + m_nMaxFineRatio, 256 + m_nMaxSlowRatio];  When decreasing exposure, range is [256 - m_nMaxSlowRatio, 256 - m_nMaxFineRatio]; | Yes       |             |
+| m_pMaxFineRatio             | Maximum fine step adjustment ratio (Q8)                                                                                                                                                   | No                |             |
+| m_pMinFineRatio             | Minimum fine step adjustment ratio   When increasing exposure, small step ratio limits range is [256 + m_nMinFineRatio, 256 + m_nMaxFineRatio];  When decreasing exposure, range is [256 - m_nMaxFineRatio, 256 - m_nMinFineRatio]; | No        |             |
+| m_pAjustSplitFrameNum       | Number of steps required for a single adjustment (1st column reserved)                                                                                                                     | No                |             |
+| m_pSingleStepAdjustLumaThr  | Single adjustment brightness threshold (1st column reserved). Together with m_pAjustSplitFrameNum determines max luma per single adjustment: Single_luma_max = max((target - mean)/AjustSplitFrameNum, SingleStepAdjustLumaThr)   When increasing exposure, if adjusted luma exceeds Single_luma_max, then adjustRatio= 256 + Single_luma_max * 256 / mean   Similarly for decreasing exposure. | No                |             |
+| m_pFaceAjustSplitFrameNum   | Same meaning as m_pAjustSplitFrameNum, but only effective in face AE mode                                                                                                                  | No                |             |
+| m_pFaceSingleStepAdjustLumaThr | Same meaning as m_pSingleStepAdjustLumaThr, but only effective in face AE mode                                                                                                          | No                |             |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nTolerance | 目标亮度误差容忍度,统计亮度处于[target±m_nTolerance]时AE将不做调整 | 是 |   |
-| m_nStableRange | 稳定亮度区间:当AE收敛时,若统计亮度（mean）与目标亮度（target）的差值大于m_nStableRange,则调整模拟增益用于补偿 | 是 |   |
-| m_nSmoothness | AE收敛平滑度调节，值越小，收敛越平滑 | 是 |   |
-| m_pStableRefFrame | 稳定参考帧数，当稳定帧数大于m_pStableRefFrame，AE认为当前场景AE稳定 | 是 |   |
-| m_pUnStableRefFrame | 不稳定参考帧数，当不稳定帧数大于m_pUnStableRefFrame，AE认为当前场景AE不稳定 | 是 |   |
-| m_nDualTargetBlendWeight | 上一次目标亮度与当前目标亮度融合比例，8为1：1；16表示全用当前目标亮度 | 是 |   |
-| m_pFastStep | 大步长调整折扣比例， m_pFastStep=256（且不受MaxFastRatio钳制时）表示一步调整到target（见step-target示意图） | 是 |   |
-| m_pFastStepRangePer | 大步长门限，满足下述条件使用大步长|current_luma – target_luma| &gt; m_nFastStepRangePer*target_luma | 是 |   |
-| m_pFastStepMinRange | 大步长门限下限值 | 是 |   |
-| m_pSlowStep | 小步长调整折扣比例，（同m_pFastStep，见step-target示意图） | 是 |   |
-| m_pSlowStepRangePer | 小步长门限，满足下述条件使用小步长m_nSlowStepRangePer*target &lt; |current_luma – target | &lt; m_nFastStepRangePer*target | 是 |   |
-| m_pSlowStepMinRange | 小步长门限下限值 | 是 |   |
-| m_pFineStep | 细步长调整折扣比例，（同m_pFastStep，见step-target示意图） | 是 |   |
-| m_pMaxFastRatio | 最大大步调整比例（Q8）：增曝光时，最大大步调整比例为m_pMaxFastRatio；减曝光时，最大大步调整比例为65536/m_nMaxFastRatio； | 是 |   |
-| m_pMaxSlowRatio | 最大小步调节比例（Q8）：增曝光时，小步调节比例限制区间[256 + m_nMaxFineRatio, 256 + m_nMaxSlowRatio]；减曝光时，小步调节比例限制区间[256 - m_nMaxSlowRatio, 256 - m_nMaxFineRatio]； | 是 |   |
-| m_pMaxFineRatio | 最大细步调节比例（Q8） | 否 |   |
-| m_pMinFineRatio | 最小细步调节比例增曝光时，小步调节比例限制区间[256 + m_nMinFineRatio, 256 + m_nMaxFineRatio]；减曝光时，小步调节比例限制区间[256 - m_nMaxFineRatio, 256 - m_nMinFineRatio]； | 否 |   |
-| m_pAjustSplitFrameNum | 单步调整所需次数(第1列reserved) | 否 |   |
-| m_pSingleStepAdjustLumaThr | 单次调节亮度阈值(第1列reserved)，与m_pAjustSplitFrameNum共同决定单次调节最大luma值Single_luma_max = max((target - mean)/AjustSplitFrameNum,SingleStepAdjustLumaThr)（增曝光时，若依据adjustRatio调整的luma超过Single_luma_max，则adjustRatio= 256 + Single_luma_max *256 / mean ）（减曝光时，若依据adjustRatio调整的luma超过Single_luma_max，则adjustRatio= 256 - Single_luma_max* 256 / mean ） |  否 |   |
-| m_pFaceAjustSplitFrameNum | 参数含义同m_pAjustSplitFrameNum，face AE模式下有效 | 否 |   |
-| m_pFaceSingleStepAdjustLumaThr | 参数含义同m_pSingleStepAdjustLumaThr，face AE模式下有效 | 否 |   |
+Step–Target Illustration:
 
 ![](./static/IvlIb6jdvoK7vQxEem0cjRKGnCb.png)
 
-Step – target 示意图
+Luma–Step Illustration:
 
 ![](./static/PJxXbFP5ho4oHcxLxmscehAEnKh.png)
 
-Luma – stpe 示意图
 
-#### 自动动态范围补偿增益计算
+#### Automatic Dynamic Range Compensation Gain Calculation
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nDarkRefBin | 暗区像素亮度上限参考值，计算暗区亮度时，统计范围不会超过该值 | 是 |   |
-| m_bLumaPredict | DRCgain计算亮度预测：0：计算DRCgain时不修正（当帧统计当帧apply LTM时）1：计算DRCgain时修正（当帧统计下帧apply LTM时） |  |   |
-| m_nDarkPerThrL |  暗区像素亮度百分比下限，暗区像素数目百分比低于该值时，DRCGainDark为1，（见图示pixelNumPercent-DRCGainDark示意图） |  |   |
-| m_nDarkPerThrH | 暗区像素亮度百分比上限，暗区像素数目百分比高于该值时，暗区像素全部参与计算DRCGainDark，（见图示pixelNumPercent-DRCGainDark示意图） |  |  |
-| m_nDarkTarget | 暗区期望达到的亮度值，值越大 ，最终计算出的DRCGainDark越大 |  |  |
-| m_nMaxDRCGain | 最大DRC增益 | 是 |  |
-| m_nMaxDRCGainDark | 最大DRC Dark增益  | 是 |  |
+| Parameter Name            | Description                                                                                                                                     | Recommended for Debugging | Notes |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|-------|
+| m_nDarkRefBin             | Upper limit reference value of pixel brightness in dark areas; the brightness range for dark area statistics will not exceed this value         | Yes                        |       |
+| m_bLumaPredict            | Luma prediction for DRCgain calculation: `0`: No correction during DRCgain calculation (when frame statistics are applied to current frame’s LTM) ; `1`: Correction applied during DRCgain calculation (when frame statistics are applied to next frame’s LTM) |     |       |
+| m_nDarkPerThrL            | Lower threshold of dark area pixel percentage. When the percentage of dark pixels is below this value, DRCGainDark is set to 1 (see illustration: pixelNumPercent–DRCGainDark) |       |       |
+| m_nDarkPerThrH            | Upper threshold of dark area pixel percentage. When the percentage of dark pixels exceeds this value, all dark pixels are used to calculate DRCGainDark (see illustration: pixelNumPercent–DRCGainDark) |       |       |
+| m_nDarkTarget             | Target brightness value for dark areas. The larger the value, the higher the resulting DRCGainDark                                              |                            |       |
+| m_nMaxDRCGain             | Maximum DRC gain                                                                                                                                | Yes                        |       |
+| m_nMaxDRCGainDark         | Maximum DRC gain for dark areas                                                                                                                 | Yes                        |       |
 
+PixelNumPercent–DRCGainDark Illustration:
 ![](./static/NBOHbysteo5NtQx9fv9cENVynhe.png)
 
-PixelNumPercent - DRCGainDark 示意图
+#### Lux Calibration
 
-#### Lux 定标
+| Parameter Name          | Description                                              | Recommended for Debugging  | Notes  |
+|------------------------|-----------------------------------------------------------|----------------------------|-------|
+| m_nCalibExposureIndex  | Exposure index for brightness calibration                 | Yes                        |       |
+| m_nCalibSceneLum       | Scene brightness for calibration                          | Yes                        |       |
+| m_nCalibSceneLux       | Actual illumination (lux) of the calibration scene        | Yes                        |       |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+
+#### AEC Manual Parameters
+
+| Parameter Name        | Description                                                                 | Recommended for Debugging | Notes |
+|-----------------------|-----------------------------------------------------------------------------|----------------------------|-------|
+| m_pExpTimeManual      | Manual exposure time, effective when AEC is in manual mode                  |                            |       |
+| m_pAnaGainManual      | Manual analog gain, effective when AEC is in manual mode                    |                            |       |
+| m_pSnsDGainManual     | Manual sensor digital gain, effective when AEC is in manual mode            |                            |       |
+| m_pTotalGainManual    | Manual total gain, effective when AEC is in manual mode                     |                            |       |
+| m_pExpIndexManual     | Manual exposure index, effective when AEC is in manual mode                 |                            |       |
+
+#### AEC Frame Info
+
+| Parameter Name           | Description                                                                                       | Recommended for Debugging | Notes   |
+|--------------------------|---------------------------------------------------------------------------------------------------|----------------------------|---------|
+| m_nFrameCounter          | AE frame counter                                                                                  | -                          | Read-only |
+| m_pExpTimeLong           | Exposure time (us)                                                                                | -                          | Read-only |
+| m_pAnaGainLong           | Analog gain (Q8)                                                                                  | -                          | Read-only |
+| m_pSnsDGainLong          | Sensor digital gain (Q12)                                                                         | -                          | Read-only |
+| m_pIspDGainLong          | ISP digital gain (Q12)                                                                            | -                          | Read-only |
+| m_pTotalGainLong         | Total gain (Q8)                                                                                   | -                          | Read-only |
+| m_pExpIndexLong          | Exposure index (Exposure Time * Total Gain / 256)                                                 | -                          | Read-only |
+| m_pTotalGainDBLong       | Total gain (dB)                                                                                   | -                          | Read-only |
+| m_pExpTimeShort          | Reserved                                                                                          | -                          | Read-only |
+| m_pAnaGainShort          | Reserved                                                                                          | -                          | Read-only |
+| m_pSnsDGainShort         | Reserved                                                                                          | -                          | Read-only |
+| m_pIspDGainShort         | Reserved                                                                                          | -                          | Read-only |
+| m_pTotalGainShort        | Reserved                                                                                          | -                          | Read-only |
+| m_pExpIndexShort         | Reserved                                                                                          | -                          | Read-only |
+| m_pTotalGainDBShort      | Reserved                                                                                          | -                          | Read-only |
+| m_nCurHdrRatio           | Reserved                                                                                          | -                          | Read-only |
+| m_nHistPixelNum          | Number of pixels used in histogram statistics                                                     | -                          | Read-only |
+| m_pMeanLuma              | AE calculated brightness   [0]: long   [1]: Reserved                                    | -                          | Read-only |
+| m_pTargetLuma            | AE target brightness   [0]: long   [1]: Reserved                                        | -                          | Read-only |
+| m_pLuma7Zone             | AE main and 6 sub-window luma                                                                     | -                          | Read-only |
+| m_pAERouteNum            | AE exposure node   [0]: long   [1]: Reserved                                            | -                          | Read-only |
+| m_pRouteNodeLong         | Long frame exposure table                                                                         | -                          | Read-only |
+| m_pADNodeLong            | Sensor analog and digital gain allocation table                                                   | -                          | Read-only |
+| m_pLumaMatrixLong        | Luma thumbnail                                                                                    | -                          | Read-only |
+| m_pHistLong              | Histogram                                                                                         | -                          | Read-only |
+| m_pRouteNodeShort        | Reserved                                                                                          | -                          | Read-only |
+| m_pADNodeShort           | Reserved                                                                                          | -                          | Read-only |
+| m_pLumaMatrixShort       | Reserved                                                                                          | -                          | Read-only |
+| m_pHistShort             | Reserved                                                                                          | -                          | Read-only |
+| m_pRefSaturateNum        | Reference overexposed pixel count   [0]: long   [1]: Reserved                           | -                          | Read-only |
+| m_pCurSaturateNum        | Current overexposed pixel count   [0]: long   [1]: Reserved                             | -                          | Read-only |
+| m_pEstSaturateNum        | Estimated overexposed pixel count when brightness reaches upper limit   [0]: long   [1]: Reserved | -                | Read-only |
+| m_pAdjustRatio           | AE adjustment ratio                                                                               | -                          | Read-only |
+| m_pStableFlag            | AE stability flag   [0]: long   [1]: Reserved                                           | -                          | Read-only |
+| m_pStableFlagBuf         | AE frame sequence stability flag   [0]: long   [1]: Reserved                            | -                          | Read-only |
+| m_pUnStableFlagBuf       | AE frame sequence instability flag   [0]: long   [1]: Reserved                          | -                          | Read-only |
+| m_nDRCGain               | DRCGain result of AE calculation for current frame                                                | -                          | Read-only |
+| m_nDRCGainDark           | DRCGainDark result of AE calculation for current frame                                            | -                          | Read-only |
+
+### CAFFilter Parameter Description
+
+The CAFFilter module is used for automatic focus control.
+
+#### AF Parameters
+
+| Parameter Name            | Description                                                                 | Recommended for Debugging  | Notes       |
+|---------------------------|-----------------------------------------------------------------------------|----------------------------|-------------|
+| m_nAFMode                 | Focus mode:   `0`: SAF (Single Auto Focus);   `1`: CAF (Continuous Auto Focus) | User configurable  |             |
+| m_bHybridAFEnable         | Enable hybrid AF mode (CDAF + PDAF):   `0`: Disabled;   `1`: Enabled   | User configurable          |             |
+| m_bAFTrigger              | AF trigger; must be enabled when using CAF                                  | User configurable          |             |
+| m_bMotorManualTrigger     | Manual focus trigger, used together with ManualMotorPosition                | User configurable          |             |
+| m_nManualMotorPosition    | Manual motor position                                                       | User configurable          |             |
+| m_nFrameRate              | Current sensor frame rate, used to calculate AF skip frames; should be updated by software | User configurable |             |
+| m_nMaxSkipFrame           | Maximum number of skipped frames                                            | No                         |             |
+
+#### Motor Property Parameters
+
+| Parameter Name             | Description                                                                                       | Recommended for Debugging | Notes |
+|----------------------------|---------------------------------------------------------------------------------------------------|----------------------------|-------|
+| m_nMinMotorPosition        | Minimum motor position                                                                            | Yes                        |       |
+| m_nMaxMotorPosition        | Maximum motor position                                                                            | Yes                        |       |
+| m_nMotorResponseTime       | Response time per motor step (ms); used to calculate AF skipped frames — the higher the value, the more frames are skipped | Yes |       |
+| m_nHyperFocalMotorPosition | Hyperfocal position                                                                               | Yes                        |       |
+
+#### Motor Movement Control Parameters
+
+| Parameter Name | Description | Recommended for Debugging | Notes |
 |---|---|---|---|
-| m_nCalibExposureIndex | 亮度定标的曝光索引 | 是 |   |
-| m_nCalibSceneLum | 亮度定标的场景亮度 | 是 |   |
-| m_nCalibSceneLux | 定标场景对应的实际照度 | 是 |   |
+| m_nFirstStepDirectionJudgeRatio | First step direction judgment ratio (%). When AF algorithm is running in CDAF mode, this sets the percentage used to determine the first step direction:   If the motor's initial position is within the first X% of its full range, move from min to max position;  If it's within the last (100%-X)%, move from max to min position. | User Setting | |
+| m_bPreMoveMode | Pre-move mode. When AF algorithm is running in CDAF mode, defines motor behavior for first step:   `0`: Stay at initial position;   `1`: Move to min or max motor position based on direction judgment percentage. | User Setting | |
+| m_bPreMoveToInfMode | Pre-move to infinity mode. When AF algorithm is running in CDAF mode, defines motor behavior for first step:   `0`: Stay at initial position;   `1`: Move to minimum motor position. | User Setting | |
+| m_bStartFromTrueCurrent | Start from actual current position. When AF algorithm is running in CDAF mode, defines motor behavior for first step:   `0`: Move to closest macro position from initial position;   `1`: Stay at initial position. | User Setting | |
+| m_nBackTimeRatio | Frame skipping ratio during motor movement. Higher value means more frames are spent per motor step. Works in conjunction with m_nBackTimeDivisor. | User Setting | |
+| m_nBackTimeDivisor | Motor step frame skipping control divisor. Smaller value means more frames are spent per step. Works in conjunction with m_nBackTimeRatio. | User Setting | |
+| m_nPreMoveTimeRatio | Frame skipping ratio in pre-move mode. | User Setting | |
+| m_nFailMotorPositionOption | Final motor position after focus failure:   `0`: Auto-selected by algorithm (requires correct hyperfocal position);   `1`: Best sharpness;   `2`: Infinity;   `3`: Hyperfocal;   `4`: Macro;   `5`: Current position | User Setting | |
 
-#### AEC manual 参数
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+#### Motor Step Control Parameters
+
+| Parameter Name | Description | Recommended for Debugging | Notes |
 |---|---|---|---|
-| m_pExpTimeManual | 手动曝光时间,AEC处于手动模式时生效 |   |   |
-| m_pAnaGainManual | 手动模拟增益,AEC处于手动模式时生效 |   |   |
-| m_pSnsDGainManual | 手动sensor数字增益,AEC处于手动模式时生效 |   |   |
-| m_pTotalGainManual | 手动总体增益,AEC处于手动模式时生效 |   |   |
-| m_pExpIndexManual | 手动曝光index,AEC处于手动模式时生效 |   |   |
+| m_nMinMacroReverseStepNum | Minimum steps motor must move when reversing direction from max to min position upon detecting FV drop | Yes |   |
+| m_nMinReverseStepNum | Minimum steps motor must move when reversing direction from min to max position upon detecting FV drop | Yes |  |
+| m_nFineStepSearchNum | Number of fine step searches | Yes |   |
+| m_nCoarseStep | Coarse step size in CDAF | Yes |   |
+| m_nFineStep | Fine step size in CDAF | Yes |   |
 
-#### AEC frameinfo
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended for Debugging | Notes |
 |---|---|---|---|
-| m_nFrameCounter | AE帧计数 |  - | 只读 |
-| m_pExpTimeLong | 曝光时间(us) |  - | 只读 |
-| m_pAnaGainLong | 模拟增益(Q8) |  - | 只读 |
-| m_pSnsDGainLong | sensor数字增益(Q12) |  - | 只读 |
-| m_pIspDGainLong | ISP数字增益(Q12) |  - | 只读 |
-| m_pTotalGainLong | 总增益(Q8) |  - | 只读 |
-| m_pExpIndexLong | 曝光索引(曝光时间 * 总增益 / 256) |  - | 只读 |
-| m_pTotalGainDBLong | 总增益(db) |  - | 只读 |
-| m_pExpTimeShort | Reserved |  - | 只读 |
-| m_pAnaGainShort | Reserved |  - | 只读 |
-| m_pSnsDGainShort | Reserved |  - | 只读 |
-| m_pIspDGainShort | Reserved |  - | 只读 |
-| m_pTotalGainShort | Reserved |  - | 只读 |
-| m_pExpIndexShort | Reserved |  - | 只读 |
-| m_pTotalGainDBShort | Reserved |  - | 只读 |
-| m_nCurHdrRatio | Reserved |  - | 只读 |
-| m_nHistPixelNum | 参与直方图统计的像素数 |  - | 只读 |
-| m_pMeanLuma | AE计算亮度，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pTargetLuma | AE目标亮度，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pLuma7Zone | AE主窗口及6个副窗口luma |  - | 只读 |
-| m_pAERouteNum | AE曝光节点，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pRouteNodeLong | 长帧曝光表 |  - | 只读 |
-| m_pADNodeLong | Sensor again与dgain分配表 |  - | 只读 |
-| m_pLumaMatrixLong | 亮度缩略图 |  - | 只读 |
-| m_pHistLong | 直方图 |  - | 只读 |
-| m_pRouteNodeShort | Reserved |  - | 只读 |
-| m_pADNodeShort | Reserved |  - | 只读 |
-| m_pLumaMatrixShort | Reserved |  - | 只读 |
-| m_pHistShort | Reserved |  - | 只读 |
-| m_pRefSaturateNum | 参考过曝像素数，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pCurSaturateNum | 当前过曝像素数，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pEstSaturateNum | 预估过曝像素数，预估当统计亮度达到目标亮度上限时过曝像素数，[0]:long, [1]:Reserved |  - | 只读 |
-| m_pAdjustRatio | AE调节比例 |  - | 只读 |
-| m_pStableFlag | AE稳定标志，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pStableFlagBuf | AE帧序列稳定标志，[0]:long, [1]: Reserved |  - | 只读 |
-| m_pUnStableFlagBuf | AE帧序列不稳定标志，[0]:long, [1]: Reserved |  - | 只读 |
-| m_nDRCGain | DRCGain当前帧AE计算结果 |  - | 只读 |
-| m_nDRCGainDark | DRCGainDark当前帧AE计算结果 |  - | 只读 |
-
-### CAFFilter 参数说明
-
-CAFFilter 模块用于自动对焦控制。
-
-#### AF 参数
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nAFMode | 对焦模式：0：SAF 单次聚集        1：CAF 连续聚焦 | 用户设置 |   |
-| m_bHybridAFEnable | CDAF与PDAF混合对焦模式使能：0：关闭        1：开启 | 用户设置 |   |
-| m_bAFTrigger | 自动对焦触发,CAF时需要使能 | 用户设置 |   |
-| m_bMotorManualTrigger | 手动对焦触发，配合ManualMotorPosition使用 | 用户设置 |   |
-| m_nManualMotorPosition | 手动电机位置 | 用户设置 |   |
-| m_nFrameRate | 当前sensor帧率，用于计算AF跳帧数，建议由软件更新 | 用户设置 |   |
-| m_nMaxSkipFrame | 最大跳过帧数 | 否 |   |
-
-#### 电机属性参数
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nMinMotorPosition | 最小电机位置 | 是 |   |
-| m_nMaxMotorPosition | 最大电机位置 | 是 |   |
-| m_nMotorResponseTime | 电机走一步的响应时间(ms)，用于计算AF跳帧数，值越大，跳帧数越多 | 是 |   |
-| m_nHyperFocalMotorPosition | 超焦距位置 | 是 |   |
-
-#### 电机运动控制参数
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nFirstStepDirectionJu dgeRatio | 首步方向判断百分比。AF算法运行在CDAF时，判断电机走第一步的方向所需的百分比。当电机初始位置位于整个电机范围的前百分比之内时，方向为从最小电机位置到最大电机位置；当电机初始位置位于整个电机范围的后(100%-百分比)之内时，方向为从最大电机位置到最小电机位置 |  用户设置 |   |
-| m_bPreMoveMode | 预运动模式。AF算法运行在CDAF时，电机走第一步时０：保持初始位置 1：走到最小电机位置或者最大电机位置，具体根据初始位置与首步方向判断百分比而定 | 用户设置 |   |
-| m_bPreMoveToInfMode | 预运动模式，运动最小电机位置。AF算法运行在CDAF时，电机走第一步时０：保持初始位置 1：走到最小电机位置 | 用户设置 |   |
-| m_bStartFromTrueCurrent | 从当前实际位置开始使能。AF算法运行在CDAF时，电机走第一步时０：走到距离初始位置最近的微距位置        1：保持初始位置 | 用户设置 |   |
-| m_nBackTimeRatio | 电机运动时跳帧比例，值越大，电机走一步花费的帧数越多。与m_nBackTimeDivisor共同控制电机跳帧 | 用户设置 |   |
-| m_nBackTimeDivisor | 电机运动时跳帧控制参数，值越小，电机走一步花费的帧数越多。与m_nBackTimeRatio共同控制电机跳帧 | 用户设置 |   |
-| m_nPreMoveTimeRatio | 预运动模式下的电机跳帧比例 | 用户设置 |   |
-| m_nFailMotorPositionOpt ion | 聚焦失败后最终位置选择：０：算法自动选择(需正确填写超焦距马达位置) 1：最清晰 2：无穷远 3：超焦距 4：微距 5：当前位置 | 用户设置 |   |
-
-#### 电机步长控制参数
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nMinMacroReverseStepNum | 当电机由最大电机位置到最小电机位置运动，检测到FV下降需要反向时，电机必须走过的步数 | 是 |   |
-| m_nMinReverseStepNum | 当电机由最小电机位置到最大电机位置运动，检测到FV下降需要反向时，电机必须走过的步数 | 是 |  |
-| m_nFineStepSearchNum | 细步长搜索的步数 | 是 |   |
-| m_nCoarseStep | CDAF下粗步长 | 是 |   |
-| m_nFineStep | CDAF下细步长 | 是 |   |
-
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nSoftwareMotorCtrlMod e | 从当前位置到目标位置的电机运动模式：（一般应用于第一步预移动到最大/最小位置；手动电机位置；开始走小步；聚焦失败时等情况 )0：软着陆模式 1：固定步长模式 2：直达模式 | 用户设置 | 见图1 |
-| m_nMinSafePosition | 在软着陆模式下，电机由最大电机位置到最小电机位置移动时的最小安全位置 | 用户设置 | 见图2 |
-| m_nMinStepRatio | 在软着陆模式下，电机由最大电机位置到最小电机位置移动的最小步长比例 | 用户设置 | 见图2 |
-| m_nMaxSafeStep | 在软着陆模式下，电机由最大电机位置到最小电机位置移动的最大安全步长 | 用户设置 | 见图2 |
-| m_nMinSafePositionMacro | 在软着陆模式下，电机由最小电机位置到最大电机位置移动时的最小安全位置 | 用户设置 | 见图2 |
-| m_nMinStepRatioMacro | 在软着陆模式下，电机由最小电机位置到最大电机位置移动的最小步长比例 | 用户设置 | 见图2 |
-| m_nMaxSafeStepMacro | 在软着陆模式下，电机由最小电机位置到最大电机位置移动的最大安全步长 | 用户设置 | 见图2 |
+| m_nSoftwareMotorCtrlMode | Target position control mode (used for first-step pre-move, manual move, fine step start, focus failure handling, etc.):   `0`: Soft landing mode;   `1`: Fixed step mode;   `2`: Direct mode | User Setting | See Figure 1 |
+| m_nMinSafePosition | Minimum safe position when motor moves from max to min position in soft landing mode | User Setting | See Figure 2 |
+| m_nMinStepRatio | Minimum step ratio in soft landing mode (same as above) | User Setting | See Figure 2 |
+| m_nMaxSafeStep | Maximum safe step in soft landing mode (same as above) | User Setting | See Figure 2 |
+| m_nMinSafePositionMacro | Minimum safe position when motor moves from min to max position in soft landing mode | User Setting | See Figure 2 |
+| m_nMinStepRatioMacro | Minimum step ratio in soft landing mode (same as above) | User Setting | See Figure 2 |
+| m_nMaxSafeStepMacro | Maximum safe step in soft landing mode (same as above) | User Setting | See Figure 2 |
 
 ![](./static/JeuSbzuDfoBgZmxPpjOc5eHBnIc.png)
 
-图 1
+Figure 1
 
-(每组 Conditions 条件描述-Graphic 图形演示-Output 输出为一种情况)
+Description per condition group:
+
+- Graphic: Visual demonstration
+- Output: One output scenario
 
 ![](./static/AMDjblfBJofaQIxIcKHcgVT0nzh.png)
 
@@ -1841,456 +1863,515 @@ CAFFilter 模块用于自动对焦控制。
 
 ![](./static/ARYubf6ZrovCCuxDdu4cDNvpnhb.png)
 
-图 2
+Figure 2
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
+| Parameter Name | Description | Recommended for Debugging | Notes |
 |---|---|---|---|
-| m_bAdaptiveStep | 可变步长模式，0：不使能 1：使能 | 用户设置 |   |
-| m_nVCMStep1Ratio | 电机步长比例1，在可变步长模式下，将电机范围划分为多个区间 | 用户设置 | 见图3 |
-| m_nVCMStep2Ratio | 电机步长比例2，在可变步长模式下，将电机范围划分位多个区间 | 用户设置 | 见图3 |
-| m_nVCMCoarseStep1 | 电机粗步长1，在可变步长模式下，根据当前电机位置在不同区间计算实际步长 | 用户设置 | 见图3 |
-| m_nVCMCoarseStep2 | 电机粗步长2，在可变步长模式下，根据当前电机位置在不同区间计算实际步长 | 用户设置 | 见图3 |
-| m_nVCMFineStep1 | 电机细步长1，在可变步长模式下，根据当前电机位置在不同区间计算实际步长 | 用户设置 | 见图3 |
-| m_nVCMFineStep2 | 电机细步长2，在可变步长模式下，根据当前电机位置在不同区间计算实际步长 | 用户设置 | 见图3 |
+| m_bAdaptiveStep | Adaptive step mode   `0`: Disabled;   `1`: Enabled | User Setting |   |
+| m_nVCMStep1Ratio | Motor step ratio 1, divides motor range into segments in adaptive step mode | User Setting | See Figure 3 |
+| m_nVCMStep2Ratio | Motor step ratio 2, divides motor range into segments in adaptive step mode | User Setting | See Figure 3 |
+| m_nVCMCoarseStep1 | Motor coarse step 1, actual step computed based on current motor position segment in adaptive mode | User Setting | See Figure 3 |
+| m_nVCMCoarseStep2 | Motor coarse step 2, actual step computed based on current motor position segment in adaptive mode | User Setting | See Figure 3 |
+| m_nVCMFineStep1 | Motor fine step 1, actual step computed based on current motor position segment in adaptive mode | User Setting | See Figure 3 |
+| m_nVCMFineStep2 | Motor fine step 2, actual step computed based on current motor position segment in adaptive mode | User Setting | See Figure 3 |
 
-- MotorMoveStep 表示实时的步长，它根据当前电机运动方向、当前处于粗步长还是细步长模式改变，是一个变量，符号可为正，可为负，可为较大值，可为较小值
+- MotorMoveStep indicates the real-time step length, changing according to motor movement direction and whether in coarse or fine step mode; it can be positive, negative, large, or small.
 
 ![](./static/CgoZbDxPfoa1Vyxg5pNcFFsJnjb.png)
 
-图 3
+Figure 3
 
-(每组 Conditions 条件描述-Graphic 图形演示-Output 输出为一种情况)
+Description per condition group:
+
+- Graphic: Visual demonstration
+- Output: One output scenario
 
 ![](./static/GQT7brkH5oXi1pxLVx5c8YAfnGf.png)
 
 ![](./static/HsXLbF68LoRnc6x1FVZcoxAunKf.png)
 
-#### Focus Value 判定参数
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_pFVDropPercentage | 预运动模式下，判定FV曲线下降的百分比。６种类型的FV各自根据增益计算 | 否 |   |
-| m_pCurrentStartFVDropPercentage | 非预运动模式下，判定FV曲线下降的百分比。６种类型的FV各自根据增益计算 | 否 |   |
-| m_pFVFailPercentage | 预运动模式下，判定FV曲线无效的最大FV值与最小FV值的差异百分比。若最大FV值与最小FV值差异小于阈值，则认为FV曲线过于平滑而无效。６种类型的FV各自根据增益计算。是判定聚焦失败的第一种条件。 | 否 |   |
-| m_pCurrentStartFVFailPe rcentage | 非预运动模式下，判定FV曲线无效的最大FV值与最小FV值的差异百分比。若最大FV值与最小FV值差异小于阈值，则认为FV曲线过于平滑而无效。６种类型的FV各自根据增益计算。是判定聚焦失败的第一种条件。 | 否 |   |
-| m_pLastStepChangePercentage | FV曲线一直上升或一直下降判定为失效的百分比，６种类型的FV各自根据增益计算 | 否 |   |
-| m_pWindowWeightMatrix | ５ｘ５统计窗的FV的权重 | 否 |   |
+#### Focus Value (FV) Judgment Parameters
 
-#### PDAF 控制参数
+| Parameter Name     | Description  | Recommended for Debugging | Notes |
+|--------------------|--------------------------------------------------------------------------------------------------------|--------------------------|-------|
+| m_pFVDropPercentage    | FV drop percentage threshold for pre-move mode. Calculated separately for 6 types of FV based on gain.   | No    |       |
+| m_pCurrentStartFVDropPercentage| FV drop percentage threshold for non-pre-move mode. Calculated separately for 6 types of FV based on gain.   | No    |       |
+| m_pFVFailPercentage | In pre-move mode, max-min FV difference percentage to judge FV curve invalidity. If difference is below this threshold, FV curve is too flat and considered invalid. Applied separately for 6 FV types based on gain. First condition to judge focus failure. | No  |       |
+| m_pCurrentStartFVFailPercentage| Same as above but for non-pre-move mode. First condition to judge focus failure.  | No   |       |
+| m_pLastStepChangePercentage    | Percentage threshold for judging FV curve as invalid when FV continuously rises or falls. Calculated separately for 6 FV types based on gain.  | No   |       |
+| m_pWindowWeightMatrix          | 5x5 window weights for FV statistics calculation.  | No   |       |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bPDReverseDirectionFlag | PDShift计算的步长反向标志0：不反向 1：反向 | 是 |   |
-| m_nPDDirectConfThrRatio | PD阈值百分比，当置信度大于阈值的m_nPDDirectConfThrRatio%时，直接走出PD计算的步长 | 否 |   |
-| m_nPDTryStepRatio | AF算法运行在混合对焦模式时，首先尝试走出的一步相对于CDAF大步的比例 | 否 |   |
-| m_nPDCoarseStep | PDAF粗步长 | 是 |   |
-| m_nPDFineStep | PDAF细步长 | 是 |   |
-| m_nPDStepDiscountRatio | PDAF对由PDShift计算出的步长的打折比例 | 否 |   |
-| m_pPDConfThr | PD信息置信度阈值 | 是 |   |
-| m_pPDFVIncreaseRatio | AF算法运行在混合对焦模式时，FV上升的比例，用于判定尝试的一步走出后FV值是否上升，从而判定PD信息是否可信 | 否 |   |
-| m_pPDFVDropPercentage | FV值下降的判定百分比，当AF运行在PDAF下 | 否 |   |
-| m_pPDShiftPositionLUT_0_0m_pPDShiftPositionLUT_4_4 | 5x5窗口，PD Shift – step 查找表 | PDAF插件标定 |   |
 
-#### 连续聚焦控制
+#### PDAF Control Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bCAFHold | 在连续聚焦模式下，保持当前状态不变 | 用户设置 |   |
-| m_bCAFForce | 在连续聚焦模式下，强制触发一次单次聚焦 | 用户设置 |   |
-| m_nCAFHoldPDShiftThr | 连续聚焦模式下，判断场景稳定的PD shift门限，值越大，越容易判断为稳定 | 是 |   |
-| m_nCAFHoldPDConfThr | 连续聚焦模式下，判断场景稳定的PD confidence门限，值越小，越容易判断为稳定 | 是 |   |
-| m_nPreFocusMode | 在连续聚焦模式下，追焦模式使能：0：不追焦 1：半追焦（基于PD shift先尝试一次对焦） | 用户设置 |   |
-| m_nPFPDStepDiscountRatio | Prefocus步长折扣比 | 是 |   |
-| m_nLumaCalcOpt | Luma计算方式0：三通道分别计算 1：计算RGB最大值 2：计算加权的Y均值 | 否 |   |
-| m_bReFocusEnable | 连续聚焦模式下，refocus使能 | 用户设置 |   |
-| m_pRefocusLumaSADThr | CAF触发SAF时，决定是否触发的SAD门限 | 是 |   |
-| m_nFlatSceneVarThr | 连续聚焦模式下，判断是否为平坦场景的缩略图的方差门限 | 是 |   |
-| m_nFlatSceneLumaThr | 连续聚焦模式下，判断是否为平坦场景的亮度门限 | 是 |   |
-| m_bStableJudgeOpt | 连续聚焦模式下，判断场景稳定的条件：0：FV或luma满足其一 1：FV与luma均满足 | 用户设置 |   |
-| m_nRefStableFrameNum | 在连续聚焦模式下，参考态中判定场景已经稳定的帧数 | 用户设置 |   |
-| m_nDetStableFrameNum | 在连续聚焦模式下，检测态中判定场景已经稳定的帧数 | 用户设置 |   |
-| m_pStableExpIndexPercentage | 在连续聚焦模式下，判定当前帧稳定的曝光量变化百分比 | 是 |   |
-| m_pStableFVSADPercentage | 在连续聚焦模式下，判定当前帧稳定的FV的SAD百分比 | 是 |   |
-| m_pStableLumaSADThr | 在连续聚焦模式下，判定当前帧稳定的亮度的SAD百分比 | 是 |   |
-| m_bChangeJudgeOpt | 连续聚焦模式下，判断场景变化的条件：0：FV或luma满足其一 1：FV与luma均满足 | 否 |   |
-| m_nChangeFrameNum | 连续聚焦模式下，判断场景变化的帧数 | 是 |   |
-| m_nChangeStatAreaPercentage | 连续聚焦模式下，判断场景变化的AF统计窗口面积改变门限百分比，超出此门限认为场景发生改变，人脸模式有效 | 否 |   |
-| m_nChangeStatCenterPercentage | 连续聚焦模式下，判断场景变化的AF统计窗口位置改变门限百分比，超出此门限认为场景发生改变，人脸模式有效 | 否 |   |
-| m_pChangeExpIndexPercentage | 连续聚焦模式下，判断场景变化的曝光量变化百分比 | 是 |   |
-| m_pChangeFVSADPercentage | 在连续聚焦模式下，判定当前帧变化的FV的SAD百分比 | 是 |   |
-| m_pChangeLumaSADThr | 在连续聚焦模式下，判定当前帧变化的亮度的SAD百分比 | 是 |   |
-| m_pChangePDShiftThr | 在连续聚焦模式下，判定当前帧变化的PDShift的百分比 | 否 |   |
+| Parameter Name                | Description                                                                                                   | Recommended for Debugging | Notes        |
+|------------------------------|----------------------------------------------------------------------------------------------------------------|--------------------------|--------------|
+| m_bPDReverseDirectionFlag    | PDShift step direction reverse flag   `0`: No reverse;   `1`: Reverse                                   | Yes                      |              |
+| m_nPDDirectConfThrRatio      | PD threshold percentage; when confidence exceeds m_nPDDirectConfThrRatio%, directly apply PD step calculated | No                         |              |
+| m_nPDTryStepRatio            | Step ratio tried first in hybrid AF mode relative to CDAF coarse step                                          | No                       |              |
+| m_nPDCoarseStep              | PDAF coarse step                                                                                               | Yes                      |              |
+| m_nPDFineStep                | PDAF fine step                                                                                                 | Yes                      |              |
+| m_nPDStepDiscountRatio       | Discount ratio applied to PDShift calculated step                                                              | No                       |              |
+| m_pPDConfThr                 | PD confidence threshold                                                                                        | Yes                      |              |
+| m_pPDFVIncreaseRatio         | FV increase ratio used in hybrid AF mode to judge if FV rises after PD step, determining PD info validity      | No                       |              |
+| m_pPDFVDropPercentage        | FV drop percentage threshold used in PDAF mode                                                                 | No                       |              |
+| m_pPDShiftPositionLUT_0_0 ~ m_pPDShiftPositionLUT_4_4 | 5x5 window PD Shift – step lookup table                                               | PDAF plugin calibration  |              |
 
-#### 前景追踪模式
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bForeGroundTrackInCoarse | 粗步长调节时前景追踪模式使能：0：不使能前景追踪 1：使能前景追踪 | 用户设置 |   |
-| m_bForeGroundTrackInFine | 细步长调节时前景追踪模式使能：0：不使能前景追踪 1：使能前景追踪 | 用户设置 |   |
-| m_nForeGroundTrackWindow | 前景追踪窗口：3：3x3 4：4x4 5：5x5 | 用户设置 |   |
-| m_bForeGroundTrack | 前景追踪模式使能：0：不使能前景追踪 1：使能前景追踪 | 用户设置 |   |
-| m_pFVBlkDropPercentage | 前景追踪模式使能下的FV值下降的判定百分比 | 否 |   |
-| m_pFVBlkIncreasePercentage | 前景追踪模式使能下的FV值上升的判定百分比 | 否 |   |
-| m_pFineStepStartPosSelectConf | 前景追踪模式使能下，开始走细步长时的起始位置的置信度阈值 | 否 |   |
-| m_pFineStepEndPosSelectConf | 前景追踪模式使能下，细步长走完后最终位置的置信度阈值 | 否 |   |
+#### Continuous Autofocus (CAF) Control
 
-#### AF frameinfo
+| Parameter Name              | Description                                                                                    | Recommended for Debugging | Notes  |
+|-----------------------------|------------------------------------------------------------------------------------------------|--------------------------|--------|
+| m_bCAFHold                  | Hold current state in continuous autofocus mode                                                | User setting             |        |
+| m_bCAFForce                 | Force trigger single autofocus once in continuous autofocus mode                               | User setting             |        |
+| m_nCAFHoldPDShiftThr        | PD shift threshold to judge scene stability in CAF mode; higher value means easier to judge stable | Yes                  |        |
+| m_nCAFHoldPDConfThr         | PD confidence threshold to judge scene stability in CAF mode; lower value means easier to judge stable | Yes              |        |
+| m_nPreFocusMode             | Prefocus mode enable in CAF:   `0`: No prefocus;   `1`: Semi-prefocus (try focus once based on PD shift) | User setting     |        |
+| m_nPFPDStepDiscountRatio    | Prefocus step discount ratio                                                                   | Yes                      |        |
+| m_nLumaCalcOpt              | Luma calculation method   `0`: Calculate each channel separately;   `1`: Calculate RGB max value;   `2`: Calculate weighted Y average | No     |        |
+| m_bReFocusEnable            | Refocus enable in CAF mode                                                                     | User setting             |        |
+| m_pRefocusLumaSADThr        | SAD threshold to decide whether to trigger SAF when CAF triggers SAF                           | Yes                      |        |
+| m_nFlatSceneVarThr          | Variance threshold of thumbnail to judge flat scene in CAF mode                                | Yes                      |        |
+| m_nFlatSceneLumaThr         | Luma threshold to judge flat scene in CAF mode                                                 | Yes                      |        |
+| m_bStableJudgeOpt           | Condition for scene stability judgment in CAF:   `0`: FV or luma satisfies condition;   `1`: Both FV and luma satisfy condition | User setting     |        |
+| m_nRefStableFrameNum        | Number of frames judged stable in reference state during CAF                                   | User setting             |        |
+| m_nDetStableFrameNum        | Number of frames judged stable in detection state during CAF                                   | User setting             |        |
+| m_pStableExpIndexPercentage | Percentage of exposure index change to judge stability in CAF                                  | Yes                      |        |
+| m_pStableFVSADPercentage    | SAD percentage of FV to judge stability in CAF                                                 | Yes                      |        |
+| m_pStableLumaSADThr         | SAD threshold of luma to judge stability in CAF                                                | Yes                      |        |
+| m_bChangeJudgeOpt           | Condition for scene change judgment in CAF:   `0`: FV or luma satisfies condition;   `1`: Both FV and luma satisfy condition | No    |        |
+| m_nChangeFrameNum           | Number of frames to judge scene change in CAF                                                  | Yes                      |        |
+| m_nChangeStatAreaPercentage | Threshold percentage of AF statistic window area change to judge scene change in CAF; effective in face mode | No         |        |
+| m_nChangeStatCenterPercentage | Threshold percentage of AF statistic window center position change to judge scene change in CAF; effective in face mode | No     |        |
+| m_pChangeExpIndexPercentage | Exposure index change percentage to judge scene change in CAF                                  | Yes                      |        |
+| m_pChangeFVSADPercentage    | SAD percentage of FV to judge change in CAF                                                    | Yes                      |        |
+| m_pChangeLumaSADThr         | SAD threshold of luma to judge change in CAF                                                   | Yes                      |        |
+| m_pChangePDShiftThr         | PDShift percentage threshold to judge change in CAF                                            | No                       |        |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nGain | 当前系统增益，Q4 format |  - | 只读 |
-| m_nPDShift | PD偏移 |  - | 只读 |
-| m_nPDConf | PD置信度 |  - | 只读 |
-| m_nCurrentPosition | 当前电机位置 |  - | 只读 |
-| m_nFSMStatus | AF状态机 |  - | 只读 |
-| m_nFocusStatFlag | 聚焦状态标志0：初始 1：成功 2：失败 |  - | 只读 |
-| m_nFocusFrameCost | 一次单次聚焦完成所花费的帧数 |  - | 只读 |
-| m_nMotorMoveStep | 实时电机步长 |  - | 只读 |
-| m_bCoarseFineStepFlag | 实时处于粗/细步长标志0：当前处于细步长 1：当前处于粗步长 |  - | 只读 |
-| m_nMotorMoveSkipFrameNum | 电机每次移动跳过的帧数 |  - | 只读 |
-| m_bStartFromMinFlag | 实时电机运动方向0：从最大电机位置到最小电机位置 1：从最小电机位置到最大电机位置 |  - | 只读 |
-| m_bStartFromCurrentFlag | 电机初始从当前位置开始运动的标志0：从预运动位置出发 1：从初始位置出发 |  - | 只读 |
-| m_bSoftwareMotorCtrlFlag | 从当前位置向目标位置运动过程中受到软件控制改变的标志 |  - | 只读 |
-| m_nPositionScanNum | 电机扫描过的方向计数 |  - | 只读 |
-| m_nPositionAdjustNum | 电机走过的位置计数 |  - | 只读 |
-| m_pRTFVList | 实时FV值 |  - | 只读 |
-| m_pMinFVList | 单次聚焦过程中的最小FV值 |  - | 只读 |
-| m_pMaxFVList | 单次聚焦过程中的最大FV值 |  - | 只读 |
-| m_pMaxFVPositionList | 单次聚焦城中的最大FV值所在的位置 |  - | 只读 |
-| m_pFVUnchangeFlag | FV曲线过于平滑而失效的标志0：FV曲线可信 1：FV曲线失效 |  - | 只读 |
-| m_pFailCondition | 判定本地聚焦失败的三个条件的状态0：当前条件判定聚焦成功 1：当前条件判定聚焦失败 |  - | 只读 |
-| m_pFSMPosSingleFocus | 单次聚焦过程中，帧号-电机位置-状态机信息记录 |  - | 只读 |
-| m_pPosFvSingleFocus | 单次聚焦过程中，帧号-6种类型FV值信息记录 |  - | 只读 |
-| m_pRefFV | 连续聚焦模式下，记录的FV参考值 |  - | 只读 |
-| m_pSeqFV | 连续聚焦模式下，实时FV值序列 |  - | 只读 |
-| m_pRefLumaR | 连续聚焦模式下，记录的R通道缩略图参考值 |  - | 只读 |
-| m_pRefLumaG | 连续聚焦模式下，记录的G通道缩略图参考值 |  - | 只读 |
-| m_pRefLumaB | 连续聚焦模式下，记录的B通道缩略图参考值 |  - | 只读 |
-| m_pSeqLumaR | 连续聚焦模式下，实时R通道缩略图 |  - | 只读 |
-| m_pSeqLumaG | 连续聚焦模式下，实时G通道缩略图 |  - | 只读 |
-| m_pSeqLumaB | 连续聚焦模式下，实时B通道缩略图 |  - | 只读 |
-| m_nRefExpIndex | 连续聚焦模式下，参考曝光index |  - | 只读 |
-| m_nRTExpIndex | 连续聚焦模式下，实时曝光index |  - | 只读 |
-| m_bPDInfoDisable | 连续聚焦模式下，使用PD信息标志位 |  - | 只读 |
-| m_nLumaAverage | 亮度均值 |  - | 只读 |
-| m_nSceneVariance | 缩略图实时方差 |  - | 只读 |
-| m_bSceneFlatFlag | 场景平坦标志位 |  - | 只读 |
-| m_nChangeExpIndex | 连续聚焦模式下，当前曝光index与参考曝光index的差 |  - | 只读 |
-| m_nChangeExpIndexThr | 连续聚焦模式下，判断场景变化的曝光index门限 |  - | 只读 |
-| m_nChangeFVSAD | 连续聚焦模式下，实时FV与参考FV之间的SAD差 |  - | 只读 |
-| m_nChangeFVSADThr | 连续聚焦模式下，判断场景变化的SAD门限 |  - | 只读 |
-| m_nChangeLumaSAD | 连续聚焦模式下，实时亮度 SAD值 |  - | 只读 |
-| m_nChangeLumaSADThr | 连续聚焦模式下，实时亮度 SAD门限 |  - | 只读 |
-| m_nRefocusLumaSAD | CAF触发SAF时，前帧亮度SAD |  - | 只读 |
-| m_nRefocusLumaSADThr | CAF触发SAF时，决定是否触发的SAD门限 |  - | 只读 |
-| m_bStableExpIndexFlag | AE曝光表稳定标志位 |  - | 只读 |
-| m_bStableFVFlag | FV稳定标志位 |  - | 只读 |
-| m_bStableAFLumaFlag | AFM luma稳定标志位 |  - | 只读 |
-| m_bStableAELumaFlag | AEM luma稳定标志位 |  - | 只读 |
-| m_bPDTriggerCAF | PD触发AF标志位 |  - | 只读 |
-| m_bFVTriggerCAF | FV触发AF标志位 |  - | 只读 |
-| m_bLumaTriggerCAF | Luma触发AF标志位 |  - | 只读 |
-| m_bExpIndexTriggerCAF | ExpIndex触发AF标志位 |  - | 只读 |
-| m_bRefocusTriggerCAF | CFA触发SAF标志位 |  - | 只读 |
 
-### CAWBFilter 参数说明
+#### Foreground Tracking Mode
 
-CAWBFilter（AWB）模块用于自动白平衡控制。
+| Parameter Name              | Description                                                                                        | Recommended for Debugging | Notes      |
+|-----------------------------|----------------------------------------------------------------------------------------------------|--------------------------|------------|
+| m_bForeGroundTrackInCoarse  | Foreground tracking enable during coarse step adjustment:   `0`: Disable foreground tracking;   `1`: Enable foreground tracking | User setting    |            |
+| m_bForeGroundTrackInFine    | Foreground tracking enable during fine step adjustment:   `0`: Disable foreground tracking;   `1`: Enable foreground tracking | User setting      |            |
+| m_nForeGroundTrackWindow    | Foreground tracking window size:   `3`: 3x3;   `4`: 4x4;   `5`: 5x5                      | User setting             |            |
+| m_bForeGroundTrack          | Foreground tracking mode enable:   `0`: Disable foreground tracking;   `1`: Enable foreground tracking | User setting  |            |
+| m_pFVBlkDropPercentage      | FV value drop percentage threshold when foreground tracking mode is enabled                         | No                      |            |
+| m_pFVBlkIncreasePercentage  | FV value increase percentage threshold when foreground tracking mode is enabled                     | No                      |            |
+| m_pFineStepStartPosSelectConf | Confidence threshold for start position when beginning fine step in foreground tracking mode      | No                      |            |
+| m_pFineStepEndPosSelectConf | Confidence threshold for final position after fine step in foreground tracking mode                 | No                      |            |
 
-#### 灰度世界
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bGrayWorldEn | 灰度世界模式使能:0：关闭灰度世界1：使能灰度世界，此时由灰度世界算法计算白平衡增益 | 用户设置 |   |
+#### AF Frameinfo
 
-#### ROI 控制
+| Parameter Name           | Description                                                                                             | Recommended for Debugging | Notes    |
+|-------------------------|----------------------------------------------------------------------------------------------------------|--------------------------|-----------|
+| m_nGain                 | Current system gain, Q4 format                                                                           | -                        | Read-only |
+| m_nPDShift              | PD offset                                                                                                | -                        | Read-only |
+| m_nPDConf               | PD confidence                                                                                            | -                        | Read-only |
+| m_nCurrentPosition      | Current motor position                                                                                   | -                        | Read-only |
+| m_nFSMStatus            | AF state machine status                                                                                  | -                        | Read-only |
+| m_nFocusStatFlag        | Focus status flag   `0`: Initial;   `1`: Success;   `2`: Failure                               | -                        | Read-only |
+| m_nFocusFrameCost       | Number of frames taken for a single focus                                                                | -                        | Read-only |
+| m_nMotorMoveStep        | Real-time motor step                                                                                     | -                        | Read-only |
+| m_bCoarseFineStepFlag   | Real-time coarse/fine step flag   `0`: Fine step;   `1`: Coarse step                              | -                        | Read-only |
+| m_nMotorMoveSkipFrameNum| Number of frames skipped per motor move                                                                  | -                        | Read-only |
+| m_bStartFromMinFlag     | Real-time motor movement direction   `0`: From max to min motor position;   `1`: From min to max | -                         | Read-only |
+| m_bStartFromCurrentFlag | Motor initial movement from current position flag   `0`: From pre-move position;   `1`: From initial position | -            | Read-only |
+| m_bSoftwareMotorCtrlFlag| Flag for software control during movement from current to target position                                | -                        | Read-only |
+| m_nPositionScanNum      | Count of motor movement direction scans                                                                  | -                        | Read-only |
+| m_nPositionAdjustNum    | Count of motor moved positions                                                                           | -                        | Read-only |
+| m_pRTFVList             | Real-time FV (Focus Value) list                                                                          | -                        | Read-only |
+| m_pMinFVList            | Minimum FV values during single focus process                                                            | -                        | Read-only |
+| m_pMaxFVList            | Maximum FV values during single focus process                                                            | -                        | Read-only |
+| m_pMaxFVPositionList    | Positions of maximum FV values during single focus process                                               | -                        | Read-only |
+| m_pFVUnchangeFlag       | FV curve invalidation flag   `0`: FV curve valid;   `1`: FV curve invalid                         | -                        | Read-only |
+| m_pFailCondition        | Status of three local focus fail conditions   `0`: Success;   `1`: Fail                           | -                        | Read-only |
+| m_pFSMPosSingleFocus    | Frame number - motor position - state machine info during single focus                                   | -                        | Read-only |
+| m_pPosFvSingleFocus     | Frame number - 6 types of FV values during single focus                                                  | -                        | Read-only |
+| m_pRefFV                | Reference FV value in continuous focus mode                                                              | -                        | Read-only |
+| m_pSeqFV                | Real-time FV sequence in continuous focus mode                                                           | -                        | Read-only |
+| m_pRefLumaR             | Reference R channel thumbnail in continuous focus mode                                                   | -                        | Read-only |
+| m_pRefLumaG             | Reference G channel thumbnail in continuous focus mode                                                   | -                        | Read-only |
+| m_pRefLumaB             | Reference B channel thumbnail in continuous focus mode                                                   | -                        | Read-only |
+| m_pSeqLumaR             | Real-time R channel thumbnail in continuous focus mode                                                   | -                        | Read-only |
+| m_pSeqLumaG             | Real-time G channel thumbnail in continuous focus mode                                                   | -                        | Read-only |
+| m_pSeqLumaB             | Real-time B channel thumbnail in continuous focus mode                                                   | -                        | Read-only |
+| m_nRefExpIndex          | Reference exposure index in continuous focus mode                                                        | -                        | Read-only |
+| m_nRTExpIndex           | Real-time exposure index in continuous focus mode                                                        | -                        | Read-only |
+| m_bPDInfoDisable        | Flag for PD info usage in continuous focus mode                                                          | -                        | Read-only |
+| m_nLumaAverage          | Average luminance                                                                                        | -                        | Read-only |
+| m_nSceneVariance        | Real-time variance of thumbnail                                                                          | -                        | Read-only |
+| m_bSceneFlatFlag        | Scene flatness flag                                                                                      | -                        | Read-only |
+| m_nChangeExpIndex       | Difference between current and reference exposure index in continuous focus mode                         | -                        | Read-only |
+| m_nChangeExpIndexThr    | Exposure index threshold for scene change detection in continuous focus mode                             | -                        | Read-only |
+| m_nChangeFVSAD          | SAD difference between real-time and reference FV in continuous focus mode                               | -                        | Read-only |
+| m_nChangeFVSADThr       | SAD threshold for scene change detection in continuous focus mode                                        | -                        | Read-only |
+| m_nChangeLumaSAD        | Real-time luminance SAD value                                                                            | -                        | Read-only |
+| m_nChangeLumaSADThr     | Real-time luminance SAD threshold                                                                        | -                        | Read-only |
+| m_nRefocusLumaSAD       | Previous frame luminance SAD when CAF triggers SAF                                                       | -                        | Read-only |
+| m_nRefocusLumaSADThr    | SAD threshold deciding whether SAF is triggered by CAF                                                   | -                        | Read-only |
+| m_bStableExpIndexFlag   | AE exposure table stability flag                                                                         | -                        | Read-only |
+| m_bStableFVFlag         | FV stability flag                                                                                        | -                        | Read-only |
+| m_bStableAFLumaFlag     | AFM luminance stability flag                                                                             | -                        | Read-only |
+| m_bStableAELumaFlag     | AEM luminance stability flag                                                                             | -                        | Read-only |
+| m_bPDTriggerCAF         | PD triggered AF flag                                                                                     | -                        | Read-only |
+| m_bFVTriggerCAF         | FV triggered AF flag                                                                                     | -                        | Read-only |
+| m_bLumaTriggerCAF       | Luma triggered AF flag                                                                                   | -                        | Read-only |
+| m_bExpIndexTriggerCAF   | Exposure index triggered AF flag                                                                         | -                        | Read-only |
+| m_bRefocusTriggerCAF    | CAF triggered SAF flag                                                                                   | -                        | Read-only |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_pRoiBound | 16个ROI区域控制 | 是 |   |
-| m_pRoiLumLutHigh | 统计块亮度上限 | 否 |   |
-| m_pRoiLumLutLow | 统计块亮度下限 | 否 |   |
-| m_pRoiEn | ROI使能 | 是 |   |
-| m_pRoiWeightLut | 不同亮度索引对应的权重 | 是 |   |
-| m_pRoiLumThre | 亮度lux索引门限 | 是 |   |
-| m_bRoiLimitManual | 固定ROI使能：0：依据自动白点ROI及低色温统计块占比计算白点限制区域  1：白点限制区域固定为RoiCtHigh，RoiCtLow，RoiXMax，RoiXMin |   |   |
-| m_nRoiCtHigh | 白点ROI 纵坐标Y上限，在ROI区域以外的block计算白平衡时权重为0(CT（color temperature）为BlockBlue_sum(8bit) / BlockRed_sum * 1024) | 是 |   |
-| m_nRoiCtLow | 白点ROI 纵坐标Y下限 | 是 |   |
-| m_nRoiXMax | 白点ROI 横坐标X上限(X为BlockBlue_sum *BlockRed_sum / BlockGreen_sum / BlockGreen_sum* 1024) | 是 |   |
-| m_nRoiXMin | 白点ROI 横坐标X下限 | 是 |   |
-| m_pRoiCtHighAuto | 不同亮度下白点ROI 纵坐标Y上限 | 是 |   |
-| m_nRoiCtLowAuto | 不同亮度下自动白点ROI 纵坐标Y下限 | 是 |   |
-| m_nRoiXMaxAuto | 不同亮度下自动白点ROI 横坐标X上限 | 是 |   |
-| m_nRoiXMinAuto | 不同亮度下自动白点ROI 横坐标X下限 | 是 |   |
-| m_nValidNum | 每个ROI生效的最小块数,处于统计亮度区间的块的数目小于该值时,该ROI不参与白平衡计算 | 否 |   |
-| m_bWeightOnSum | Block权重计算方式：0：以block的和计算        1：以block的rgb gain计算 | 否 |   |
+### CAWBFilter Parameter Description
 
-#### 白平衡 Gain 控制
+The CAWBFilter (AWB) module is used for automatic white balance control.
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_pAWBGainLimit | 最终WB gain限制区域 | 是 |   |
-| m_nAWBCTShift | WB Gain向上偏移距离，用于将低色温场景往暖色调偏移 | 是 |   |
-| m_pAWBCTShiftThr | WB Gain偏移Y门限：Y＜AWBCTShiftThr[0]时WB Gain向上偏移m_nAWBCTShift，Y＞AWBCTShiftThr[1]时WB Gain不偏移，中间为插值区域 | 是 |   |
+#### Gray World
 
-#### 混光场景降高色温权重
+| Parameter Name | Description                                                                                    | Suggested Tuning | Special Notes |
+|----------------|------------------------------------------------------------------------------------------------|------------------|---------------|
+| m_bGrayWorldEn | Gray World mode enable:   `0`: Disable Gray World;   `1`: Enable Gray World; in this mode, white balance gains are calculated by the Gray World algorithm | User Setting     |               |
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_sRoiBoundDayLight | 高低色温混合场景，高色温统计块框选区域，落入该区域的统计块为高色温统计块 | 是 |   |
-| m_pLowCtNumThr | 低色温统计块所占千分比门限，（见图示lowCtLightPermillage-ratio）低色温统计块所占千分比＞LowCtNumThr[0]时，高色温统计块权重开始降低；低色温统计块所占千分比≥LowCtNumThr[1]时，高色温统计块权重降到最低。 | 是 |   |
-| m_pDayLightNumThr | 高色温统计块所占千分比门限，（见图示dayLightPermillage-ratio）高色温统计块所占千分比＜DayLightNumThr[1]时, 高色温统计块权重开始降低；高色温统计块所占千分比≤DayLightNumThr[0]时，高色温统计块权重不再降低，与m_pLowCtNumThr共同作用决定高色温统计块权重降低的基础强度baseRatio。 | 是 |   |
-| m_pLowCtThr | 高低色温混合场景，降高色温统计块权重的Y门限（见图示CtThr – ProtectRatio ）Y＜m_pLowCtThr[1]的统计块为低色温统计块 | 是 |   |
-| m_pLowCtProtectRatio | 降高色温统计块权重系数，值越小，高色温统计块权重越低，与baseRatio共同决定统计块的权重（见图示CtThr – ProtectRatio ） | 是 | 随CtThr变化 |
-| m_nLog2CwtOverA | CWF与A光权重比 | 否 |  |
+
+#### ROI Control
+
+| Parameter Name    | Description                                                                                                          | Suggested Tuning | Special Notes |
+|-------------------|----------------------------------------------------------------------------------------------------------------------|------------------|---------------|
+| m_pRoiBound       | Control for 16 ROI regions                                                                                           | Yes              |               |
+| m_pRoiLumLutHigh  | Upper limit of brightness for statistic blocks                                                                       | No               |               |
+| m_pRoiLumLutLow   | Lower limit of brightness for statistic blocks                                                                       | No               |               |
+| m_pRoiEn          | ROI enable                                                                                                           | Yes              |               |
+| m_pRoiWeightLut   | Weights corresponding to different brightness indices                                                                | Yes              |               |
+| m_pRoiLumThre     | Brightness lux index threshold                                                                                       | Yes              |               |
+| m_bRoiLimitManual | Fixed ROI enable:   `0`: Calculate white point limit area based on auto white point ROI and low color temperature block ratio;   `1`: White point limit area fixed to RoiCtHigh, RoiCtLow, RoiXMax, RoiXMin |        |          |
+| m_nRoiCtHigh      | Upper Y coordinate of white point ROI; weights for blocks outside ROI area are zero when calculating white balance (CT = BlockBlue_sum(8bit) / BlockRed_sum * 1024) | Yes      |          |
+| m_nRoiCtLow       | Lower Y coordinate of white point ROI                                                                                | Yes              |               |
+| m_nRoiXMax        | Upper X coordinate of white point ROI (X = BlockBlue_sum x BlockRed_sum / BlockGreen_sum / BlockGreen_sum x 1024)    | Yes              |               |
+| m_nRoiXMin        | Lower X coordinate of white point ROI                                                                                | Yes              |               |
+| m_pRoiCtHighAuto  | Upper Y coordinate of white point ROI at different brightness levels                                                 | Yes              |               |
+| m_nRoiCtLowAuto   | Lower Y coordinate of auto white point ROI at different brightness levels                                            | Yes              |               |
+| m_nRoiXMaxAuto    | Upper X coordinate of auto white point ROI at different brightness levels                                            | Yes              |               |
+| m_nRoiXMinAuto    | Lower X coordinate of auto white point ROI at different brightness levels                                            | Yes              |               |
+| m_nValidNum       | Minimum number of valid blocks in each ROI; if the number of blocks in the brightness statistics range is less than this value, the ROI does not participate in white balance calculation | No     |        |
+| m_bWeightOnSum    | Block weight calculation method:   `0`: Use total brightness sum of blocks;   `1`: Use RGB gain of blocks     | No               |               |
+
+
+#### White Balance Gain Control
+
+| Parameter Name     | Description                                                                                                                   | Suggested Tuning | Special Notes |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------|------------------|---------------|
+| m_pAWBGainLimit    | Final WB gain limitation range                                                                                                | Yes              |               |
+| m_nAWBCTShift      | WB Gain upward shift distance, used to shift low color temperature scenes toward warmer tones                                 | Yes              |               |
+| m_pAWBCTShiftThr   | WB Gain shift Y threshold:   When Y &lt; AWBCTShiftThr[0], WB Gain is shifted up by m_nAWBCTShift   When Y > AWBCTShiftThr[1], WB Gain is not shifted   Intermediate values are interpolated | Yes      |           |
+
+
+#### Mixed Lighting Scene - Reduce High Color Temperature Weight
+
+| Parameter Name        | Description                                                                                                                               | Suggested Tuning | Special Notes      |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------|------------------|--------------------|
+| m_sRoiBoundDayLight   | Mixed high and low color temperature scene, bounding region for high color temperature statistic blocks; blocks falling in this area are counted as high color temperature blocks | Yes        |               |
+| m_pLowCtNumThr        | Threshold for the ratio (per mille) of low color temperature statistic blocks (see the illustration below lowCtLightPermillage-ratio)   When the ratio of low CT blocks > LowCtNumThr[0], the weight of high CT blocks begins to decrease;   When the ratio ≥ LowCtNumThr[1], the weight of high CT blocks is reduced to the minimum. | Yes      |             |
+| m_pDayLightNumThr     | Threshold for the ratio (per mille) of high color temperature statistic blocks (see the illustration below dayLightPermillage-ratio)   When the ratio of high CT blocks &lt; DayLightNumThr[1], the weight of high CT blocks begins to decrease;   When the ratio ≤ DayLightNumThr[0], the weight no longer decreases. Works together with m_pLowCtNumThr to determine the base strength (baseRatio) for reducing high CT block weights. | Yes        |               |
+| m_pLowCtThr           | Y threshold for reducing the weight of high CT statistic blocks in mixed CT scenes (see CtThr – ProtectRatio illustration); blocks with Y &lt; m_pLowCtThr[1] are counted as low CT blocks | Yes         |              |
+| m_pLowCtProtectRatio  | Coefficient for reducing the weight of high CT blocks; the smaller the value, the lower the weight of high CT blocks. Together with baseRatio determines block weight (see CtThr – ProtectRatio) | Yes         | Changes with CtThr  |
+| m_nLog2CwtOverA       | Weight ratio of CWF to A light                                                                                                           | No           |               |
+
+---
+
+**CtThr – ProtectRatio illustration**
 
 ![](./static/XHjabVAXKoenQbxx9v7cRZl9nyh.png)
 
-CtThr – ProtectRatio 示意图
+**lowCtLightPermillage-ratio illustration**
 
 ![](./static/Yg4EbdPsCowxyOxyTA2cOY10nKc.png)
 
-lowCtLightPermillage-ratio 示意图
+**dayLightPermillage-ratio illustration**
 
 ![](./static/P8bMbljXaom7BGxzAVtcDoTtnPd.png)
 
-dayLightPermillage-ratio 示意图
 
-#### 绿区控制
+#### Green Zone Control
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_pRoiBoundG | 绿区ROI控制 | 是 |   |
-| m_pRoiLumLutHighG | 绿区统计块亮度上限 | 是 |   |
-| m_pRoiLumLutLowG | 绿区统计块亮度下限 | 是 |   |
-| m_bGreenShiftEn | 绿区ROI使能 | 用户设置 |   |
-| m_pGreenLumThre | 绿区不同亮度索引下的权重表 | 是 |   |
-| m_nGreenShiftMax | 绿区权重上限:与exposure shift相乘得到最终的shift权重,最大32，完全偏向outdoor gain | 是 |   |
-| m_pGreenNumThre | 绿区统计块门限, 落在绿区的统计块的数目在此区间则进入green shift | 是 |   |
-| m_pOutdoorGain | 绿区白平衡目标增益 | 是 |   |
+| Parameter Name      | Description                                                                                  | Suggested Tuning | Special Notes |
+|---------------------|----------------------------------------------------------------------------------------------|------------------|---------------|
+| m_pRoiBoundG        | Green zone ROI control                                                                       | Yes              |               |
+| m_pRoiLumLutHighG   | Upper brightness limit for green zone statistic blocks                                       | Yes              |               |
+| m_pRoiLumLutLowG    | Lower brightness limit for green zone statistic blocks                                       | Yes              |               |
+| m_bGreenShiftEn     | Green zone ROI enable                                                                        | User setting     |               |
+| m_pGreenLumThre     | Weight table for different brightness indices in the green zone                              | Yes              |               |
+| m_nGreenShiftMax    | Max weight for green zone: multiplied by exposure shift to get the final shift weight; max 32, fully biased toward outdoor gain | Yes          |               |
+| m_pGreenNumThre     | Threshold for green zone statistic blocks count; if the number of blocks in green zone is within this range, green shift is applied | Yes      |               |
+| m_pOutdoorGain      | Target WB gain for green zone                                                                | Yes              |               |
 
-#### AWB frameinfo
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_bAwbCalStatus | AWB计算状态 |  - | 只读 |
-| CurrentResult | 当前应用白平衡增益 |  - | 只读 |
-| CurrentTarget | AWB计算得到的目标白平衡增益 |  - | 只读 |
-| m_nSceneLux | AWB debug参数,当前AE计算得到的场景照度 |  - | 只读 |
-| m_nValidBlkNum | 有效统计块数 |  - | 只读 |
-| m_nLowCtBlkRatio | 低色温统计块占千分比 |  - | 只读 |
-| m_pCtLimit | 当前ROI范围（X_Max,X_Min,CT_High,CT_Low） |  - | 只读 |
-| m_nDayLightBlkRatio | D光统计块占千分比 |  - | 只读 |
-| m_nGreenShiftWeight | 绿区偏移权重 |  - | 只读 |
-| m_pStatBlkR | R通道统计值 |  - | 只读 |
-| m_pStatBlkG | G通道统计值 |  - | 只读 |
-| m_pStatBlkB | B通道统计值 |  - | 只读 |
-| m_pBlkCtX | 统计块横坐标X |  - | 只读 |
-| m_pBlkCtY | 统计块纵坐标Y |  - | 只读 |
-| m_pBlkRoiId | 统计块所处ROI |  - | 只读 |
-| m_pBlkWeight | 统计块参与白平衡计算的权重 |  - | 只读 |
-| m_pDebugBlcokData[23][31] | AWB统计块的RGB值 |  - | 只读 |
+#### AWB Frameinfo
 
-### C3DNRFirmwareFilter 调试说明
+| Parameter Name           | Description                                     | Suggested Tuning | Special Notes |
+|--------------------------|-------------------------------------------------|------------------|---------------|
+| m_bAwbCalStatus          | AWB calculation status                          | -                | Read-only     |
+| CurrentResult            | Currently applied white balance gain            | -                | Read-only     |
+| CurrentTarget            | Target white balance gain calculated by AWB     | -                | Read-only     |
+| m_nSceneLux              | AWB debug parameter, current AE calculated scene illuminance | -   | Read-only     |
+| m_nValidBlkNum           | Number of valid statistic blocks                | -                | Read-only     |
+| m_nLowCtBlkRatio         | Low color temperature statistic block ratio (per mille) | -        | Read-only     |
+| m_pCtLimit               | Current ROI range (X_Max, X_Min, CT_High, CT_Low) | -              | Read-only     |
+| m_nDayLightBlkRatio      | Daylight statistic block ratio (per mille)      | -                | Read-only     |
+| m_nGreenShiftWeight      | Green zone shift weight                         | -                | Read-only     |
+| m_pStatBlkR              | R channel statistics                            | -                | Read-only     |
+| m_pStatBlkG              | G channel statistics                            | -                | Read-only     |
+| m_pStatBlkB              | B channel statistics                            | -                | Read-only     |
+| m_pBlkCtX                | Statistic block horizontal coordinate X         | -                | Read-only     |
+| m_pBlkCtY                | Statistic block vertical coordinate Y           | -                | Read-only     |
+| m_pBlkRoiId              | ROI of statistic block                          | -                | Read-only     |
+| m_pBlkWeight             | Weight of statistic block for white balance calculation | -        | Read-only     |
+| m_pDebugBlcokData[23][31] | RGB values of AWB statistic blocks             | -                | Read-only     |
 
-C3DNRFirmwareFilter（NR）模块用于 2D 与 3D 去噪。
 
-#### NR 使能
+### C3DNRFirmwareFilter Debug Description
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| m_nTnrEb | 3DNR使能，仅用于控制3DNR | 用户设置 |   |
-| m_pTnr3dYEb | 3DNR 亮度去噪开关 | 是 | 可随Gain/Layer变化 |
-| m_pTnr3dUVEb | 3DNR 颜色去噪开关 | 是 | 可随Gain/Layer变化 |
-| m_pTnr2dYEb | 2DNR 亮度去噪开关 | 是 | 可随Gain/Layer变化 |
+C3DNRFirmwareFilter (NR) module is used for 2D and 3D noise reduction.
 
-#### 2D NR 基础控制参数
+#### NR Enable
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| m_pMax_diff_thr | 最大亮度参考门限，Dynamic使能时有效 | 否 |   |
-| m_pSig_gain | 亮度参考门限，值越小，越多区域被去噪 | 是 | 可随Gain/Layer变化 |
-| m_pAback_alpha | 亮度噪声回加,值越大,回加的亮度噪声的越多 | 是 | 可随Gain/Layer变化 |
-| m_pCnrSig_y | CNR参考Y门限，值越大，越多区域被去噪 | 是 | 可随Gain/Layer变化 |
-| m_pCnrSig_uv | CNR参考UV门限，值越大，越多区域被去噪 | 是 | 可随Gain/Layer变化 |
-| m_pCnrAback_alpha | 颜色噪声回加,值越大,回加的颜色噪声的越多 | 是 | 可随Gain/Layer变化 |
-| m_pCnrSig_uv_shift | CNR门限左移系数，（1表示门限左移一位，即乘2） | 是 | 可随Gain/Layer变化 |
-| m_pGainIndex | 增益索引，建议保持缺省值 | 否 |   |
-| m_bDynamic_en | 去噪门限自适应使能，打开时亮度去噪门限的ratio依据图像内容动态计算 | 否 |   |
-| m_nGlobalYnrStrength | 全局亮度噪声去噪强度 | 是 | 可随Gain/Layer变化 |
-| m_nGlobalCnrStrength | 全局颜色噪声去噪强度 | 是 | 可随Gain/Layer变化 |
+| Parameter Name | Description                     | Suggested Modification      | Special Notes               |
+|----------------|---------------------------------|-----------------------------|-----------------------------|
+| m_nTnrEb       | 3DNR enable, controls 3DNR only  | User setting               |                             |
+| m_pTnr3dYEb    | 3DNR luminance noise reduction enable | Yes, adjustable by Gain/Layer |                     |
+| m_pTnr3dUVEb   | 3DNR chrominance noise reduction enable | Yes, adjustable by Gain/Layer |                   |
+| m_pTnr2dYEb    | 2DNR luminance noise reduction enable | Yes, adjustable by Gain/Layer |                     |
 
-部分参数可随 Gain/Layer 调整，以 m_pCnrSig_y 为例：
 
-Column 表示 Gain 的档位，Column[0]表示 1 倍 gain；Column[11]表示 2048 倍 gain； Row 表示不同 layer 的参数，Row[0]表示 layer 0 的参数；Row[4]表示 layer 4 的参数；
+#### 2D NR Basic Control Parameters
 
-（layer 越高，对应处理图像越高频的区域）
+| Parameter Name       | Description     | Suggested Modification | Special Notes               |
+|----------------------|-----------------|------------------------|-----------------------------|
+| m_pMax_diff_thr      | Maximum luminance reference threshold, effective when Dynamic enable is on                   | No                     |                             |
+| m_pSig_gain          | Luminance reference threshold; smaller values cause more areas to be denoised                | Yes                    | Adjustable by Gain/Layer    |
+| m_pAback_alpha       | Luminance noise re-addition; larger values re-add more luminance noise                       | Yes                    | Adjustable by Gain/Layer    |
+| m_pCnrSig_y          | CNR reference Y threshold; larger values cause more areas to be denoised                     | Yes                    | Adjustable by Gain/Layer    |
+| m_pCnrSig_uv         | CNR reference UV threshold; larger values cause more areas to be denoised                    | Yes                    | Adjustable by Gain/Layer    |
+| m_pCnrAback_alpha    | Chrominance noise re-addition; larger values re-add more chrominance noise                   | Yes                    | Adjustable by Gain/Layer    |
+| m_pCnrSig_uv_shift   | CNR threshold left shift factor (1 means shift left by 1 bit, i.e., multiply by 2)           | Yes                    | Adjustable by Gain/Layer    |
+| m_pGainIndex         | Gain index, suggested to keep default value                                                  | No                     |                             |
+| m_bDynamic_en        | Adaptive denoise threshold enable; when enabled, luminance denoise ratio is dynamically calculated based on image content | No      |               |
+| m_nGlobalYnrStrength | Global luminance noise reduction strength                                                    | Yes                    | Adjustable by Gain/Layer    |
+| m_nGlobalCnrStrength | Global chrominance noise reduction strength                                                  | Yes                    | Adjustable by Gain/Layer    |
 
-![](./static/WSVvbAViHo5eKnx7pt1ctXomnMc.png)
+---
 
-#### 2D NR 亮度控制参数
+Some parameters adjust according to Gain/Layer, for example, **m_pCnrSig_y**:
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| m_bLuma_en | YNR随亮度变化使能 | 用户设置 |   |
-| m_pLuma_sig | 随亮度变化, 2D YNR强度，level 0-16 对应亮度0-255, 16等分 | 是 | 可随Gain/Luma变化 |
-| m_bCnrLuma_en | CNR强度随亮度控制使能 | 用户设置 |   |
-| m_pCnrLuma_sig | 随亮度变化, 2D CNR强度，level 0-16 对应亮度0-255, 16等分 | 是 | 可随Gain/Luma变化 |
+- Columns represent gain levels:
+  - Column[0] means 1x gain
+  - Column[11] means 2048x gain
+- Rows represent different layers:
+  - Row[0] means parameters for layer 0
+  - Row[4] means parameters for layer 4
 
-#### 2D NR 沿半径调节去噪强度
+Higher layers correspond to processing higher frequency regions of the image.
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| m_bRadial_en | 去噪强度沿半径调节使能:0 : 关闭        1: 使能 | 用户设置 |   |
-| m_pRadial_ratio | 去噪强度随沿半径增强强度控制，值越大，边缘去噪强度越强 | 是 | 可随Gain/Layer变化 |
-| m_bCnrRadial_en | 去彩噪强度沿半径调节使能:0 : 关闭        1: 使能 | 用户设置 |   |
-| m_pCnrRadial_ratio | 去彩噪强度随沿半径增强强度控制，值越大，边缘去彩噪强度越强 | 是 | 可随Gain/Layer变化 |
+![2D NR Gain/Layer Example](./static/WSVvbAViHo5eKnx7pt1ctXomnMc.png)
 
-#### 3D NR 运动区域检测及去噪强度控制
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| m_pTnrDAvg | 帧间亮度平均差门限，值越小，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_pTnrWAvg | 帧间亮度平均差权重，值越大，依据亮度帧间平均差检测运动的权重越大 | 是 | 可随Gain/Layer变化 |
-| m_pTnrQWeightAvg | 帧间亮度平均差系数，值越大，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_pTnrDSad | 帧间亮度绝对差和门限，值越小，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_pTnrWSad | 帧间亮度绝对差和权重，值越大，依据帧间亮度绝对差和检测运动的权重越大 | 是 | 可随Gain/Layer变化 |
-| m_pTnrQWeightSad | 帧间亮度绝对差和系数，值越大，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_pTnrDuv | 帧间UV平均差门限，值越小，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_pTnrWuv | 帧间UV平均差权重，值越大，依据UV帧间平均差检测运动的权重越大 | 是 | 可随Gain/Layer变化 |
-| m_pTnrQWeightUV | 帧间UV平均差，值越大，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_nTnrLumaBase | 基准亮度差阈值，值越小，越容易判断为运动 | 否 |   |
-| m_pTnrLuma | 依据亮度控制帧间亮度平均差门限，值越小，越容易判断为运动 | 是 | 可随Gain/Layer变化 |
-| m_pTnrYStrengthQ6 | Tnr亮度去噪全局强度，值越大，静止区域亮度去噪强度越大 | 是 | 可随Gain/Layer变化 |
-| m_pTnrUVStrengthQ6 | Tnr颜色去噪全局强度，值越大，静止区域颜色去噪强度越大 | 是 | 可随Gain/Layer变化 |
-| m_pStrongSig_gain | 运动区域亮度去噪参考门限，值越小，越多区域被去噪 | 是 | 可随Gain/Layer变化 |
-| m_pStrongAback_alpha | 运动区域亮度噪声回加，值越大，回加噪声越多 | 是 | 可随Gain/Layer变化 |
+#### 2D NR Luminance Control Parameters
 
-#### 3D NR 其他参数参数
+| Parameter Name    | Description                                                                                   | Suggested Modification | Special Notes          |
+|-------------------|-----------------------------------------------------------------------------------------------|------------------------|------------------------|
+| m_bLuma_en        | YNR (Y noise reduction) enable according to luminance                                         | User setting           |                        |
+| m_pLuma_sig       | YNR strength varies with luminance, levels 0-16 correspond to luminance 0-255, divided into 16 | Yes                   | Adjustable by Gain/Luma |
+| m_bCnrLuma_en     | CNR (color noise reduction) strength control enable according to luminance                    | User setting           |                         |
+| m_pCnrLuma_sig    | CNR strength varies with luminance, levels 0-16 correspond to luminance 0-255, divided into 16 | Yes                   | Adjustable by Gain/Luma |
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| m_nTnrLumaWeight | 计算luma的窗口大小 | 否 |   |
-| m_pTnrBlockWeight0 | Layer0计算亮度差的窗口大小 | 否 |   |
-| m_pTnrBlockWeight1 | Layer1计算亮度差的窗口大小 | 否 |   |
-| m_pTnrBlockWeight234 | Layer2,3,4计算亮度差的窗口大小 | 否 |   |
-| m_pTnr2dMappingCurve | 运动区域不同亮度去噪强度融合系数，值为256全用weak(静止区域)去噪强度，值为0时strong(运动区域)权重最大 | 否 |   |
-| m_p*Ratio | Reserved |   |  |
+---
 
-##### 彩边抑制
+#### 2D NR Radial Noise Reduction Strength Adjustment
 
-彩边抑制功能由过曝点和 hue_pf 区间共同控制，满足过曝点且落入 hue_pf 区间的色边将被抑制。
+| Parameter Name    | Description                                                                                   | Suggested Modification | Special Notes          |
+|-------------------|-----------------------------------------------------------------------------------------------|------------------------|------------------------|
+| m_bRadial_en      | Enable noise reduction strength adjustment along the radius:   `0`: Disable   `1`: Enable | User setting       |                        |
+| m_pRadial_ratio   | Control of noise reduction strength increase along the radius; higher values mean stronger edge noise reduction | Yes  | Adjustable by Gain/Layer |
+| m_bCnrRadial_en   | Enable chroma noise reduction strength adjustment along the radius:   `0`: Disable   `1`: Enable | User setting           |               |
+| m_pCnrRadial_ratio| Control of chroma noise reduction strength increase along the radius; higher values mean stronger edge chroma noise reduction | Yes               | Adjustable by Gain/Layer |
 
-| 参数名 | 说明 | 建议修改 | 特殊性 |
-|---|---|---|---|
-| eb | 颜色检测开关，开启时对肤色和蓝天区域的去噪会加强 | 用户设置 |   |
-| m_ppf_en | 紫边去除使能:0 : 关闭        1: 使能 | 用户设置 |   |
-| m_nwp_en | 紫边去除过曝区域检测使能:0 : 关闭        1: 使能 | 用户设置 |   |
-| m_nwp_th | 过曝像素判定门限,值越大,越少像素被判定为过曝点（见Uv_wp_gain- num_wb示意图） | 是 |   |
-| m_nnum_wp_min | 过曝区域作用起始阈值，过曝点数目大于该阈值时，紫边去除开始起作用（见Uv_wp_gain- num_wb示意图） | 是 |   |
-| m_nnum_wp_step | 过渡区间控制，（见Uv_wp_gain- num_wb示意图） | 是 |   |
-| m_nhue_pf_min | 紫边hue区间下限（见Uv_pf_gain- hue_pf示意图） | 是 |   |
-| m_nhue_pf_max | 紫边hue区间上限（见Uv_pf_gain- hue_pf示意图） | 是 |   |
-| m_nhue_pf_tr_step | 紫边hue过渡区间控制，（见Uv_pf_gain- hue_pf示意图） | 是 |   |
-| m_nuv_wp_gain | 过曝点的权重，值越大，过曝点对最终饱和度的影响越大（见Uv_wp_gain- num_wb示意图） | 是 | 可随Gain变化 |
-| m_nuv_pf_gain | 紫边区间的权重，值越大，紫边区间对最终饱和度的影响越大（见Uv_pf_gain- hue_pf示意图） | 是 | 可随Gain变化 |
+
+#### 3D NR Motion Area Detection and Noise Reduction Strength Control
+
+| Parameter Name       | Description                                                                                              | Suggested Modification | Special Notes            |
+|----------------------|----------------------------------------------------------------------------------------------------------|------------------------|--------------------------|
+| m_pTnrDAvg           | Inter-frame luminance average difference threshold; smaller values make motion detection easier          | Yes                    | Adjustable by Gain/Layer |
+| m_pTnrWAvg           | Weight of inter-frame luminance average difference; larger values increase reliance on luminance diff    | Yes                    | Adjustable by Gain/Layer |
+| m_pTnrQWeightAvg     | Coefficient for inter-frame luminance average difference; larger values make motion detection easier     | Yes                    | Adjustable by Gain/Layer |
+| m_pTnrDSad           | Threshold for sum of absolute inter-frame luminance differences; smaller values make motion detection easier | Yes                | Adjustable by Gain/Layer |
+| m_pTnrWSad           | Weight for sum of absolute inter-frame luminance differences; larger values increase reliance on this metric | Yes                | Adjustable by Gain/Layer |
+| m_pTnrQWeightSad     | Coefficient for sum of absolute inter-frame luminance differences; larger values make motion detection easier | Yes               | Adjustable by Gain/Layer |
+| m_pTnrDuv            | Threshold for inter-frame UV average difference; smaller values make motion detection easier             | Yes                    | Adjustable by Gain/Layer |
+| m_pTnrWuv            | Weight for inter-frame UV average difference; larger values increase reliance on UV difference           | Yes                    | Adjustable by Gain/Layer |
+| m_pTnrQWeightUV      | Coefficient for inter-frame UV average difference; larger values make motion detection easier            | Yes                    | Adjustable by Gain/Layer |
+| m_nTnrLumaBase       | Base luminance difference threshold; smaller values make motion detection easier                         | No                     |                          |
+| m_pTnrLuma           | Threshold for luminance-based inter-frame average difference; smaller values make motion detection easier | Yes                   | Adjustable by Gain/Layer |
+| m_pTnrYStrengthQ6    | TNR global luminance noise reduction strength; larger values increase luminance noise reduction in static areas | Yes             | Adjustable by Gain/Layer |
+| m_pTnrUVStrengthQ6   | TNR global chroma noise reduction strength; larger values increase chroma noise reduction in static areas | Yes                   | Adjustable by Gain/Layer |
+| m_pStrongSig_gain    | Reference threshold for luminance noise reduction in motion areas; smaller values increase noise reduction | Yes                  | Adjustable by Gain/Layer |
+| m_pStrongAback_alpha | Luminance noise re-addition in motion areas; larger values increase re-added noise                       | Yes                    | Adjustable by Gain/Layer |
+
+
+#### 3D NR Other Parameters
+
+| Parameter Name       | Description                                               | Suggested Modification | Special Notes |
+|----------------------|-----------------------------------------------------------|------------------------|---------------|
+| m_nTnrLumaWeight     | Window size used for luminance calculation                | No                     |               |
+| m_pTnrBlockWeight0   | Window size for luminance difference calculation in Layer 0 | No                   |               |
+| m_pTnrBlockWeight1   | Window size for luminance difference calculation in Layer 1 | No                   |               |
+| m_pTnrBlockWeight234 | Window size for luminance difference calculation in Layers 2, 3, and 4 | No        |               |
+| m_pTnr2dMappingCurve | Fusion coefficient for noise reduction intensity between motion and still areas: 256 = full weak (still area) noise reduction, 0 = max strong (motion area) weight | No      |          |
+| m_p*Ratio            | Reserved                                                  |                        |               |
+
+
+##### Chromatic Aberration Suppression
+
+The chromatic aberration suppression function is controlled jointly by overexposed points and the hue_pf interval. Color fringes that meet the overexposed points condition and fall within the hue_pf interval will be suppressed.
+
+| Parameter Name    | Description                                                                                      | Suggested Modification | Special Notes           |
+|-------------------|--------------------------------------------------------------------------------------------------|------------------------|-------------------------|
+| eb                | Color detection switch; when enabled, denoising for skin and blue sky regions is enhanced        | User setting           |                         |
+| m_ppf_en          | Purple fringe removal enable:    `0`: Disable     `1`: Enable                                  | User setting           |                         |
+| m_nwp_en          | Overexposure area detection enable for purple fringe removal:    `0`: Disable     `1`: Enable  | User setting           |                         |
+| m_nwp_th          | Threshold for overexposed pixel determination; higher value means fewer pixels considered overexposed (see Uv_wp_gain - num_wb diagram) | Yes       |                |
+| m_nnum_wp_min     | Threshold to start overexposed area effect; purple fringe removal starts when overexposed points exceed this number (see Uv_wp_gain - num_wb diagram) | Yes          |         |
+| m_nnum_wp_step    | Controls the transition interval (see Uv_wp_gain - num_wb diagram)                               | Yes                    |                         |
+| m_nhue_pf_min     | Lower bound of the purple fringe hue interval (see Uv_pf_gain - hue_pf diagram)                  | Yes                    |                         |
+| m_nhue_pf_max     | Upper bound of the purple fringe hue interval (see Uv_pf_gain - hue_pf diagram)                  | Yes                    |                         |
+| m_nhue_pf_tr_step | Transition control for the purple fringe hue interval (see Uv_pf_gain - hue_pf diagram)          | Yes                    |                         |
+| m_nuv_wp_gain     | Weight of overexposed points; higher value means overexposed points have greater impact on final saturation (see Uv_wp_gain - num_wb diagram) | Yes | Can vary with Gain       |
+| m_nuv_pf_gain     | Weight of the purple fringe interval; higher value means greater impact on final saturation (see Uv_pf_gain - hue_pf diagram) | Yes                 | Can vary with Gain       |
+
+---
+
+**Uv_pf_gain – hue_pf Diagram**
 
 ![](./static/Z5TSbZah2o6nRpxjmhkcDnOHnQd.png)
 
-Uv_pf_gain – hue_pf 示意图
+**Uv_wb_gain – num_wp Diagram**
 
 ![](./static/JwAnbDkXsogvrrx3FUqcrRV3nOg.png)
 
-Uv_wb_gain – num_wp 示意图
+---
 
-### Raw HDR 参数说明
+### Raw HDR Parameter Description
 
-Raw_HDR_Soft 模块用于控制软件 HDR。
+The Raw_HDR_Soft module controls software HDR processing.
 
-#### Raw HDR 参数
+#### Raw HDR Parameters
 
-| 参数名 | 说明 | 建议调试 | 特殊性 |
-|---|---|---|---|
-| m_nHDRDownSampleEb | 降采样使能，输入图像宽或高大于8225时需打开 | 否 |   |
-| m_nINTFlag | 错误处理标志位 | 否 |   |
-| m_pGTMCurveSet | GTM曲线，5组对应长短曝光倍数1,4,16,64,256 | 否 |   |
+| Parameter Name   | Description                                                      | Suggested Tuning | Special Notes              |
+|------------------|------------------------------------------------------------------|------------------|----------------------------|
+| m_nHDRDownSampleEb | Downsampling enable; should be enabled when input image width or height exceeds 8225 pixels | No               |                  |
+| m_nINTFlag       | Error handling flag                                              | No               |                            |
+| m_pGTMCurveSet   | GTM curve set; 5 sets corresponding to long and short exposure multiples: 1, 4, 16, 64, 256 | No                 |                  |
+
 
 ## File to File
 
-### File to File 功能说明
+### File to File Function Description
 
-平台支持硬件仿真，即 File to File(f2f)，将 VRF 文件推送到设备中，替换 sensor 图像数据，得到 ISP 处理之后的图像，适用于单帧仿真。
+he platform supports hardware simulation called File to File (f2f), which pushes a VRF file into the device, replacing the sensor image data, and obtains the ISP-processed image. This is suitable for single-frame simulation.
 
-### File to File 使用说明
+### File to File Usage Instructions
 
-1. 通过 USB 将设备与 PC 相连；
-2. 通过 ADB 将 VRF 文件 push 到指定路径，指定文件名(不同文件名对应不同 tuning 参数)；
-   主摄 adb push xxx.vrf vendor/etc/camera/rear_primary_sensor.vrf
-   副摄 adb push xxx.vrf vendor/etc/camera/rear_secondary_sensor.vrf
-   前摄 adb push xxx.vrf vendor/etc/camera/front_sensor.vrf
-3. 启动 camera，即可看到经过 ISP 处理的 VRF 预览效果，也可拍摄为 JPG；
+1. Connect the device to the PC via USB.
+2. Use ADB to push the VRF file to the specified path with the specified filename (different filenames correspond to different tuning parameters):
+   - Main camera
 
-## Tuning 参数快速验证
+     ```
+     adb push xxx.vrf vendor/etc/camera/rear_primary_sensor.vrf
+     ```
 
-### Tuning 参数快速验证功能说明
+   - 副摄
 
-1. 平台支持 tuning 参数快速验证功能，打开如下 property
+     ```
+     adb push xxx.vrf vendor/etc/camera/rear_secondary_sensor.vrf
+     ```
 
-```cpp
-adb shell setprop persist.vendor.camera.enable.settingfile 1
-```
+   - 前摄
 
-1. 从 Tuning Tool 中保存 tuning 参数，并通过 ADB push 到设备指定路径，指定文件名，重启相机即可生效。 adb push xx.data /vendor/etc/camera/tuning_files/
+     ```
+     db push xxx.vrf vendor/etc/camera/front_sensor.vrf
+     ```
 
-路径：
+3. Start the camera to see the VRF preview processed by the ISP. You can also capture photos saved as JPG.
+
+## Quick Validation of Tuning Parameters
+
+### Quick Validation Function Description
+
+1. The platform supports quick validation of tuning parameters. Enable the following property:
+
+   ```cpp
+   adb shell setprop persist.vendor.camera.enable.settingfile 1
+   ```
+
+2. Save the tuning parameters from the Tuning Tool, then push them to the device at the specified path with the specified filename via ADB. Restart the camera for the changes to take effect:
+   ```
+   adb push xx.data /vendor/etc/camera/tuning_files/
+   ```
+
+**Storage Path:**
 
 ```cpp
 /vendor/etc/camera/tuning_files/
 ```
 
-文件名：
+**Common File Names:**
 
 ```cpp
 FlickerSetting.data
-front_cpp_nightshot_setting.data // 前摄
-front_cpp_preview_setting.data front_cpp_snapshot_setting.data front_cpp_video_setting.data front_isp_setting.data front_isp_setting_video.data front_nightshot_setting.data rawhdr_default_setting.data rear_primary_cpp_nightshot_setting.data // 主摄
+front_cpp_nightshot_setting.data // Front Camera
+front_cpp_preview_setting.data front_cpp_snapshot_setting.data front_cpp_video_setting.data front_isp_setting.data front_isp_setting_video.data front_nightshot_setting.data rawhdr_default_setting.data rear_primary_cpp_nightshot_setting.data // Main Camera
 rear_primary_cpp_preview_setting.data rear_primary_cpp_snapshot_setting.data rear_primary_cpp_video_setting.data rear_primary_isp_setting.data rear_primary_isp_setting_video.data rear_primary_nightshot_setting.data
-rear_secondary_cpp_nightshot_setting.data // 副摄
+rear_secondary_cpp_nightshot_setting.data // Rear Secondary Camera
 rear_secondary_cpp_preview_setting.data rear_secondary_cpp_snapshot_setting.data rear_secondary_cpp_video_setting.data rear_secondary_isp_setting.data rear_secondary_isp_setting_video.data rear_secondary_nightshot_setting.data
 ```
 
 ## VRF viewer
 
-### VRF viewer 界面
+### VRF Viewer Interface
 
-单击 VRF ，启动 VRF viewer，界面如下
+Click on a VRF file to launch the VRF viewer. The interface is shown below:
 
 ![](./static/E4pVbaHrqoZDxcx4uojcke4OnCe.png)
 
-Figure - VRF viewer
+**Menu: Functional Area**
 
-- menu:菜单功能区
+- **Open**: Open an image (supported formats: `*.vrf`, `*.nv12`, `*.nv21`, `*.yuv`, `*.bmp`, `*.jpg`, `*.jpeg`, `*.png`)
+- **Save**: Save the image (supported formats: `*.bmp`, `*.jpg`, `*.jpeg`, `*.png`)
+- **Options**: Image processing options (click `Apply` to apply options, click `Save` to save current settings)
 
-  - Open:打开图像(支持\*.vrf, \*.nv12, \*.nv21, \*.yuv, \*.bmp, \*.jpg, \*.jpeg, \*.png)
-  - Save:保存图像(\*.bmp, \*.jpg, \*.jpeg, \*.png)
-  - Options:图像处理选择项（单击 Apply 应用 option，单击 Save 保持当前 options）针对 VRF 图像的处理选项：
-    - Demosaic ：去马赛克
-    - Linearization ：线性化
-    - WB ：应用 vrf 中白平衡增益
-    - Dgain ： 应用 vrf 中数字增益
-    - Gamma ： 应用 sRGB 曲线
-    - Split Channel：分别显示 bayer 四个通道针对 YUV 图像的处理选项：
-    - 色彩标准 ：BBT601 / BT709
-    - swing：yuv 数据范围
-    - YUV ：nv12 / nv21 转换
-    - Gray Image ： 灰度图
-- ZoomIn:图像放大
-- Normal:图像原始大小
-- ZoomOut:图像缩小
-- Move:拖动图像
-- Select:框选图像
-- Histogram:直方图信息
-- Info:显示 vrf 信息
-- Window:选择打开的图像
-- Previous:显示前一张图像
-- Next:显示后一张图像
+- Options for VRF images:
+  - `Demosaic`: Apply demosaicing
+  - `Linearization`: Apply linearization processing
+  - `WB`: Apply white balance gains from VRF
+  - `Dgain`: Apply digital gain from VRF
+  - `Gamma`: Apply sRGB Gamma curve
+  - `Split Channel`: Display the four Bayer channels separately
+
+- Options for YUV images:
+  - `Color Standard`: Choose BT601 or BT709
+  - `Swing`: Set YUV data range (Full range or Standard range)
+  - `YUV`: NV12 / NV21 conversion
+  - `Gray Image`: Display grayscale image
+
+
+**Other Function Buttons**
+
+- **ZoomIn**: Zoom in the image
+- **Normal**: Display the image at original size
+- **ZoomOut**: Zoom out the image
+- **Move**: Drag the image to view different areas
+- **Select**: Select a region in the image by drawing a rectangle
+- **Histogram**: View the brightness and color histograms of the image
+- **Info**: Display metadata of the VRF image (e.g., format, resolution, gain)
+- **Window**: Switch between opened image windows
+- **Previous**: Show the previous image
+- **Next**: Show the next image
