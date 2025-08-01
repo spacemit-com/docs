@@ -2,7 +2,9 @@
 sidebar_position: 2
 ---
 
-# Bianbu Linux 2.0 Release Notes
+# Bianbu Linux 2.0 Release Notes [End of Life]
+
+Bianbu Linux 2.0 will reach end of maintenance on July 31, 2025. We recommend using version 2.2 or later. If you have any questions, please contact us.
 
 ## v2.0.4 release note
 

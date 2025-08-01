@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Bianbu Linux 1.0更新说明[已停服]
+# Bianbu Linux 1.0更新说明 [已停服]
 
 ## Bianbu Linux 1.0 停服公告  
 Bianbu Linux V1.0 基于linux-6.1内核构建，现已决定对Bianbu Linux V1.0停止维护（End of Life）。
