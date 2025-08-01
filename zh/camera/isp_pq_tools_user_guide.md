@@ -659,14 +659,14 @@ CTopFirmwareFilter 用于配置 ISP Top 信息。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nBayerPattern | Bayer阵列模式：\<br\>- 0: RGGB \<br\>- 1: GRBG \<br\>- 2: GBRG \<br\>- 3: BGGR \<br\>- 4: 单色模式 | 依据硬件设置 |   |
+| m_nBayerPattern | Bayer阵列模式：`0` RGGB `1` GRBG   2: GBRG   3: BGGR   4: 单色模式 | 依据硬件设置 |   |
 | m_bAELinkZoom | AE窗口关联zoom | 用户设置 |   |
 | m_bAFLinkZoom | AF关联zoom | 用户设置 |   |
 | m_bAWBLinkZoom | AWB关联zoom | 用户设置 |   |
 | m_nPreviewZoomRatio | 预览zoom系数，Q8 格式 | 用户设置 |   |
 | m_bPreviewLowPowerMode | 预览低功耗模式 | 用户设置 |   |
-| m_nAEProcessPosition | AE处理时机 \<br\>- 0: eof        \<br\>- 1: sof | 用户设置 |   |
-| m_nAEProcessFrameNum | AE处理频率：\<br\>- EOF每帧处理\<br\>- EOF每两帧处理\<br\>- SOF每帧处理\<br\>- SOF每三帧处理 | 用户设置 |   |
+| m_nAEProcessPosition | AE处理时机 `0` eof        `1` sof | 用户设置 |   |
+| m_nAEProcessFrameNum | AE处理频率：  EOF每帧处理  EOF每两帧处理  SOF每帧处理  SOF每三帧处理 | 用户设置 |   |
 | m_bHighQualityPreviewZoomEnable | Reserved |   |  |
 
 ### CAEMFirmwareFilter 参数说明
@@ -677,24 +677,24 @@ CAEMFirmwareFilter 模块用于配置自动曝光统计模块。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | AEM使能：\<br\>- 0：关闭自动曝光统计模块  \<br\>- 1：使能自动曝光统计模块 | 否 |   |
-| m_nAEStatMode | AE统计模块模式：\<br\>-0：统计信息不经过白平衡  \<br\>- 1：统计信息经过白平衡 | 否 |   |
-| m_bZSLHDRCapture | 零延迟HDR抓拍使能 \<br\>- 0：不启动 \<br\>- 1：启动零延迟HDR抓拍功能 | 用户设置 |   |
+| m_bEnable | AEM使能：`0`：关闭自动曝光统计模块  `1`：使能自动曝光统计模块 | 否 |   |
+| m_nAEStatMode | AE统计模块模式：`0`：统计信息不经过白平衡  `1`：统计信息经过白平衡 | 否 |   |
+| m_bZSLHDRCapture | 零延迟HDR抓拍使能 `0`：不启动 `1`：启动零延迟HDR抓拍功能 | 用户设置 |   |
 | m_nInitialExpTime | 初始化曝光时间 | 是 |   |
 | m_nInitialAnaGain | 初始化模拟增益 | 是 |   |
 | m_nInitialSnsTotalGain | 初始化sensor总增益 | 是 |   |
 | m_nInitialTotalGain | 初始化总增益 | 是 |   |
 | m_nStableTolerance | AE稳定容忍度百分比：若当前曝光量与前一次曝光量的差值小于前一次曝光量的m_nStableTolerance%，则给出AE StableFlag信号，供其他模块如LTM参考 | 用户设置 |   |
 | m_nStableToleranceExternal | AE稳定容忍度百分比，共外部系统使用 | 用户设置 |   |
-| m_bAutoCalculateAEMWindow | AE统计窗口计算方式：\<br\>- 0：由hardware配置        \<br\>- 1：由firmware控制 | 否 |   |
+| m_bAutoCalculateAEMWindow | AE统计窗口计算方式：`0`：由hardware配置        `1`：由firmware控制 | 否 |   |
 | m_nPreEndingPercentage | 不参与AE统计模块的行数相对于图像高的百分比 | 否 |   |
-| m_bDRCGainSyncOption | DRCgain同步：\<br\>- 0：每帧同步 \<br\>- 1：AE稳定后同步 | 否 |   |
+| m_bDRCGainSyncOption | DRCgain同步：`0`：每帧同步 `1`：AE稳定后同步 | 否 |   |
 | m_pSceneChangeSADThr | 判断场景变化的SAD门限 | 用户设置 |   |
 | m_pSubROIPermil | 6个子统计模块的起始坐标及结束坐标相对于图像宽高的千分比可根据人脸测光或对焦测光联动，由application修改 | 用户设置 |   |
 | m_nSubROIScaleFactor | 副窗口缩放百分比系数 | 用户设置 |   |
-| m_nFaceLumaOption | 人脸亮度统计方式：\<br\>- 0：硬件统计（pixel） \<br\>- 1：软件统计（block） | 否 |   |
-| m_bMotionDetectEnable | 运动检测开关：\<br\>- 0：关闭运动检测 \<br\>- 1：使能运动检测 | 用户设置 |  |
-| m_bMotionDetectExt | 运动检测方式：\<br\>- 0： 使用内部 AEM 统计 \<br\>- 1：使用外部 gyro sensor | 用户设置 |  |
+| m_nFaceLumaOption | 人脸亮度统计方式：`0`：硬件统计（pixel） `1`：软件统计（block） | 否 |   |
+| m_bMotionDetectEnable | 运动检测开关：`0`：关闭运动检测 `1`：使能运动检测 | 用户设置 |  |
+| m_bMotionDetectExt | 运动检测方式：`0`： 使用内部 AEM 统计 `1`：使用外部 gyro sensor | 用户设置 |  |
 | m_nMotionStrengthExt | 外部运动强度控制，运动检测方式为外部 gyro 时有效 | 用户设置 |  |
 | m_nSADIntervalFrame | 计算 SAD 的间隔帧数，运动检测方式内部 AEM 统计时有效  | 否 |  |
 | m_nMotionThreshold | 判断运动的 SAD 门限，运动检测方式内部 AEM 统计时有效  | 否 |  |
@@ -712,9 +712,9 @@ CDigitalGainFirmwareFilter 模块用于配置数字增益和黑电平。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | digital gain使能：\<br\>- 0：关闭数字gain  \<br\>- 1：使能数字gain | 用户设置 |   |
-| m_nISPGlobalOffsetValue12bit | - 0：在stretch中扣除黑电平 \<br\>- 1：在digital gain 中完全扣除黑电平 \<br\>- 2-511：完全扣除黑电平后, 12bit添加的offset（此offset会在stretch扣除） | 用户设置 |   |
-| m_bManualMode | 手动模式使能 \<br\>- 0: 自动模式 \<br\>- 1: 打开手动模式，此时黑电平参数不随 gain 变化，使用 manual 参数，用于 debug |   |   |
+| m_bEnable | digital gain使能：`0`：关闭数字gain  `1`：使能数字gain | 用户设置 |   |
+| m_nISPGlobalOffsetValue12bit | `0`：在stretch中扣除黑电平 `1`：在digital gain 中完全扣除黑电平   2-511：完全扣除黑电平后, 12bit添加的offset（此offset会在stretch扣除） | 用户设置 |   |
+| m_bManualMode | 手动模式使能 `0` 自动模式 `1` 打开手动模式，此时黑电平参数不随 gain 变化，使用 manual 参数，用于 debug |   |   |
 | m_pGlobalBlackValueManual | 手动模式参数，作用和自动一致 |   |   |
 | m_pGlobalBlackValueManualCapture | 同上，拍照起效 |   |   |
 | m_pGlobalBlackValue | R/ GR/ GB/ B 四个通道的黑电平（见 Gain-BlackValue 示意图） | 定标结果参数 | 可随gain变化 |
@@ -733,7 +733,7 @@ CWBGainFirmwareFilter 模块用于自动白平衡增益。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | WB gain 使能：\<br\>- 0：关闭白平衡 gain \<br\>- 1： 使能白平衡gain | 否 |  |
+| m_bEnable | WB gain 使能：`0`：关闭白平衡 gain `1`： 使能白平衡gain | 否 |  |
 
 ### CStretchFirmwareFilter 参数说明
 
@@ -753,14 +753,14 @@ CColorMatrixFirmwareFilter（CCM）模块用于色彩校正。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | CMC使能：\<br\>- 0：关闭色彩校正矩阵  \<br\>- 1：使能色彩校正矩阵 | 否 |  |
+| m_bEnable | CMC使能：`0`：关闭色彩校正矩阵  `1`：使能色彩校正矩阵 | 否 |  |
 
 #### CCM 参数及调试
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bUseCorrelatedCT | 插值依据选项：\<br\>- 0：使用AWB的CT \<br\>- 1：使用 `WbFirmwareFilter` 中的 `m_nCorrelationCT`（CCT matrix 需要标定） | 用户设置 |   |
-|  m_pColorTemperatureIndex | 色温分段控制点。（示例见下图 cmc-色温控制曲线）\<br\>- 色温位于[0，Index[0]]区间，认定为低色温区间，使用CMC0的色彩校正矩阵；\<br\>- 色温位于[Index[0]，Index[1]]区间，使用CMC0与CMC1插值的色彩校正矩阵；\<br\>- 色温位于[Index[1]，Index[2]]区间，认定为中色温区间，使用CMC1的色彩校正矩阵；\<br\>- 色温位于[Index[2]，Index[3]]区间，使用CMC1与CMC2插值的色彩校正矩阵；\<br\>- 色温位于[Index[3]，8192]区间，认定为高色温区间，使用CMC2的色彩校正矩阵； |  是 |   |
+| m_bUseCorrelatedCT | 插值依据选项：`0`：使用AWB的CT `1`：使用 `WbFirmwareFilter` 中的 `m_nCorrelationCT`（CCT matrix 需要标定） | 用户设置 |   |
+|  m_pColorTemperatureIndex | 色温分段控制点。（示例见下图 cmc-色温控制曲线）  色温位于[0，Index[0]]区间，认定为低色温区间，使用CMC0的色彩校正矩阵；  色温位于[Index[0]，Index[1]]区间，使用CMC0与CMC1插值的色彩校正矩阵；  色温位于[Index[1]，Index[2]]区间，认定为中色温区间，使用CMC1的色彩校正矩阵；  色温位于[Index[2]，Index[3]]区间，使用CMC1与CMC2插值的色彩校正矩阵；  色温位于[Index[3]，8192]区间，认定为高色温区间，使用CMC2的色彩校正矩阵； |  是 |   |
 | m_pCMC0 | 低色温色彩校正矩阵，由CCM插件定标得到。R'G'B' to RGB ，Q12 精度。 | 定标结果参数 | 可依据色温调用 |
 | m_pCMC1 | 中色温色彩校正矩阵，由CCM插件定标得到。R'G'B' to RGB ，Q12 精度。 | 定标结果参数 | 可依据色温调用 |
 | m_pCMC2 | 高色温色彩校正矩阵，由CCM插件定标得到。R'G'B' to RGB ，Q12 精度。 | 定标结果参数 | 可依据色温调用 |
@@ -772,7 +772,7 @@ cmc-色温控制曲线如下图
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bColorFringleRemoveEnable | 彩边抑制使能：\<br\>- 0：关闭 \<br\>- 1： 使能 | 用户设置 |   |
+| m_bColorFringleRemoveEnable | 彩边抑制使能：`0`：关闭 `1`： 使能 | 用户设置 |   |
 | m_nColorFringRemovalStrength | 彩边抑制强度: 值越大，彩边抑制效果越强 | 是 |  |
 
 备注：Final CFR_Ratio=HueRatio\*EdgeRatio\>\>HighFreqTransShiftNum
@@ -804,14 +804,14 @@ HighFreqTrans-EdgeRatio 曲线如下图
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 \<br\>- 0: 自动模式 \<br\>- 1: 打开手动模式，此时色彩校正矩阵参数不随色温变化，使用 manual 参数，用于 debug |  - | Debug参数 |
+| m_bManualMode | 手动模式使能 `0` 自动模式 `1` 打开手动模式，此时色彩校正矩阵参数不随色温变化，使用 manual 参数，用于 debug |  - | Debug参数 |
 | m_pCMCManual | 手动模式参数，作用和自动一致 |  - | Debug参数 |
 
 #### CCM 其他参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bDisgardHFEnable | 丢弃高频信息使能：\<br\>- 0：添加高频信息  \<br\>- 1：丢弃高频信息 | 用户设置 |   |
+| m_bDisgardHFEnable | 丢弃高频信息使能：`0`：添加高频信息  `1`：丢弃高频信息 | 用户设置 |   |
 | m_pCMCSaturationList | 饱和度控制 |   | 可随 Gain 变化 |
 
 ### CBPCFirmwareFilter 调试说明
@@ -822,7 +822,7 @@ CBPCFirmwareFilter（BPC）模块用于去坏点。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | BPC使能 \<br\>- 0: 关闭坏点校正 \<br\>- 1: 打开坏点校正 | 用户设置 |  |
+| m_bEnable | BPC使能 `0` 关闭坏点校正 `1` 打开坏点校正 | 用户设置 |  |
 
 #### BPC 动态控制参数
 
@@ -873,8 +873,8 @@ BPC 强度可随增益与亮度动态调节。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nMinThrEn | 暗点检测通道选择 \<br\>- Bit 0:参考跨通道信息使能；\<br\>- Bit 1:参考GrGb通道信息使能；\<br\>- Bit 2:参考相同通道信息使能。 | 否 |   |
-| m_nMaxThrEn | 亮点检测通道选择 \<br\>- Bit 0:参考跨通道信息使能；\<br\>- Bit 1:参考GrGb通道信息使能；\<br\>- Bit 2:参考相同通道信息使能。 | 否 |   |
+| m_nMinThrEn | 暗点检测通道选择   Bit 0:参考跨通道信息使能；  Bit 1:参考GrGb通道信息使能；  Bit 2:参考相同通道信息使能。 | 否 |   |
+| m_nMaxThrEn | 亮点检测通道选择   Bit 0:参考跨通道信息使能；  Bit 1:参考GrGb通道信息使能；  Bit 2:参考相同通道信息使能。 | 否 |   |
 | m_nNearThr | 使用跨通道的亮度下限值，只有亮度大于此阈值时，才会使用跨通道信息。 | 否 |   |
 | m_bDeadEnable | 暗点矫正使能 | 用户设置 |   |
 | m_nDeadRatioG | G通道暗点系数，值越大，G通道暗点容忍度越大，去坏点能力越弱 | 是 |   |
@@ -901,7 +901,7 @@ BPC 强度可随增益与亮度动态调节。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 \<br\>- 1: 打开手动模式，此时bpc参数不随gain变化，使用manual参数，用于debug |  - | Debug参数 |
+| m_bManualMode | 手动模式使能 `1` 打开手动模式，此时bpc参数不随gain变化，使用manual参数，用于debug |  - | Debug参数 |
 | m_nCrossChnStrengthManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
 | m_pSlopeGManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
 | m_pInterceptGManual | 手动模式参数, 具体功能和自动功能一致 |  - | Debug参数 |
@@ -918,21 +918,21 @@ CLSCFirmwareFilter 模块用于镜头阴影矫正。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | LSC使能 \<br\>- 0: 关闭镜头阴影校正 \<br\>- 1: 打开镜头阴影校正 | 用户设置 |   |
+| m_bEnable | LSC使能 `0` 关闭镜头阴影校正 `1` 打开镜头阴影校正 | 用户设置 |   |
 | m_bUseOTP | LSC OTP使能 | 用户设置 |  |
 
 #### LSC 参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bAutoScale | AutoScale使能：\<br\>- 0: 关闭自动计算缩放参数功能 \<br\>- 1: 打开自动计算缩放参数功能 | 否 |   |
-| m_bEnhanceEnable | Enhance使能：当前模组期望补偿倍数超过4倍时需要打开 \<br\>- 0: 关闭shading增强功能  \<br\>- 1: 打开shading增强功能 | 用户设置 |   |
-| m_nProfileSelectOption | shading补偿表选择：\<br\>- 0：依据色温自动选择  \<br\>- 1：使用LSC Profile[0] \<br\>- 2：使用LSC Profile[2]  \<br\>- 3：使用LSC Profile[2] | 否 |   |
+| m_bAutoScale | AutoScale使能：`0` 关闭自动计算缩放参数功能； `1` 打开自动计算缩放参数功能 | 否 |   |
+| m_bEnhanceEnable | Enhance使能：当前模组期望补偿倍数超过4倍时需要打开 `0` 关闭shading增强功能；  `1` 打开shading增强功能 | 用户设置 |   |
+| m_nProfileSelectOption | shading补偿表选择：`0`：依据色温自动选择；  `1`：使用LSC Profile[0] ；  `2`：使用LSC Profile[2] ；   `3`：使用LSC Profile[2] | 否 |   |
 | m_nFOVCropRatioH | 水平方向裁剪比例 | 是 | binning尺寸决定 |
 | m_nFOVCropRatioV | 垂直方向裁剪比例 | 是 | binning尺寸决定 |
-| m_pLSCStrength | shading补偿强度：（示例见 Gain-strength 示意图）\<br\>- 64表示1倍； \<br\>- 32表示1/2倍； \<br\>- 16表示1/4倍； \<br\>- 其他值以此类推 | 是 | 可依据gain调整 |
-| m_bUseCorrelatedCT | 插值依据选项：\<br\>- 0：使用AWB的CT \<br\>- 1：使用`WbFirmwareFilter` 中的 `m_nCorrelationCT`（CCT matrix 需要标定） | 用户设置 |   |
-|  m_pCTIndex | 色温分段控制选择 LSC profile（示例见下图 LSC-色温控制曲线）：当m_nProfileSelectOption设置为 0 时有效。\<br\>- 色温位于[0，CTIndex[0]]区间，认定为低色温区间，使用LSCProfile[0]的补偿表；\<br\>- 色温位于[CTIndex[0]，CTIndex[1]]区间，使用LSCProfile[0]与LSCProfile[1]插值的补偿表；\<br\>- 色温位于[CTIndex[1]，CTIndex[2]]区间，认定为中色温区间，使用LSCProfile[1]的补偿表；\<br\>- 色温位于[CTIndex[2]，CTIndex[3]]区间，使用LSCProfile[1]与LSCProfile[2]插值的补偿表；\<br\>- 色温位于[CTIndex[3]，8192]区间，认定为高色温区间，使用LSCProfile[2]的补偿表； |  是 |   |
+| m_pLSCStrength | shading补偿强度：（示例见 Gain-strength 示意图）  64表示1倍；   32表示1/2倍；   16表示1/4倍；   其他值以此类推 | 是 | 可依据gain调整 |
+| m_bUseCorrelatedCT | 插值依据选项：`0`：使用AWB的CT； `1`：使用`WbFirmwareFilter` 中的 `m_nCorrelationCT`（CCT matrix 需要标定） | 用户设置 |   |
+|  m_pCTIndex | 色温分段控制选择 LSC profile（示例见下图 LSC-色温控制曲线）：当m_nProfileSelectOption设置为 0 时有效。  色温位于[0，CTIndex[0]]区间，认定为低色温区间，使用LSCProfile[0]的补偿表；  色温位于[CTIndex[0]，CTIndex[1]]区间，使用LSCProfile[0]与LSCProfile[1]插值的补偿表；  色温位于[CTIndex[1]，CTIndex[2]]区间，认定为中色温区间，使用LSCProfile[1]的补偿表；  色温位于[CTIndex[2]，CTIndex[3]]区间，使用LSCProfile[1]与LSCProfile[2]插值的补偿表；  色温位于[CTIndex[3]，8192]区间，认定为高色温区间，使用LSCProfile[2]的补偿表； |  是 |   |
 | m_pLSCProfile | LSC补偿表，由LSC插件定标得到 | 定标结果参数 | 可依据色温调用 |
 
 LSC-色温控制曲线如下
@@ -962,7 +962,7 @@ Gain-strength 示意图如下
 | m_nEffPNumAll | 全图像有效块门限 | 否 |   |
 | m_nEffPNumHalf | 1/2图像有效块门限 | 否 |   |
 | m_nEffPNumQuarter | 1/4图像有效块门限 | 否 |   |
-| m_pEffNumRing | 三个 ROI 对应的有效块门限：\<br\>- ROI0 为中心 6x4 \<br\>- ROI1为中心12x8(不包含ROI0) \<br\>- ROI2为12x12（不包含ROI0,ROI1） | 否 |   |
+| m_pEffNumRing | 三个 ROI 对应的有效块门限：  ROI0 为中心 6x4   ROI1为中心12x8(不包含ROI0)   ROI2为12x12（不包含ROI0,ROI1） | 否 |   |
 | m_pCSCCTIndex | CSC色温控制点，CT &gt; CSCCTIndex[1] 时 CSC 失效 | 是 |   |
 | m_pCSCLuxIndex | CSC亮度控制点，Lux &gt; CSCLuxIndex[1] 时 CSC 失效 | 是 |   |
 
@@ -970,7 +970,7 @@ Gain-strength 示意图如下
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能：\<br\>- 1: 打开手动模式，此时LSC参数不随色温变化，使用manual参数，用于 debug |   | Debug 参数 |
+| m_bManualMode | 手动模式使能：`1` 打开手动模式，此时LSC参数不随色温变化，使用manual参数，用于 debug |   | Debug 参数 |
 | m_nLSCStrengthManual | 手动模式参数, 具体功能和自动功能一致 |   | Debug 参数 |
 | m_pLSCProfileManual | 手动模式参数, 具体功能和自动功能一致 |   | Debug 参数 |
 | m_nRGPolyCoefRO | 当前 CSC 补偿R ratio |   | 只读 |
@@ -987,9 +987,9 @@ CDemosaicFirmwareFilter（Demosaic）模块用于 Bayer 插值。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bIfEdgeGenerate | 高频信息生成功能开关:可用于 inline sharpen(inline sharpen 功能需要 cmc 模块配合使用) \<br\>- 0：关闭  \<br\>- 1：打开 | 用户设置 |   |
-| m_bIfGbGrRebalance | GbGr差异消除功能开关 \<br\>-0：关闭 \<br\>- 1：打开 | 否 |   |
-| m_bIfDNS | inline 去噪功能开关, 建议关闭 \<br\>- 0：关闭  \<br\>- 1：打开 | 否 |  |
+| m_bIfEdgeGenerate | 高频信息生成功能开关:可用于 inline sharpen(inline sharpen 功能需要 cmc 模块配合使用) `0`：关闭；  `1`：打开 | 用户设置 |   |
+| m_bIfGbGrRebalance | GbGr差异消除功能开关 `0`：关闭； `1`：打开 | 否 |   |
+| m_bIfDNS | inline 去噪功能开关, 建议关闭 `0`：关闭； `1`：打开 | 否 |  |
 
 #### Demosaic 动态控制参数
 
@@ -1035,7 +1035,7 @@ Gain – Sharpen 示意图如下
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 \<br\>- 0: 自动模式 \<br\>- 1: 手动模式，此时 demosaic 参数不随 gain 变化，使用 manual 参数，用于 debug |  - | Debug 参数 |
+| m_bManualMode | 手动模式使能 `0` 自动模式； `1` 手动模式，此时 demosaic 参数不随 gain 变化，使用 manual 参数，用于 debug |  - | Debug 参数 |
 | Manual 结尾参数 | 手动模式参数, 具体功能和自动功能一致 |  - | Debug 参数 |
 
 ### CRawDenoiseFirmwareFilter 调试说明
@@ -1046,7 +1046,7 @@ CRawDenoiseFirmwareFilter（RawDenoise）模块用于 RAW 域去噪。
 
 | 参数名 | 说明 | 建议修改 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | RAW denoise 模块使能开关 \<br\>- 0: 关闭RAW域去噪  \<br\>- 1: 打开RAW域去噪 | 依据用户设置 |  |
+| m_bEnable | RAW denoise 模块使能开关 `0` 关闭RAW域去噪；  `1` 打开RAW域去噪 | 依据用户设置 |  |
 
 #### RawDenoise 动态控制参数
 
@@ -1086,10 +1086,10 @@ Gain - Denoise_strength 示意图如下
 
 | 参数名 | 说明 | 建议修改 | 特殊性 |
 |---|---|---|---|
-| m_bMergeEnable | 计算去噪权重时 2x2-&gt;1x1 的转换方式 \<br\>- 0: 取左下角 \<br\>-1: 取2x2的均值 | 否 |   |
-| m_bLocalizedEnable | 去噪强度跟随局部亮度变化功能使能 \<br\>- 1: 关闭 \<br\>- 2: 打开 | 否 |   |
-| m_bSpacialEnable | 边缘去噪强度增强使能：\<br\>- 0：关闭 \<br\>- 1：打开 | 依据用户设置 |   |
-| m_bSpacialAddbackEnable | 边缘去噪回加使能：\<br\>- 0：关闭 \<br\>- 1：打开 | 依据用户设置 |   |
+| m_bMergeEnable | 计算去噪权重时 2x2-&gt;1x1 的转换方式 `0` 取左下角；  1: 取2x2的均值 | 否 |   |
+| m_bLocalizedEnable | 去噪强度跟随局部亮度变化功能使能 `1` 关闭；   2: 打开 | 否 |   |
+| m_bSpacialEnable | 边缘去噪强度增强使能：`0`：关闭； `1`：打开 | 依据用户设置 |   |
+| m_bSpacialAddbackEnable | 边缘去噪回加使能：`0`：关闭； `1`：打开 | 依据用户设置 |   |
 | m_nSpacialOffCenterPercentage | 边缘去噪增强区域控制参数，去噪强度从Centerpercentage*R开始增强 (见下图 R – CenterPercent 示意图) | 是 |   |
 | m_pMaxSpacialDenoiseThreGain | 边缘去噪最大增强门限，最远距离所能达到的最大去噪强度(见下图 Distance – RadialGain 示意图) | 是 |  |
 
@@ -1104,7 +1104,7 @@ Distance - RadialGain 示意图如下
 
 | 参数名 | 说明 | 建议修改 | 特殊性 |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能 \<br\>- 0: 自动模式 \<br\>- 1: 打开手动模式，此时 raw denoise 参数不随 gain 变化，使用 manual 参数，用于 debug |   |   |
+| m_bManualMode | 手动模式使能 `0` 自动模式； `1` 打开手动模式，此时 raw denoise 参数不随 gain 变化，使用 manual 参数，用于 debug |   |   |
 | m_nSigmaManual | 手动模式参数,作用和自动一致 |   |   |
 | m_nGnsManual | 手动模式参数,作用和自动一致 |   |   |
 | m_nRbnsManual | 手动模式参数,作用和自动一致 |   |   |
@@ -1121,13 +1121,13 @@ CAFMFirmwareFilter 模块用于自动对焦统计模块。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | AFM使能 \<br\>- 0: 关闭自动对焦统计模块  \<br\>- 1: 打开自动对焦统计模块 | 用户设置 |  |
+| m_bEnable | AFM使能 `0` 关闭自动对焦统计模块；  `1` 打开自动对焦统计模块 | 用户设置 |  |
 
 #### AFM 参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nAFStatMode | AF 统计模块模式：\<br\>- 0：经过白平衡  \<br\>- 1：不经过白平衡 | 否 |   |
+| m_nAFStatMode | AF 统计模块模式：`0`：经过白平衡；  `1`：不经过白平衡 | 否 |   |
 | m_nWinStartXPermil | AFM 水平方向起始点坐标千分比 | 用户设置 |   |
 | m_nWinStartYPermil | AFM 垂直方向起始点坐标千分比 | 用户设置 |   |
 | m_nWinEndXPermil | AFM 水平方向结束点坐标千分比 | 用户设置 |   |
@@ -1150,20 +1150,20 @@ CPDCFirmwareFilter 模块用于将 PD 像素或 shadow 像素补偿至正常亮�
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | PDC使能：\<br\>- 0: 关闭PDC模块 \<br\>- 1: 打开 PDC 模块 | 用户设置 |  |
+| m_bEnable | PDC使能：`0` 关闭PDC模块； `1` 打开 PDC 模块 | 用户设置 |  |
 
 #### PDC 参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bOut | PD dump 使能 \<br\>- 0: 关闭 dump 窗口内所有 PD 点  \<br\>- 1: 打开 dump 窗口内所有 PD 点 | 否 |   |
+| m_bOut | PD dump 使能 `0` 关闭 dump 窗口内所有 PD 点；  `1` 打开 dump 窗口内所有 PD 点 | 否 |   |
 | m_nHOffset | 水平方向 ISP 处理图像相对于 sensor 输出图像宽度的偏移量（见下图 窗口示意图 m_nHOft） | 是 |   |
 | m_nVOffset | 垂直方向 ISP 处理图像相对于 sensor 输出图像高度的偏移量（见下图 窗口示意图 m_nVOft） | 是 |   |
-| m_bLRAdjust | 方向控制：\<br\>- 0: 关闭镜像 \<br\>- 1: 打开镜像 | 是 |   |
-| m_bTBAdjust | 方向控制：\<br\>- 0: 关闭翻转 \<br\>- 1: 打开翻转 | 是 |   |
+| m_bLRAdjust | 方向控制：`0` 关闭镜像； `1` 打开镜像 | 是 |   |
+| m_bTBAdjust | 方向控制：`0` 关闭翻转； `1` 打开翻转 | 是 |   |
 | m_nFullWidth | sensor 输出图像宽度 | 是 |   |
 | m_nFullHeight | sensor 输出图像高度 | 是 |   |
-| m_nWindowMode | 窗口模式：\<br\>- 0: 自动计算PD dump区域；\<br\>- 1: 通过m_nWinStartXPermil, m_nWinStartYPermil, m_nWinEndXPermil 和 EndYPermil 计算 PD dump 区域； | 否 |   |
+| m_nWindowMode | 窗口模式：`0` 自动计算PD dump区域；`1` 通过m_nWinStartXPermil, m_nWinStartYPermil, m_nWinEndXPermil 和 EndYPermil 计算 PD dump 区域； | 否 |   |
 | m_nWindowScaleFactor | PDC 统计窗相对于 AFM 统计窗的缩放比例 | 用户设置 |   |
 | m_nMinWidthPermil | PDC 统计窗最小宽度千分比 | 用户设置 |   |
 | m_nMinHeightPermil | PDC 统计窗最小高度千分比 | 用户设置 |   |
@@ -1173,7 +1173,7 @@ CPDCFirmwareFilter 模块用于将 PD 像素或 shadow 像素补偿至正常亮�
 | m_pPixelMask | 32x32 的区域内 PD 点的分布 | 是 |   |
 | m_pPixelTypeMask | 32x32 的区域内 PD 点类型的分布 PD 点类型分为遮蔽上下左右四种 | 是 |   |
 | m_pRatioBMap | 四通道PD点补偿系数 | 是 |   |
-| m_bSoftCompEnable | 软件补偿PD亮度差异开关：\<br\>- 0：使用硬件PDC补偿 \<br\>- 1：软件补偿（sensor抽出PD像素） |   |   |
+| m_bSoftCompEnable | 软件补偿PD亮度差异开关：`0`：使用硬件PDC补偿； `1`：软件补偿（sensor抽出PD像素） |   |   |
 | m_nWinStartXPermil | 水平方向 PD dump 区域左上角坐标千分比 |  - | 只读 |
 | m_nWinStartYPermil | 垂直方向 PD dump 区域左上角坐标千分比 |  - | 只读 |
 | m_nWinEndXPermil | 水平方向 PD dump 区域右下角坐标千分比 |  - | 只读 |
@@ -1194,23 +1194,23 @@ CPDFFirmwareFilter 模块用于将 PD 像素矫正到正常像素值。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | PDF使能 \<br\>- 0: 关闭相位对焦像素矫正 \<br\>- 1: 打开相位对焦像素矫正 | 用户设置 |   |
+| m_bEnable | PDF使能 `0` 关闭相位对焦像素矫正； `1` 打开相位对焦像素矫正 | 用户设置 |   |
 
 #### PDF 参数
 
 | 参数名        | 说明                                                                       | 建议调试 | 特殊性 |
 | ------------- | -------------------------------------------------------------------------- | -------- | ------ |
-| m_nExtPRm     | PD 像素奇异点矫正使能 \<br\>- 0: 关闭PD像素奇异点矫正 \<br\>- 1: 打开PD像素奇异点矫正        | 用户设置 |        |
+| m_nExtPRm     | PD 像素奇异点矫正使能 `0` 关闭PD像素奇异点矫正； `1` 打开PD像素奇异点矫正        | 用户设置 |        |
 | m_nWA         | 中心块权重 8 为 50% 权重，一般中心点本身是被补偿的 PD 点，故权重一般设小一些。   | 否       |        |
 | m_nWB         | 对角块权重 8 为 50% 权重，一般设为50%                                          | 否       |        |
 | m_nFullWidth  | sensor 输出图像宽度                                                         | 是       |        |
 | m_nFullHeight | sensor 输出图像高度                                                         | 是       |        |
 | m_nHOffset    | 水平方向 ISP 处理图像相对于 sensor 输出图像宽度的偏移量（见窗口示意图 m_nHOft） | 是       |        |
 | m_nVOffset    | 垂直方向 ISP 处理图像相对于 sensor 输出图像高度的偏移量（见窗口示意图 m_nVOft） | 是       |        |
-| m_bLRAdjust   | 方向控制：\<br\>- 0: 关闭镜像 \<br\>- 1: 打开镜像                                          | 是       |        |
-| m_bTBAdjust   | 方向控制：\<br\>- 0: 关闭翻转 \<br\>- 1: 打开翻转                                          | 是       |        |
-| m_bRefRB      | - 0: 绿色通道矫正不参考RB通道 \<br\>- 1: 绿色通道矫正参考RB通道                      | 否       |        |
-| m_bRefCnr     | - 0: 绿色通道矫正不参考角点信息 \<br\>- 1: 绿色通道矫正参考角点信息                  | 否       |        |
+| m_bLRAdjust   | 方向控制：`0` 关闭镜像； `1` 打开镜像                                          | 是       |        |
+| m_bTBAdjust   | 方向控制：`0` 关闭翻转； `1` 打开翻转                                          | 是       |        |
+| m_bRefRB      | `0`: 绿色通道矫正不参考RB通道 ；`1` 绿色通道矫正参考RB通道                      | 否       |        |
+| m_bRefCnr     | `0`: 绿色通道矫正不参考角点信息； `1` 绿色通道矫正参考角点信息                  | 否       |        |
 | m_nRefNoiseL  | 用于判断边缘方向的当前噪声水平                                             | 否       |        |
 | m_nExtPThre   | PD 像素奇异点的门限                                                         | 否       |        |
 | m_nExtPSft    | PD 像素奇异点的软阈值                                                       | 否       |        |
@@ -1236,7 +1236,7 @@ CPDAFFirmwareFilter 模块用于相位对焦。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nErrorDistWeight | 误差来源的权重（见下图 相关性拟合曲线示意图）\<br\>- 0: 表示shape的权重为1；\<br\>- 128: 表示 shape 和 distance 各占一半；\<br\>- 256: 表示 distance 的权重为 1； | 否 |   |
+| m_nErrorDistWeight | 误差来源的权重（见下图 相关性拟合曲线示意图）`0` 表示shape的权重为 1；  `128`: 表示 shape 和 distance 各占一半；  `256`: 表示 distance 的权重为 1； | 否 |   |
 | m_nErrorDistCoef | distance（相关性拟合曲线距离）调节系数 | 否 |   |
 | m_nErrorShpCoef | shape（相关性拟合曲线形状）调节系数 | 否 |  |
 
@@ -1262,12 +1262,12 @@ SwingThre-Gain 控制曲线如下图
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bConfAdjust | 置信度适配开关：\<br\>- 1 ：当前幅度值高于此门限时，置信度增大 \<br\>- 0：当前幅度值高于此门限时，置信度不变 | 否 |   |
+| m_bConfAdjust | 置信度适配开关：  1 ：当前幅度值高于此门限时，置信度增大; `0`：当前幅度值高于此门限时，置信度不变 | 否 |   |
 | m_nConfOff | 置信度 offset，用于调整最终置信度 | 否 |   |
 | m_nConfLimit | 最大置信度（见下图 Error-Confidence 转换曲线） | 否 |   |
 | m_nErrorThre1 | 误差转为置信度的 erro r门限（见下图 Error-Confidence 转换曲线） | 是 |   |
 | m_nErrorThre2 | 误差转为置信度的 confidence 门限（见下图 Error-Confidence 转换曲线） | 是 |   |
-| m_nSearchRange | PD shift 搜索范围，PD 像素密度越大，该值越大。\<br\>- 一般密度 shield pixel 设 0 \<br\>- Dual PD 设 3 | 是 |  |
+| m_nSearchRange | PD shift 搜索范围，PD 像素密度越大，该值越大。  一般密度 shield pixel 设 0   Dual PD 设 3 | 是 |  |
 
 Error-Confidence 转换曲线 如下图
 ![](./static/BIBybAjYiogHzmxrC6AcXIFun5c.png)
@@ -1280,17 +1280,17 @@ CWbFirmwareFilter 模块用于白平衡。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | WB使能 \<br\>- 0: 关闭白平衡统计模块  \<br\>- 1: 打开白平衡统计模块 | 否 |  |
+| m_bEnable | WB使能: `0` 关闭白平衡统计模块 ; `1` 打开白平衡统计模块 | 否 |  |
 
 #### WB 参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bSyncWB | HDR模式白平衡同步方式选择：\<br\>- 0：AWB单独计算  \<br\>- 1：使用长曝光作为AWB计算源 | 否 |   |
-| m_bAutoWindow | 窗口调整方式：\<br\>- 0：固定窗口大小  \<br\>- 1：依据 zoom 系数自动计算窗口大小 | 否 |   |
-| m_nMode | 白平衡模式选择：\<br\>- 0: auto mode \<br\>- 1: custom \<br\>- 2: D75 \<br\>- 3: D65 \<br\>- 4: D50 \<br\>- 5: CWF \<br\>- 6: TL84 \<br\>- 7: A \<br\>- 8: H \<br\>- 9: lock | 否 |   |
-| m_nInitMode | 白平衡初始化模式：\<br\>- 0: custom 1:D75 \<br\>- 2: D65 \<br\>- 3: D50 \<br\>- 4: CWF \<br\>- 5: TL84 \<br\>- 6: A \<br\>- 7: H | 是 |   |
-| m_pManualGain | 手动WB gain：0-7 对应 custom / D75 / D65 / D50 / CWF / TL84 / A / H | 是 |   |
+| m_bSyncWB | HDR模式白平衡同步方式选择：`0`：AWB单独计算;  `1`：使用长曝光作为AWB计算源 | 否 |   |
+| m_bAutoWindow | 窗口调整方式：`0`：固定窗口大小;  `1`：依据 zoom 系数自动计算窗口大小 | 否 |   |
+| m_nMode | 白平衡模式选择：`0` auto mode; `1` custom;   `2`: D75;   `3`: D65;   `4`: D50;   `5`: CWF;   `6`: TL84;   `7`: A;   `8`: H;   `9`: lock | 否 |   |
+| m_nInitMode | 白平衡初始化模式：`0` custom `1`:D75;   `2`: D65;   `3`: D50;   `4`: CWF;   `5`: TL84;   `6`: A;   `7`: H | 是 |   |
+| m_pManualGain | 手动WB gain：`0-7` 对应 custom / D75 / D65 / D50 / CWF / TL84 / A / H | 是 |   |
 | m_nAWBStableRange | AWB 进入稳定状态的门限：值越小，越不容易判定为 AWB 稳定 | 是 |   |
 | m_nAWBStableFrameNum | AWB 进入稳定状态的参考帧数：稳定帧数大于改值，判定为 AWB 稳定 | 是 |   |
 | m_nAWBUnStableRange | AWB 进入不稳定状态的门限：值越小，越容易判定为 AWB 不稳定 | 是 |   |
@@ -1326,7 +1326,7 @@ CRGB2YUVFirmwareFilter 模块用于 RGB 转 YUV。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nOutputColorSpace | 输出色彩空间选择：\<br\>- 0：Rec.601, \<br\>- 1：Rec.709 | 用户设置 |   |
+| m_nOutputColorSpace | 输出色彩空间选择：`0`：Rec.601; `1`：Rec.709 | 用户设置 |   |
 | m_nGlobalSaturation | 全局饱和度系数，Q7 精度 | 是 |   |
 | m_pSaturationCP | 饱和度随gain控制参数（示例见图 sat_CP-gain 控制曲线） | 是 | 可随gain变化 |
 
@@ -1334,7 +1334,7 @@ CRGB2YUVFirmwareFilter 模块用于 RGB 转 YUV。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bManualMode | 手动模式使能：\<br\>- 0：自动模式, 饱和度可随 gain 变化  \<br\>- 1：手动模式，饱和度固定为 manual 所设系数 |   | Debug 参数 |
+| m_bManualMode | 手动模式使能：`0`：自动模式, 饱和度可随 gain 变化;  `1`：手动模式，饱和度固定为 manual 所设系数 |   | Debug 参数 |
 | m_nSaturationManual | 手动饱和度系数，Q7 精度 |   | Debug 参数 |
 
 sat_CP-gain 控制曲线如下
@@ -1348,7 +1348,7 @@ CSpecialEffectFirmwareFilter 模块用于特殊效果调试。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | Special effect使能 \<br\>- 0: 关闭特殊效果 \<br\>- 1: 打开特殊效果共 6 个控制区域，区域 0-5 优先级逐渐降低 | 用户设置 |   |
+| m_bEnable | Special effect使能 `0` 关闭特殊效果; `1` 打开特殊效果共 6 个控制区域，区域 0-5 优先级逐渐降低 | 用户设置 |   |
 
 ##### SE 参数
 
@@ -1361,7 +1361,7 @@ CSpecialEffectFirmwareFilter 模块用于特殊效果调试。
 | m_nSyTable_0 | 亮度平移参数，定标参数 | 定标结果参数 |   |
 | m_pRuvTable_0 | UV 旋转参数，定标参数 | 定标结果参数 |   |
 | m_pSuvTable_0 | UV 平移参数，定标参数 | 定标结果参数 |   |
-|  m_pMargin_0 | 渐变过渡带 \<br\>- [Lum_min - Margin_0[0],Lum_max + Margin_0[1]] 是平滑区间； \<br\>- [Hue_min - Margin_0[2],Hue_max + Margin_0[3]] 是平滑区间； \<br\>- [Sat_min - Margin_0[4],Sat_max + Margin_0[5]] 是平滑区间； |  是 |   |
+|  m_pMargin_0 | 渐变过渡带   [Lum_min - Margin_0[0],Lum_max + Margin_0[1]] 是平滑区间；   [Hue_min - Margin_0[2],Hue_max + Margin_0[3]] 是平滑区间；   [Sat_min - Margin_0[4],Sat_max + Margin_0[5]] 是平滑区间； |  是 |   |
 | m_pYTable_0 | 目标调整区域的 Lum 范围 | 是 |   |
 | m_pHTable_0 | 目标调整区域的 Hue 范围 | 是 |   |
 | m_pSTable_0 | 目标调整区域的 Saturation 范围 | 是 |   |
@@ -1394,21 +1394,21 @@ CCurveFirmwareFilter 模块用于伽马曲线。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | Curve使能 \<br\>- 0: 关闭伽马曲线  \<br\>- 1: 打开伽马曲线 | 用户设置 |   |
+| m_bEnable | Curve使能 `0` 关闭伽马曲线  `1` 打开伽马曲线 | 用户设置 |   |
 
 #### Curve 控制参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEbGtmAfterLinearcurve | GTM随线性曲线改变使能：\<br\>- 0：gtm1 curve 不变 \<br\>- 1：gtm1 curve 随线性曲线改变 | 否 |   |
-| m_nCurveSelectOption | Curve使用选择：\<br\>- 0： 基于gain自动计算 \<br\>- 1：使用GTMcurve0 \<br\>- 2：使用 GTMcurve1 \<br\>- 3：使用 GTMcurve2 \<br\>- 4：使用 A-Log curve | 否 |   |
+| m_bEbGtmAfterLinearcurve | GTM随线性曲线改变使能：`0`：gtm1 curve 不变; `1`：gtm1 curve 随线性曲线改变 | 否 |   |
+| m_nCurveSelectOption | Curve使用选择：`0`： 基于gain自动计算; `1`：使用GTMcurve0;   `2`：使用 GTMcurve1;   `3`：使用 GTMcurve2;   `4`：使用 A-Log curve | 否 |   |
 | m_nBacklightStrengthManual | 低亮区域亮度调节参数：值越大，低亮区域的亮度提供的越多，0 表示不增强低亮区域，此时 BacklightCurveManual 不作用于最终的曲线 | 用户设置 |   |
 | m_nContrastStrengthManual | 对比度调节参数：值越大，对比度越高，128 表示不调节对比度，此时 ContrastsCurveManual 不作用于最终的曲线 | 用户设置 |   |
 | m_nBrightnessStrengthManual | 亮度调节参数：值越大，整体亮度越高，4096表示一倍 | 用户设置 |   |
 | m_nAlpha | 前后帧 GTM 曲线融合的迭代速度。m_nAlpha 值越大，越快收敛到当前帧计算得到的 GTM 曲线，255 表示立即收敛到当前帧曲线。 | 是 |   |
 | m_pBacklightCurveManual | 用于调节低亮区域的曲线 | 否 |   |
 | m_pContrastsCurveManual | 用于调节对比度的曲线 | 否 |   |
-|  m_pGainIndex | Gain 分段控制点（见下图 Curve-Gain 控制曲线示意图） 色温分段控制点。\<br\>- gain 位于 [128，GainIndex[0]] 区间，使用 GTMCurve0 的曲线；\<br\>- gain位于 [GainIndex[0]，GainIndex[1] ]区间，使用 GTMCurve0 与 GTMCurve1 插值的曲线； \<br\>- gain 位于 GainIndex[2]，使用 GTMCurve1 的曲线；\<br\>- gain 位于 [GainIndex[1]，GainIndex[2]] 区间，使用 GTMCurve1 与 GTMCurve2 插值的曲线；\<br\>- gain 位于[GainIndex[2]，2048] 区间，使用 GTMCurve2 的曲线； |  是 |   |
+|  m_pGainIndex | Gain 分段控制点（见下图 Curve-Gain 控制曲线示意图） 色温分段控制点。  gain 位于 [128，GainIndex[0]] 区间，使用 GTMCurve0 的曲线；  gain位于 [GainIndex[0]，GainIndex[1] ]区间，使用 GTMCurve0 与 GTMCurve1 插值的曲线；   gain 位于 GainIndex[2]，使用 GTMCurve1 的曲线；  gain 位于 [GainIndex[1]，GainIndex[2]] 区间，使用 GTMCurve1 与 GTMCurve2 插值的曲线；  gain 位于[GainIndex[2]，2048] 区间，使用 GTMCurve2 的曲线； |  是 |   |
 | m_pGTMCurve0 | 曲线0 | 是 | 可依据Gain调用 |
 | m_pGTMCurve1 | 曲线1 | 是 | 可依据Gain调用 |
 | m_pGTMCurve2 | 曲线2 | 是 | 可依据Gain调用 |
@@ -1424,8 +1424,8 @@ CLTMFirmwareFilter 模块用于局部色调映射。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | LTM使能：\<br\>- 0: 关闭局部色调映射 \<br\>- 1: 打开局部色调映射 | 用户设置 |   |
-| m_bHistEnable | LTM 直方图使能：\<br\>- 0: 关闭LTM 直方图  \<br\>- 1: 打开LTM 直方图 | 否 |   |
+| m_bEnable | LTM使能：`0` 关闭局部色调映射; `1` 打开局部色调映射 | 用户设置 |   |
+| m_bHistEnable | LTM 直方图使能：`0` 关闭LTM 直方图;  `1` 打开LTM 直方图 | 否 |   |
 | m_nOffsetY | 图像水平方向偏移，由输入图像大小确定 | 用户设置 |   |
 | m_nOffsetX | 图像垂直方向偏移，由输入图像大小确定 | 用户设置 |   |
 
@@ -1516,7 +1516,7 @@ CBitDepthCompressionFirmwareFilter 模块用于降位深压缩。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnableDithering | Dithering使能 \<br\>- 0: 关闭Dithering \<br\>-1: 打开Dithering | 否 |   |
+| m_bEnableDithering | Dithering使能 `0` 关闭 Dithering;  1: 打开 Dithering | 否 |   |
 
 ### CFormatterFirmwareFilter 参数说明
 
@@ -1526,10 +1526,10 @@ CFormatterFirmwareFilter 模块用于输出格式控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nOutputFormat | 输出格式：\<br\>- 0: NV12 \<br\>- 1: P010 \<br\>- 2: RGB888 | 否 |   |
-| m_nSwingOption | - 0: full swing \<br\>- 1: studio swing | 否 |   |
-| m_bConvertDitheringEnable | - 0: rgb2yuv dithering disable \<br\>- 1: rgb2yuv dithering enable | 否 |   |
-| m_bCompressDitheringEnable | - 0: full swing to studio swing dithering disable \<br\>- 1: full swing to studio swing dithering enable | 否 |   |
+| m_nOutputFormat | 输出格式：`0` NV12; `1` P010;   `2`: RGB888 | 否 |   |
+| m_nSwingOption | `0`: full swing; `1` studio swing | 否 |   |
+| m_bConvertDitheringEnable | `0`: rgb2yuv dithering disable; `1` rgb2yuv dithering enable | 否 |   |
+| m_bCompressDitheringEnable | `0`: full swing to studio swing dithering disable; `1` full swing to studio swing dithering enable | 否 |   |
 
 ### CEISFirmwareFilter 参数说明
 
@@ -1539,14 +1539,14 @@ CEISFirmwareFilter 模块用于电子防抖。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnable | EIS使能 \<br\>- 0: 关闭EIS计 \<br\>- 1: 打开EIS | 用户设置 |   |
+| m_bEnable | EIS使能: `0` 关闭EIS计; `1` 打开EIS | 用户设置 |   |
 
 ##### EIS 参数
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bCalcEnable | Firmware计算使能 \<br\>- 0: 关闭 \<br\>- 1: 打开 | 用户设置 |   |
-| m_bFilterEnable | 运动平滑滤波使能 \<br\>- 0: 关闭运动平滑滤波（一般设备与场景相对运动较少时关闭） \<br\>- 1: 打开运动平滑滤波 | 是 |   |
+| m_bCalcEnable | Firmware计算使能: `0` 关闭; `1` 打开 | 用户设置 |   |
+| m_bFilterEnable | 运动平滑滤波使能: `0` 关闭运动平滑滤波（一般设备与场景相对运动较少时关闭）; `1` 打开运动平滑滤波 | 是 |   |
 | m_nRangeX | X 方向检测移动的范围（单位为像素） | 否 |   |
 | m_nRangeY | Y 方向检测移动的范围（单位为像素） | 否 |   |
 | m_nMarginX | LDC crop 窗口的 offset X | 否 |   |
@@ -1566,7 +1566,7 @@ CAECFilter（AEC）模块用于自动曝光控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-|  m_bManualAEEnable | AEC 模式选择: \<br\>- 0：自动模式 \<br\>- 1：手动模式，此时曝光值使用 manual 参数 \<br\>- 2：锁定模式，此时曝光值锁定，不受 AEC 调节 \<br\>- 3：手动曝光index，此时曝光锁定为 m_pExpIndexManual |  用户设置 |   |
+|  m_bManualAEEnable | AEC 模式选择: `0`：自动模式; `1`：手动模式，此时曝光值使用 manual 参数;   `2`：锁定模式，此时曝光值锁定，不受 AEC 调节;   `3`：手动曝光index，此时曝光锁定为 m_pExpIndexManual |  用户设置 |   |
 | m_pMinExpTime | 最小曝光时间（参数注释包含 short 部分均为 reserverd，以下 AE 参数适用此规则） | 是 |   |
 | m_pMaxExpTime | 最大曝光时间 | 是 |   |
 | m_pMinAnaGain | 最小模拟增益 | 是 |   |
@@ -1578,20 +1578,20 @@ CAECFilter（AEC）模块用于自动曝光控制。
 | m_pRouteNode50Hz | 50Hz 曝光表,第一列为曝光时间,第二列为总体增益,第三列为精确增益控制 (reserverd) | 是 |   |
 | m_pRouteNode60Hz | 60Hz 曝光表,第一列为曝光时间,第二列为总体增益,第三列为精确增益控制 (reserverd) | 是 |   |
 | m_pMeteringMatrix | 16x12 测光权重表 | 用户设置 |   |
-| m_bLumaCalcMode | Luma 计算方式 \<br\>- 0：RGB max \<br\>- 1：Y average | 用户设置 |   |
+| m_bLumaCalcMode | Luma 计算方式: `0`：RGB max; `1`：Y average | 用户设置 |   |
 | m_bQuickResponseEnable | AE 快速响应开关，使能时立刻调节 AE | 用户设置 |   |
 
 #### AE 目标亮度控制
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bAdvancedAECEnable | 目标亮度控制参数 \<br\>- 0：使用 m_pTargetRange[1] 作为目标亮度 \<br\>- 1：动态计算目标亮度，目标亮度区间 [m_pTargetRange[0], m_pTargetRange[1]] | 用户设置 |   |
+| m_bAdvancedAECEnable | 目标亮度控制参数: `0`：使用 m_pTargetRange[1] 作为目标亮度; `1`：动态计算目标亮度，目标亮度区间 [m_pTargetRange[0], m_pTargetRange[1]] | 用户设置 |   |
 | m_nCompensation | 目标亮度补偿系数，100 为一倍 | 是 |   |
 | m_nSensitivityRatio | 拍照与预览感光度比，256 为一倍 | 用户设置 |   |
 | m_pSatRefBin | 饱和点参考值，Target 约束为直方图 [m_pSatRefBin[0],255] 之间的像素占比落入 [m_pSatRefPerThr [0][0]/10000)%, m_ pSatRefPerThr [0][1]/10000)%] | 是 |   |
 | m_pSatRefPerThr | 饱和点占比上下限 | 是 |   |
 | m_pExpIndexThre | 曝光门限,与四组 m_pLumaBlockWeight 对应,用于选择哪组 m_pLumaBlockWeight 参与计算权重,(见下图 Exp_index-luma_weight 示意图) | 用户设置 |   |
-| m_pLumaBlockWeight | 四组亮度块权重表,每组中 \<br\>- Weight[i][0] 对应 low_luma; \<br\>- Weight[i][1]对应mid_luma; \<br\>- Weight[i][2]对应high_luma; \<br\>(见  Exp_index-luma_weight 示意图 / Luma-Weight 示意图) | 用户设置 |   |
+| m_pLumaBlockWeight | 四组亮度块权重表,每组中   Weight[i][0] 对应 low_luma;   Weight[i][1]对应mid_luma;   Weight[i][2]对应high_luma; \<br\>(见  Exp_index-luma_weight 示意图 / Luma-Weight 示意图) | 用户设置 |   |
 | m_pLumaBlockThre | 亮度块门限,用于控制亮度块的权重曲线 (Luma-Weight示意图) | 用户设置 |   |
 | m_pLuma7ZoneWeight | 统计窗口与 6 个 sub ROI 权重表 | 用户设置 |   |
 | m_pTargetRange | 目标亮度门限 | 是 |   |
@@ -1609,10 +1609,10 @@ Luma – weight 示意图如下
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bLumaSelectOption | - 0：亮度计算不参考AEM中的 6 个 sub ROI \<br\>- 1：亮度计算参考AEM中的 6 个 sub ROI |   |   |
-| m_nStrategyMode | AE 调整策略选择: \<br\>- 0：自动模式 \<br\>- 1：高光优先，即优先保证高亮部分曝光适合 \<br\>- 2：低光优先，即优先保证低亮部分曝光适合 |   |   |
-| m_bAntiFlickerEnable | 去抖使能: \<br\>- 0：关闭去抖动，此时曝光时间不受灯光闪烁限制\<br\>- 1：使能去抖动，此时曝光时间限制为灯光闪烁周期的整数倍 |   |   |
-| m_nAntiFlickerFreq | 去抖频率选择: \<br\>- 0：50Hz \<br\>- 1：60Hz |   |   |
+| m_bLumaSelectOption | `0`：亮度计算不参考AEM中的 6 个 sub ROI; `1`：亮度计算参考AEM中的 6 个 sub ROI |   |   |
+| m_nStrategyMode | AE 调整策略选择: `0`：自动模式; `1`：高光优先，即优先保证高亮部分曝光适合   2：低光优先，即优先保证低亮部分曝光适合 |   |   |
+| m_bAntiFlickerEnable | 去抖使能: `0`：关闭去抖动，此时曝光时间不受灯光闪烁限制;`1`：使能去抖动，此时曝光时间限制为灯光闪烁周期的整数倍 |   |   |
+| m_nAntiFlickerFreq | 去抖频率选择: `0`：50Hz; `1`：60Hz |   |   |
 
 #### AE 收敛控制
 
@@ -1631,12 +1631,12 @@ Luma – weight 示意图如下
 | m_pSlowStepRangePer | 小步长门限，满足下述条件使用小步长m_nSlowStepRangePer*target &lt; |current_luma – target | &lt; m_nFastStepRangePer*target | 是 |   |
 | m_pSlowStepMinRange | 小步长门限下限值 | 是 |   |
 | m_pFineStep | 细步长调整折扣比例，（同 m_pFastStep，见下图 step-target 示意图） | 是 |   |
-| m_pMaxFastRatio | 最大大步调整比例（Q8）：\<br\>- 增曝光时，最大大步调整比例为m_pMaxFastRatio；\<br\>- 减曝光时，最大大步调整比例为 65536/m_nMaxFastRatio； | 是 |   |
-| m_pMaxSlowRatio | 最大小步调节比例（Q8）：\<br\>- 增曝光时，小步调节比例限制区间 [256 + m_nMaxFineRatio, 256 + m_nMaxSlowRatio]；\<br\>- 减曝光时，小步调节比例限制区间 [256 - m_nMaxSlowRatio, 256 - m_nMaxFineRatio]； | 是 |   |
+| m_pMaxFastRatio | 最大大步调整比例（Q8）：  增曝光时，最大大步调整比例为m_pMaxFastRatio；  减曝光时，最大大步调整比例为 65536/m_nMaxFastRatio； | 是 |   |
+| m_pMaxSlowRatio | 最大小步调节比例（Q8）：  增曝光时，小步调节比例限制区间 [256 + m_nMaxFineRatio, 256 + m_nMaxSlowRatio]；  减曝光时，小步调节比例限制区间 [256 - m_nMaxSlowRatio, 256 - m_nMaxFineRatio]； | 是 |   |
 | m_pMaxFineRatio | 最大细步调节比例（Q8） | 否 |   |
-| m_pMinFineRatio | 最小细步调节比例 \<br\>- 增曝光时，小步调节比例限制区间 [256 + m_nMinFineRatio, 256 + m_nMaxFineRatio]；\<br\>- 减曝光时，小步调节比例限制区间 [256 - m_nMaxFineRatio, 256 - m_nMinFineRatio]； | 否 |   |
+| m_pMinFineRatio | 最小细步调节比例   增曝光时，小步调节比例限制区间 [256 + m_nMinFineRatio, 256 + m_nMaxFineRatio]；  减曝光时，小步调节比例限制区间 [256 - m_nMaxFineRatio, 256 - m_nMinFineRatio]； | 否 |   |
 | m_pAjustSplitFrameNum | 单步调整所需次数 (第 1 列 reserved) | 否 |   |
-| m_pSingleStepAdjustLumaThr | 单次调节亮度阈值 (第 1 列 reserved)。与 m_pAjustSplitFrameNum 共同决定单次调节最大 luma 值：Single_luma_max = max((target - mean)/AjustSplitFrameNum,SingleStepAdjustLumaThr) \<br\>- 增曝光时，若依据adjustRatio 调整的 luma 超过 Single_luma_max，则 adjustRatio= 256 + Single_luma_max * 256 / mean \<br\>- 减曝光同理。 |  否 |   |
+| m_pSingleStepAdjustLumaThr | 单次调节亮度阈值 (第 1 列 reserved)。与 m_pAjustSplitFrameNum 共同决定单次调节最大 luma 值：Single_luma_max = max((target - mean)/AjustSplitFrameNum,SingleStepAdjustLumaThr)   增曝光时，若依据adjustRatio 调整的 luma 超过 Single_luma_max，则 adjustRatio= 256 + Single_luma_max * 256 / mean   减曝光同理。 |  否 |   |
 | m_pFaceAjustSplitFrameNum | 参数含义同 m_pAjustSplitFrameNum，仅在人脸 AE 模式下生效。 | 否 |   |
 | m_pFaceSingleStepAdjustLumaThr | 参数含义同 m_pSingleStepAdjustLumaThr，仅在人脸 AE 模式下生效。 | 否 |   |
 
@@ -1653,12 +1653,12 @@ Luma – stpe 示意图如下
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
 | m_nDarkRefBin | 暗区像素亮度上限参考值，计算暗区亮度时，统计范围不会超过该值 | 是 |   |
-| m_bLumaPredict | DRCgain计算亮度预测：0：计算DRCgain时不修正（当帧统计当帧apply LTM时）1：计算DRCgain时修正（当帧统计下帧apply LTM时） |  |   |
+| m_bLumaPredict | DRCgain计算亮度预测：`0`：计算DRCgain时不修正（当帧统计当帧apply LTM时）; `1`：计算DRCgain时修正（当帧统计下帧apply LTM时） |  |   |
 | m_nDarkPerThrL |  暗区像素亮度百分比下限，暗区像素数目百分比低于该值时，DRCGainDark为1，（见图示pixelNumPercent-DRCGainDark示意图） |  |   |
 | m_nDarkPerThrH | 暗区像素亮度百分比上限，暗区像素数目百分比高于该值时，暗区像素全部参与计算DRCGainDark，（见图示pixelNumPercent-DRCGainDark示意图） |  |  |
 | m_nDarkTarget | 暗区期望达到的亮度值，值越大 ，最终计算出的DRCGainDark越大 |  |  |
-| m_nMaxDRCGain | 最大DRC增益 | 是 |  |
-| m_nMaxDRCGainDark | 最大DRC Dark增益  | 是 |  |
+| m_nMaxDRCGain | 最大 DRC 增益 | 是 |  |
+| m_nMaxDRCGainDark | 最大 DRC Dark 增益  | 是 |  |
 
 ![](./static/NBOHbysteo5NtQx9fv9cENVynhe.png)
 
@@ -1703,10 +1703,10 @@ PixelNumPercent - DRCGainDark 示意图
 | m_pTotalGainDBShort | Reserved |  - | 只读 |
 | m_nCurHdrRatio | Reserved |  - | 只读 |
 | m_nHistPixelNum | 参与直方图统计的像素数 |  - | 只读 |
-| m_pMeanLuma | AE 计算亮度 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
-| m_pTargetLuma | AE 目标亮度 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
+| m_pMeanLuma | AE 计算亮度   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pTargetLuma | AE 目标亮度   [0]: long   [1]: Reserved |  - | 只读 |
 | m_pLuma7Zone | AE 主窗口及 6 个副窗口 luma |  - | 只读 |
-| m_pAERouteNum | AE 曝光节点 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
+| m_pAERouteNum | AE 曝光节点   [0]: long   [1]: Reserved |  - | 只读 |
 | m_pRouteNodeLong | 长帧曝光表 |  - | 只读 |
 | m_pADNodeLong | Sensor again 与 dgain 分配表 |  - | 只读 |
 | m_pLumaMatrixLong | 亮度缩略图 |  - | 只读 |
@@ -1715,13 +1715,13 @@ PixelNumPercent - DRCGainDark 示意图
 | m_pADNodeShort | Reserved |  - | 只读 |
 | m_pLumaMatrixShort | Reserved |  - | 只读 |
 | m_pHistShort | Reserved |  - | 只读 |
-| m_pRefSaturateNum | 参考过曝像素数 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
-| m_pCurSaturateNum | 当前过曝像素数 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
-| m_pEstSaturateNum | 预估过曝像素数，预估当统计亮度达到目标亮度上限时过曝像素数 \<br\>- [0]:long \<br\>- [1]:Reserved |  - | 只读 |
+| m_pRefSaturateNum | 参考过曝像素数   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pCurSaturateNum | 当前过曝像素数   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pEstSaturateNum | 预估过曝像素数，预估当统计亮度达到目标亮度上限时过曝像素数   [0]:long   [1]:Reserved |  - | 只读 |
 | m_pAdjustRatio | AE 调节比例 |  - | 只读 |
-| m_pStableFlag | AE 稳定标志 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
-| m_pStableFlagBuf | AE 帧序列稳定标志 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
-| m_pUnStableFlagBuf | AE 帧序列不稳定标志 \<br\>- [0]: long \<br\>- [1]: Reserved |  - | 只读 |
+| m_pStableFlag | AE 稳定标志   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pStableFlagBuf | AE 帧序列稳定标志   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pUnStableFlagBuf | AE 帧序列不稳定标志   [0]: long   [1]: Reserved |  - | 只读 |
 | m_nDRCGain | DRCGain 当前帧 AE 计算结果 |  - | 只读 |
 | m_nDRCGainDark | DRCGainDark 当前帧 AE 计算结果 |  - | 只读 |
 
@@ -1733,8 +1733,8 @@ CAFFilter 模块用于自动对焦控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nAFMode | 对焦模式：\<br\>- 0：SAF 单次聚集 \<br\>- 1：CAF 连续聚焦 | 用户设置 |   |
-| m_bHybridAFEnable | CDAF 与 PDAF 混合对焦模式使能：\<br\>-0：关闭 \<br\>- 1：开启 | 用户设置 |   |
+| m_nAFMode | 对焦模式：`0`：SAF 单次聚集; `1`：CAF 连续聚焦 | 用户设置 |   |
+| m_bHybridAFEnable | CDAF 与 PDAF 混合对焦模式使能：`0`：关闭; `1`：开启 | 用户设置 |   |
 | m_bAFTrigger | 自动对焦触发，CAF 时需要使能 | 用户设置 |   |
 | m_bMotorManualTrigger | 手动对焦触发，配合 ManualMotorPosition 使用 | 用户设置 |   |
 | m_nManualMotorPosition | 手动电机位置 | 用户设置 |   |
@@ -1754,14 +1754,14 @@ CAFFilter 模块用于自动对焦控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nFirstStepDirectionJu dgeRatio | 首步方向判断百分比。AF算法运行在CDAF时，判断电机走第一步的方向所需的百分比: \<br\>- 当电机初始位置位于整个电机范围的前百分比之内时，方向为从最小电机位置到最大电机位置；\<br\>- 当电机初始位置位于整个电机范围的后(100%-百分比)之内时，方向为从最大电机位置到最小电机位置 |  用户设置 |   |
-| m_bPreMoveMode | 预运动模式。AF 算法运行在 CDAF 时，电机走第一步时 \<br\>- 0：保持初始位置 \<br\>- 1：走到最小电机位置或者最大电机位置，具体根据初始位置与首步方向判断百分比而定 | 用户设置 |   |
-| m_bPreMoveToInfMode | 预运动模式，运动最小电机位置。AF 算法运行在 CDAF 时，电机走第一步时 \<br\>- 0：保持初始位置 \<br\>- 1：走到最小电机位置 | 用户设置 |   |
-| m_bStartFromTrueCurrent | 从当前实际位置开始使能。AF算法运行在 CDAF 时，电机走第一步时 \<br\>- 0：走到距离初始位置最近的微距位置  \<br\>- 1：保持初始位置 | 用户设置 |   |
+| m_nFirstStepDirectionJu dgeRatio | 首步方向判断百分比。AF算法运行在CDAF时，判断电机走第一步的方向所需的百分比:   当电机初始位置位于整个电机范围的前百分比之内时，方向为从最小电机位置到最大电机位置；  当电机初始位置位于整个电机范围的后(100%-百分比)之内时，方向为从最大电机位置到最小电机位置 |  用户设置 |   |
+| m_bPreMoveMode | 预运动模式。AF 算法运行在 CDAF 时，电机走第一步时 `0`：保持初始位置; `1`：走到最小电机位置或者最大电机位置，具体根据初始位置与首步方向判断百分比而定 | 用户设置 |   |
+| m_bPreMoveToInfMode | 预运动模式，运动最小电机位置。AF 算法运行在 CDAF 时，电机走第一步时 `0`：保持初始位置; `1`：走到最小电机位置 | 用户设置 |   |
+| m_bStartFromTrueCurrent | 从当前实际位置开始使能。AF算法运行在 CDAF 时，电机走第一步时 `0`：走到距离初始位置最近的微距位置;  `1`：保持初始位置 | 用户设置 |   |
 | m_nBackTimeRatio | 电机运动时跳帧比例，值越大，电机走一步花费的帧数越多。与 m_nBackTimeDivisor 共同控制电机跳帧 | 用户设置 |   |
 | m_nBackTimeDivisor | 电机运动时跳帧控制参数，值越小，电机走一步花费的帧数越多。与 m_nBackTimeRatio 共同控制电机跳帧 | 用户设置 |   |
 | m_nPreMoveTimeRatio | 预运动模式下的电机跳帧比例 | 用户设置 |   |
-| m_nFailMotorPositionOpt ion | 聚焦失败后最终位置选择：\<br\>- 0：算法自动选择(需正确填写超焦距马达位置) \<br\>- 1：最清晰 \<br\>- 2：无穷远 \<br\>- 3：超焦距 \<br\>- 4：微距 \<br\>- 5：当前位置 | 用户设置 |   |
+| m_nFailMotorPositionOpt ion | 聚焦失败后最终位置选择：`0`：算法自动选择(需正确填写超焦距马达位置); `1`：最清晰;   `2`：无穷远;  `3`：超焦距;   `4`：微距;   `5`：当前位置 | 用户设置 |   |
 
 #### 电机步长控制参数
 
@@ -1775,7 +1775,7 @@ CAFFilter 模块用于自动对焦控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nSoftwareMotorCtrlMode | 目标位置控制方式（用于首步预移动、手动移动、小步开始、聚焦失败处理等）：\<br\>- 0：软着陆模式 \<br\>- 1：固定步长模式 \<br\>- 2：直达模式 | 用户设置 | 见图1 |
+| m_nSoftwareMotorCtrlMode | 目标位置控制方式（用于首步预移动、手动移动、小步开始、聚焦失败处理等）：`0`：软着陆模式; `1`：固定步长模式;   `2`：直达模式 | 用户设置 | 见图1 |
 | m_nMinSafePosition | 在软着陆模式下，电机由最大电机位置到最小电机位置移动时的最小安全位置 | 用户设置 | 见图2 |
 | m_nMinStepRatio | 同上，最小步长比例 | 用户设置 | 见图2 |
 | m_nMaxSafeStep | 同上，最大安全步长 | 用户设置 | 见图2 |
@@ -1810,7 +1810,7 @@ CAFFilter 模块用于自动对焦控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bAdaptiveStep | 可变步长模式 \<br\>- 0：不使能 \<br\>- 1：使能 | 用户设置 |   |
+| m_bAdaptiveStep | 可变步长模式 `0`：不使能; `1`：使能 | 用户设置 |   |
 | m_nVCMStep1Ratio | 电机步长比例 1，在可变步长模式下，将电机范围划分为多个区间 | 用户设置 | 见图3 |
 | m_nVCMStep2Ratio | 电机步长比例 2，在可变步长模式下，将电机范围划分位多个区间 | 用户设置 | 见图3 |
 | m_nVCMCoarseStep1 | 电机粗步长 1，在可变步长模式下，根据当前电机位置在不同区间计算实际步长 | 用户设置 | 见图3 |
@@ -1848,7 +1848,7 @@ CAFFilter 模块用于自动对焦控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bPDReverseDirectionFlag | PDShift 计算的步长反向标志 \<br\>- 0：不反向 \<br\>- 1：反向 | 是 |   |
+| m_bPDReverseDirectionFlag | PDShift 计算的步长反向标志 `0`：不反向; `1`：反向 | 是 |   |
 | m_nPDDirectConfThrRatio | PD 阈值百分比，当置信度大于阈值的 m_nPDDirectConfThrRatio% 时，直接走出 PD 计算的步长 | 否 |   |
 | m_nPDTryStepRatio | AF 算法运行在混合对焦模式时，首先尝试走出的一步相对于 CDAF 大步的比例 | 否 |   |
 | m_nPDCoarseStep | PDAF 粗步长 | 是 |   |
@@ -1867,20 +1867,20 @@ CAFFilter 模块用于自动对焦控制。
 | m_bCAFForce | 在连续聚焦模式下，强制触发一次单次聚焦 | 用户设置 |   |
 | m_nCAFHoldPDShiftThr | 连续聚焦模式下，判断场景稳定的 PD shift 门限，值越大，越容易判断为稳定 | 是 |   |
 | m_nCAFHoldPDConfThr | 连续聚焦模式下，判断场景稳定的 PD confidence 门限，值越小，越容易判断为稳定 | 是 |   |
-| m_nPreFocusMode | 在连续聚焦模式下，追焦模式使能：\<br\>- 0：不追焦 \<br\>- 1：半追焦（基于 PD shift 先尝试一次对焦） | 用户设置 |   |
+| m_nPreFocusMode | 在连续聚焦模式下，追焦模式使能：`0`：不追焦; `1`：半追焦（基于 PD shift 先尝试一次对焦） | 用户设置 |   |
 | m_nPFPDStepDiscountRatio | Prefocus 步长折扣比 | 是 |   |
-| m_nLumaCalcOpt | Luma 计算方式 \<br\>- 0：三通道分别计算 \<br\>- 1：计算 RGB 最大值 \<br\>- 2：计算加权的 Y 均值 | 否 |   |
+| m_nLumaCalcOpt | Luma 计算方式 `0`：三通道分别计算; `1`：计算 RGB 最大值;   `2`：计算加权的 Y 均值 | 否 |   |
 | m_bReFocusEnable | 连续聚焦模式下，refocus 使能 | 用户设置 |   |
 | m_pRefocusLumaSADThr | CAF 触发 SAF 时，决定是否触发的 SAD 门限 | 是 |   |
 | m_nFlatSceneVarThr | 连续聚焦模式下，判断是否为平坦场景的缩略图的方差门限 | 是 |   |
 | m_nFlatSceneLumaThr | 连续聚焦模式下，判断是否为平坦场景的亮度门限 | 是 |   |
-| m_bStableJudgeOpt | 连续聚焦模式下，判断场景稳定的条件：\<br\>- 0：FV 或 luma 满足其一 \<br\>- 1：FV 与 luma 均满足 | 用户设置 |   |
+| m_bStableJudgeOpt | 连续聚焦模式下，判断场景稳定的条件：`0`：FV 或 luma 满足其一; `1`：FV 与 luma 均满足 | 用户设置 |   |
 | m_nRefStableFrameNum | 在连续聚焦模式下，参考态中判定场景已经稳定的帧数 | 用户设置 |   |
 | m_nDetStableFrameNum | 在连续聚焦模式下，检测态中判定场景已经稳定的帧数 | 用户设置 |   |
 | m_pStableExpIndexPercentage | 在连续聚焦模式下，判定当前帧稳定的曝光量变化百分比 | 是 |   |
 | m_pStableFVSADPercentage | 在连续聚焦模式下，判定当前帧稳定的 FV 的 SAD 百分比 | 是 |   |
 | m_pStableLumaSADThr | 在连续聚焦模式下，判定当前帧稳定的亮度的 SAD 百分比 | 是 |   |
-| m_bChangeJudgeOpt | 连续聚焦模式下，判断场景变化的条件：\<br\>- 0：FV 或 luma 满足其一 \<br\>- 1：FV 与 luma 均满足 | 否 |   |
+| m_bChangeJudgeOpt | 连续聚焦模式下，判断场景变化的条件：`0`：FV 或 luma 满足其一; `1`：FV 与 luma 均满足 | 否 |   |
 | m_nChangeFrameNum | 连续聚焦模式下，判断场景变化的帧数 | 是 |   |
 | m_nChangeStatAreaPercentage | 连续聚焦模式下，判断场景变化的 AF 统计窗口面积改变门限百分比，超出此门限认为场景发生改变，人脸模式有效 | 否 |   |
 | m_nChangeStatCenterPercentage | 连续聚焦模式下，判断场景变化的 AF 统计窗口位置改变门限百分比，超出此门限认为场景发生改变，人脸模式有效 | 否 |   |
@@ -1893,10 +1893,10 @@ CAFFilter 模块用于自动对焦控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bForeGroundTrackInCoarse | 粗步长调节时前景追踪模式使能：\<br\>- 0：不使能前景追踪 \<br\>- 1：使能前景追踪 | 用户设置 |   |
-| m_bForeGroundTrackInFine | 细步长调节时前景追踪模式使能：\<br\>- 0：不使能前景追踪 \<br\>- 1：使能前景追踪 | 用户设置 |   |
-| m_nForeGroundTrackWindow | 前景追踪窗口：\<br\>- 3：3x3 \<br\>- 4：4x4 \<br\>- 5：5x5 | 用户设置 |   |
-| m_bForeGroundTrack | 前景追踪模式使能：\<br\>- 0：不使能前景追踪 \<br\>- 1：使能前景追踪 | 用户设置 |   |
+| m_bForeGroundTrackInCoarse | 粗步长调节时前景追踪模式使能：`0`：不使能前景追踪; `1`：使能前景追踪 | 用户设置 |   |
+| m_bForeGroundTrackInFine | 细步长调节时前景追踪模式使能：`0`：不使能前景追踪; `1`：使能前景追踪 | 用户设置 |   |
+| m_nForeGroundTrackWindow | 前景追踪窗口：  `3`：3x3;   `4`：4x4;   `5`：5x5 | 用户设置 |   |
+| m_bForeGroundTrack | 前景追踪模式使能：`0`：不使能前景追踪; `1`：使能前景追踪 | 用户设置 |   |
 | m_pFVBlkDropPercentage | 前景追踪模式使能下的 FV 值下降的判定百分比 | 否 |   |
 | m_pFVBlkIncreasePercentage | 前景追踪模式使能下的 FV 值上升的判定百分比 | 否 |   |
 | m_pFineStepStartPosSelectConf | 前景追踪模式使能下，开始走细步长时的起始位置的置信度阈值 | 否 |   |
@@ -1911,13 +1911,13 @@ CAFFilter 模块用于自动对焦控制。
 | m_nPDConf | PD 置信度 |  - | 只读 |
 | m_nCurrentPosition | 当前电机位置 |  - | 只读 |
 | m_nFSMStatus | AF 状态机 |  - | 只读 |
-| m_nFocusStatFlag | 聚焦状态标志 \<br\>- 0：初始 \<br\>- 1：成功 \<br\>- 2：失败 |  - | 只读 |
+| m_nFocusStatFlag | 聚焦状态标志 `0`：初始; `1`：成功;   `2`：失败 |  - | 只读 |
 | m_nFocusFrameCost | 一次单次聚焦完成所花费的帧数 |  - | 只读 |
 | m_nMotorMoveStep | 实时电机步长 |  - | 只读 |
-| m_bCoarseFineStepFlag | 实时处于粗/细步长标志 \<br\>- 0：当前处于细步长 \<br\>- 1：当前处于粗步长 |  - | 只读 |
+| m_bCoarseFineStepFlag | 实时处于粗/细步长标志 `0`：当前处于细步长; `1`：当前处于粗步长 |  - | 只读 |
 | m_nMotorMoveSkipFrameNum | 电机每次移动跳过的帧数 |  - | 只读 |
-| m_bStartFromMinFlag | 实时电机运动方向 \<br\>- 0：从最大电机位置到最小电机位置 \<br\>- 1：从最小电机位置到最大电机位置 |  - | 只读 |
-| m_bStartFromCurrentFlag | 电机初始从当前位置开始运动的标志 \<br\>- 0：从预运动位置出发 \<br\>- 1：从初始位置出发 |  - | 只读 |
+| m_bStartFromMinFlag | 实时电机运动方向 `0`：从最大电机位置到最小电机位置; `1`：从最小电机位置到最大电机位置 |  - | 只读 |
+| m_bStartFromCurrentFlag | 电机初始从当前位置开始运动的标志 `0`：从预运动位置出发; `1`：从初始位置出发 |  - | 只读 |
 | m_bSoftwareMotorCtrlFlag | 从当前位置向目标位置运动过程中受到软件控制改变的标志 |  - | 只读 |
 | m_nPositionScanNum | 电机扫描过的方向计数 |  - | 只读 |
 | m_nPositionAdjustNum | 电机走过的位置计数 |  - | 只读 |
@@ -1925,8 +1925,8 @@ CAFFilter 模块用于自动对焦控制。
 | m_pMinFVList | 单次聚焦过程中的最小 FV 值 |  - | 只读 |
 | m_pMaxFVList | 单次聚焦过程中的最大 FV 值 |  - | 只读 |
 | m_pMaxFVPositionList | 单次聚焦城中的最大 FV 值所在的位置 |  - | 只读 |
-| m_pFVUnchangeFlag | FV 曲线过于平滑而失效的标志 \<br\>- 0：FV曲线可信 \<br\>- 1：FV曲线失效 |  - | 只读 |
-| m_pFailCondition | 判定本地聚焦失败的三个条件的状态 \<br\>- 0：当前条件判定聚焦成功 \<br\>- 1：当前条件判定聚焦失败 |  - | 只读 |
+| m_pFVUnchangeFlag | FV 曲线过于平滑而失效的标志 `0`：FV曲线可信; `1`：FV曲线失效 |  - | 只读 |
+| m_pFailCondition | 判定本地聚焦失败的三个条件的状态 `0`：当前条件判定聚焦成功; `1`：当前条件判定聚焦失败 |  - | 只读 |
 | m_pFSMPosSingleFocus | 单次聚焦过程中，帧号-电机位置-状态机信息记录 |  - | 只读 |
 | m_pPosFvSingleFocus | 单次聚焦过程中，帧号-6种类型FV值信息记录 |  - | 只读 |
 | m_pRefFV | 连续聚焦模式下，记录的 FV 参考值 |  - | 只读 |
@@ -1969,7 +1969,7 @@ CAWBFilter（AWB）模块用于自动白平衡控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bGrayWorldEn | 灰度世界模式使能: \<br\>- 0：关闭灰度世界 \<br\>-1：使能灰度世界，此时由灰度世界算法计算白平衡增益 | 用户设置 |   |
+| m_bGrayWorldEn | 灰度世界模式使能: `0`：关闭灰度世界;  `1`：使能灰度世界，此时由灰度世界算法计算白平衡增益 | 用户设置 |   |
 
 #### ROI 控制
 
@@ -1981,7 +1981,7 @@ CAWBFilter（AWB）模块用于自动白平衡控制。
 | m_pRoiEn | ROI 使能 | 是 |   |
 | m_pRoiWeightLut | 不同亮度索引对应的权重 | 是 |   |
 | m_pRoiLumThre | 亮度 lux 索引门限 | 是 |   |
-| m_bRoiLimitManual | 固定 ROI 使能：\<br\>- 0：依据自动白点ROI及低色温统计块占比计算白点限制区域  \<br\>- 1：白点限制区域固定为 RoiCtHigh，RoiCtLow，RoiXMax，RoiXMin |   |   |
+| m_bRoiLimitManual | 固定 ROI 使能：`0`：依据自动白点ROI及低色温统计块占比计算白点限制区域;  `1`：白点限制区域固定为 RoiCtHigh，RoiCtLow，RoiXMax，RoiXMin |   |   |
 | m_nRoiCtHigh | 白点 ROI 纵坐标 Y 上限，在 ROI 区域以外的 block 计算白平衡时权重为 0 (CT（color temperature）= BlockBlue_sum(8bit) / BlockRed_sum * 1024) | 是 |   |
 | m_nRoiCtLow | 白点 ROI 纵坐标 Y 下限 | 是 |   |
 | m_nRoiXMax | 白点 ROI 横坐标 X 上限 (X = BlockBlue_sum x BlockRed_sum / BlockGreen_sum / BlockGreen_sum x 1024) | 是 |   |
@@ -1991,7 +1991,7 @@ CAWBFilter（AWB）模块用于自动白平衡控制。
 | m_nRoiXMaxAuto | 不同亮度下自动白点 ROI 横坐标 X 上限 | 是 |   |
 | m_nRoiXMinAuto | 不同亮度下自动白点 ROI 横坐标 X 下限 | 是 |   |
 | m_nValidNum | 每个 ROI 生效的最小块数,处于统计亮度区间的块的数目小于该值时,该 ROI 不参与白平衡计算 | 否 |   |
-| m_bWeightOnSum | Block 权重计算方式：\<br\>- 0：使用 Block 亮度总和        \<br\>-1：使用 Block 的 RGB 增益计算 | 否 |   |
+| m_bWeightOnSum | Block 权重计算方式：`0`：使用 Block 亮度总和;         `1`：使用 Block 的 RGB 增益计算 | 否 |   |
 
 #### 白平衡 Gain 控制
 
@@ -1999,15 +1999,15 @@ CAWBFilter（AWB）模块用于自动白平衡控制。
 |---|---|---|---|
 | m_pAWBGainLimit | 最终 WB gain 限制区域 | 是 |   |
 | m_nAWBCTShift | WB Gain 向上偏移距离，用于将低色温场景往暖色调偏移 | 是 |   |
-| m_pAWBCTShiftThr | WB Gain 偏移 Y 门限：\<br\>- 若 Y ＜ AWBCTShiftThr[0] 时, WB Gain 向上偏移m_nAWBCTShift \<br\>- 若 Y ＞ AWBCTShiftThr[1] 时, WB Gain 不偏移\<br\>- 中间为插值区域 | 是 |   |
+| m_pAWBCTShiftThr | WB Gain 偏移 Y 门限：  若 Y ＜ AWBCTShiftThr[0] 时, WB Gain 向上偏移m_nAWBCTShift   若 Y ＞ AWBCTShiftThr[1] 时, WB Gain 不偏移  中间为插值区域 | 是 |   |
 
 #### 混光场景降高色温权重
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
 | m_sRoiBoundDayLight | 高低色温混合场景，高色温统计块框选区域，落入该区域的统计块为高色温统计块 | 是 |   |
-| m_pLowCtNumThr | 低色温统计块所占千分比门限，（见下图示 lowCtLightPermillage-ratio）\<br\>- 低色温统计块所占千分比 ＞ LowCtNumThr[0] 时，高色温统计块权重开始降低；\<br\>- 低色温统计块所占千分比 ≥ LowCtNumThr[1]时，高色温统计块权重降到最低。 | 是 |   |
-| m_pDayLightNumThr | 高色温统计块所占千分比门限，（见下图示 dayLightPermillage-ratio）\<br\>- 高色温统计块所占千分比 ＜ DayLightNumThr[1] 时, 高色温统计块权重开始降低；\<br\>- 高色温统计块所占千分比 ≤ DayLightNumThr[0] 时，高色温统计块权重不再降低，与 m_pLowCtNumThr 共同作用决定高色温统计块权重降低的基础强度 baseRatio。 | 是 |   |
+| m_pLowCtNumThr | 低色温统计块所占千分比门限，（见下图示 lowCtLightPermillage-ratio）  低色温统计块所占千分比 ＞ LowCtNumThr[0] 时，高色温统计块权重开始降低；  低色温统计块所占千分比 ≥ LowCtNumThr[1]时，高色温统计块权重降到最低。 | 是 |   |
+| m_pDayLightNumThr | 高色温统计块所占千分比门限，（见下图示 dayLightPermillage-ratio）  高色温统计块所占千分比 ＜ DayLightNumThr[1] 时, 高色温统计块权重开始降低；  高色温统计块所占千分比 ≤ DayLightNumThr[0] 时，高色温统计块权重不再降低，与 m_pLowCtNumThr 共同作用决定高色温统计块权重降低的基础强度 baseRatio。 | 是 |   |
 | m_pLowCtThr | 高低色温混合场景，降高色温统计块权重的 Y 门限（见下图示 CtThr – ProtectRatio ）Y ＜ m_pLowCtThr[1] 的统计块为低色温统计块 | 是 |   |
 | m_pLowCtProtectRatio | 降高色温统计块权重系数，值越小，高色温统计块权重越低，与 baseRatio 共同决定统计块的权重（见下图示 CtThr – ProtectRatio） | 是 | 随 CtThr 变化 |
 | m_nLog2CwtOverA | CWF 与 A 光权重比 | 否 |  |
@@ -2117,9 +2117,9 @@ Layer 越高，对应处理图像越高频的区域。
 
 | 参数名 | 说明 | 建议修改 | 特殊性 |
 |---|---|---|---|
-| m_bRadial_en | 去噪强度沿半径调节使能: \<br\>- 0: 关闭  \<br\>- 1: 使能 | 用户设置 |   |
+| m_bRadial_en | 去噪强度沿半径调节使能: `0`: 关闭;  `1`: 使能 | 用户设置 |   |
 | m_pRadial_ratio | 去噪强度随沿半径增强强度控制，值越大，边缘去噪强度越强 | 是 | 可随Gain/Layer变化 |
-| m_bCnrRadial_en | 去彩噪强度沿半径调节使能: \<br\>- 0: 关闭  \<br\>- 1: 使能 | 用户设置 |   |
+| m_bCnrRadial_en | 去彩噪强度沿半径调节使能: `0`: 关闭;  `1`: 使能 | 用户设置 |   |
 | m_pCnrRadial_ratio | 去彩噪强度随沿半径增强强度控制，值越大，边缘去彩噪强度越强 | 是 | 可随 Gain/Layer 变化 |
 
 #### 3D NR 运动区域检测及去噪强度控制
@@ -2160,8 +2160,8 @@ Layer 越高，对应处理图像越高频的区域。
 | 参数名 | 说明 | 建议修改 | 特殊性 |
 |---|---|---|---|
 | eb | 颜色检测开关，开启时对肤色和蓝天区域的去噪会加强 | 用户设置 |   |
-| m_ppf_en | 紫边去除使能: \<br\>- 0: 关闭  \<br\>- 1: 使能 | 用户设置 |   |
-| m_nwp_en | 紫边去除过曝区域检测使能: \<br\>- 0: 关闭   \<br\>- 1: 使能 | 用户设置 |   |
+| m_ppf_en | 紫边去除使能: `0`: 关闭;  `1`: 使能 | 用户设置 |   |
+| m_nwp_en | 紫边去除过曝区域检测使能: `0`: 关闭;   `1`: 使能 | 用户设置 |   |
 | m_nwp_th | 过曝像素判定门限,值越大,越少像素被判定为过曝点（见 Uv_wp_gain- num_wb 示意图） | 是 |   |
 | m_nnum_wp_min | 过曝区域作用起始阈值，过曝点数目大于该阈值时，紫边去除开始起作用（见 Uv_wp_gain- num_wb 示意图） | 是 |   |
 | m_nnum_wp_step | 过渡区间控制，（见 Uv_wp_gain- num_wb 示意图） | 是 |   |

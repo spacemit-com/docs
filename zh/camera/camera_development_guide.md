@@ -1069,8 +1069,6 @@ make[1]: Leaving directory '/home/lizhirong/bianbu-linux/output/k1'
 
 相较于前两个 case，需要注意 pipeline1 的流程稍有差别。
 
-pipeline1 的 VI 模块使用 DEV1 的 bayerRead CHN 从 DDR 中读取 pipeline0 的 rawdump 结果，使用 physical CHN 输出 capture 的结果数据至 DDR，而 pipeline1 中的 rawdump CHN 没有工作。与此相关地，两条 pipeline 的 callback 处理也会有所变化。
-
 - pipeline1 的 VI 模块使用 DEV1 的 bayerRead CHN 从 DDR 中读取 pipeline0 的 rawdump 结果，使用 physical CHN 输出 capture 的结果数据至 DDR，而 pipeline1 中的 rawdump CHN 没有工作。
 - 与此相关地，两条 pipeline 的 callback 处理也会有所变化：
 
