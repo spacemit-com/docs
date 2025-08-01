@@ -1591,7 +1591,7 @@ CAECFilter（AEC）模块用于自动曝光控制。
 | m_pSatRefBin | 饱和点参考值，Target 约束为直方图 [m_pSatRefBin[0],255] 之间的像素占比落入 [m_pSatRefPerThr [0][0]/10000)%, m_ pSatRefPerThr [0][1]/10000)%] | 是 |   |
 | m_pSatRefPerThr | 饱和点占比上下限 | 是 |   |
 | m_pExpIndexThre | 曝光门限,与四组 m_pLumaBlockWeight 对应,用于选择哪组 m_pLumaBlockWeight 参与计算权重,(见下图 Exp_index-luma_weight 示意图) | 用户设置 |   |
-| m_pLumaBlockWeight | 四组亮度块权重表,每组中   Weight[i][0] 对应 low_luma;   Weight[i][1]对应mid_luma;   Weight[i][2]对应high_luma; \<br\>(见  Exp_index-luma_weight 示意图 / Luma-Weight 示意图) | 用户设置 |   |
+| m_pLumaBlockWeight | 四组亮度块权重表,每组中   Weight[i][0] 对应 low_luma;   Weight[i][1]对应mid_luma;   Weight[i][2]对应high_luma; (见  Exp_index-luma_weight 示意图 / Luma-Weight 示意图) | 用户设置 |   |
 | m_pLumaBlockThre | 亮度块门限,用于控制亮度块的权重曲线 (Luma-Weight示意图) | 用户设置 |   |
 | m_pLuma7ZoneWeight | 统计窗口与 6 个 sub ROI 权重表 | 用户设置 |   |
 | m_pTargetRange | 目标亮度门限 | 是 |   |

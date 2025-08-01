@@ -804,8 +804,8 @@ Note. Final CFR_Ratio = HueRatio\*EdgeRatio\>\>HighFreqTransShiftNum
 
 | Parameter Name | Description | Recommended Tuning | Special Notes |
 |---|---|---|---|
-| m_nHueTransShiftNum | Hue transition zone offset coefficient: (See example below: HueTrans-HueRatio control curve)<br>Hue values falling in the range [(ColorFringeHueRange[0] - (1<<ShiftNum), ColorFringeHueRange[0])] will be smoothed;<br>Hue values in the range [ColorFringeHueRange[1], (ColorFringeHueRange[1] + (1<<ShiftNum))] will also be smoothed; | Yes |   |
-| m_pColorFringeHueRange | Hue range for color fringe suppression (see example below: HueTrans-HueRatio control curve).<br>HueRange[0] must be less than HueRange[1] | Yes |  |
+| m_nHueTransShiftNum | Hue transition zone offset coefficient: (See example below: HueTrans-HueRatio control curve) Hue values falling in the range [(ColorFringeHueRange[0]-(1&lt;&lt;ShiftNum)，ColorFringeHueRange[0]]  will be smoothed; Hue values in the range [ColorFringeHueRange[1]，(ColorFringeHueRange[1]+(1&lt;&lt;ShiftNum)] will also be smoothed; | Yes |   |
+| m_pColorFringeHueRange | Hue range for color fringe suppression (see example below: HueTrans-HueRatio control curve). HueRange[0] must be less than HueRange[1] | Yes |  |
 
 ColorFringeHueRange[0],[1] is used to define the Hue range for color fringe suppression;
 
@@ -1333,7 +1333,7 @@ The CWbFirmwareFilter module is used for white balance.
 | Parameter Name         | Description                                                                                               | Recommended Tuning | Special Notes |
 |------------------------|-----------------------------------------------------------------------------------------------------------|-------------------|---------------|
 | m_bSyncWB              | HDR mode white balance synchronization method:   `0`: AWB calculated separately;   `1`: Use long exposure as AWB calculation source | No       |         |
-| m_bAutoWindow          | Window adjustment method: <b\r>- `0`: Fixed window size;   `1`: Automatically calculate window size based on zoom factor | No                |      |
+| m_bAutoWindow          | Window adjustment method: `0`: Fixed window size;   `1`: Automatically calculate window size based on zoom factor | No                |      |
 | m_nMode                | White balance mode selection:   `0`: auto mode;   `1`: custom;   `2`: D75;   `3`: D65;   `4`: D50; `5`: CWF   `6`: TL84; `7`: A   `8`: H   `9`: lock | No     |        |
 | m_nInitMode            | White balance initialization mode:   `0`: custom;   `1`: D75;   `2`: D65;   `3`: D50;   `4`: CWF;   `5`: TL84;   `6`: A;   `7`: H; | Yes      |           |
 | m_pManualGain          | Manual WB gain: indices 0-7 correspond to custom / D75 / D65 / D50 / CWF / TL84 / A / H                   | Yes               |              |
@@ -1485,15 +1485,15 @@ CLTMFirmwareFilter module is used for Local Tone Mapping (LTM).
 |-------------------------|------------------------------------------------------------------------------------------------------------------------------------------|-------------------|---------------|
 | m_nLtmStrength          | LTM strength; the larger the value, the stronger the LTM effect                                                                          | Yes               |               |
 | m_nCurveAlpha           | Convergence speed for blending the current frame's curve with the historically saved curve; smaller values converge faster               | Yes               |               |
-| m_nSlopeThr             | If Drc *DrcDark < Thr, equivalent to GTM; if Drc* DrcDark >= Thr, each block calculates LTM strength individually                      | No                |               |
+| m_nSlopeThr             | If Drc *DrcDark &lt; Thr, equivalent to GTM; if Drc* DrcDark >= Thr, each block calculates LTM strength individually                      | No                |               |
 | m_nPhicBeta             | LTM curve attenuation control point; smaller values cause earlier curve attenuation, reducing brightening of mid-high luminance blocks (see PhicBeta diagram) | No           |     |
-| m_nBlendCurveFP         | First control point for tone mapping curve based on DRCGain and DrcGainDark; BlendCurveFP ≤ BlendCurveSP. Before FP, tone mapping strength depends on DRCGain * DrcGainDark. Larger BlendCurveFP means a larger brightening range in dark areas. | No   |     |
+| m_nBlendCurveFP         | First control point for tone mapping curve based on DRCGain and DrcGainDark; BlendCurveFP &lt;= BlendCurveSP. Before FP, tone mapping strength depends on DRCGain * DrcGainDark. Larger BlendCurveFP means a larger brightening range in dark areas. | No   |     |
 | m_nBlendCurveSP         | Second control point; after SP, tone mapping strength depends on DRCGain; smooth transition between FP and SP. Smaller BlendCurveSP means smaller brightening range. | No    |     |
 | m_nSubDarkPercThrLow    | Sub-dark area brightening adjustment parameter; smaller values mean stronger brightening in sub-dark areas                               | No                |               |
-| m_nSubDarkPercThrHigh   | Sub-dark area brightening adjustment parameter; smaller values mean stronger brightening; SubDarkPercThrLow < SubDarkPercThrHigh         | No                |               |
+| m_nSubDarkPercThrHigh   | Sub-dark area brightening adjustment parameter; smaller values mean stronger brightening; SubDarkPercThrLow &lt; SubDarkPercThrHigh         | No                |               |
 | m_nSubDarkAdjMeanThr    | Sub-dark area brightening adjustment; combined with SubDarkPercThrLow, SubDarkPercThrHigh, controls LTM strength in sub-dark areas based on percentage of sub-dark points in a block. If current block mean > SubDarkAdjMeanThr and sub-dark percentage > SubDarkPercThrLow, LTM strength increases. Maximum at SubDarkPercThrHigh. | No                |               |
 | m_nDarkPercThrLow       | Dark area brightening adjustment parameter; smaller values mean stronger LTM in dark areas                                               | No                |               |
-| m_nDarkPercThrHigh      | Dark area brightening adjustment parameter; smaller values mean stronger LTM; DarkPercThrLow < DarkPercThrHigh                           | No                |               |
+| m_nDarkPercThrHigh      | Dark area brightening adjustment parameter; smaller values mean stronger LTM; DarkPercThrLow &lt; DarkPercThrHigh                           | No                |               |
 | m_nPhCDarkMaxExtraRatio | Dark area brightening adjustment parameter; combined with DarkPercThrLow and DarkPercThrHigh, controls LTM strength in darkest areas based on point percentage; larger values mean stronger LTM | No    |      |
 | m_pDstAlphaGainIndex    | LTM strength gain control nodes                                                                                                          | No                |               |
 | m_pDstAlphaIndex        | Controls LTM strength based on DstAlphaGainIndex; larger values mean stronger LTM                                                        | Yes               |               |
@@ -2063,7 +2063,7 @@ The CAWBFilter (AWB) module is used for automatic white balance control.
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------|------------------|---------------|
 | m_pAWBGainLimit    | Final WB gain limitation range                                                                                                | Yes              |               |
 | m_nAWBCTShift      | WB Gain upward shift distance, used to shift low color temperature scenes toward warmer tones                                 | Yes              |               |
-| m_pAWBCTShiftThr   | WB Gain shift Y threshold:   When Y < AWBCTShiftThr[0], WB Gain is shifted up by m_nAWBCTShift   When Y > AWBCTShiftThr[1], WB Gain is not shifted   Intermediate values are interpolated | Yes      |           |
+| m_pAWBCTShiftThr   | WB Gain shift Y threshold:   When Y &lt; AWBCTShiftThr[0], WB Gain is shifted up by m_nAWBCTShift   When Y > AWBCTShiftThr[1], WB Gain is not shifted   Intermediate values are interpolated | Yes      |           |
 
 
 #### Mixed Lighting Scene - Reduce High Color Temperature Weight
@@ -2072,8 +2072,8 @@ The CAWBFilter (AWB) module is used for automatic white balance control.
 |-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------|------------------|--------------------|
 | m_sRoiBoundDayLight   | Mixed high and low color temperature scene, bounding region for high color temperature statistic blocks; blocks falling in this area are counted as high color temperature blocks | Yes        |               |
 | m_pLowCtNumThr        | Threshold for the ratio (per mille) of low color temperature statistic blocks (see the illustration below lowCtLightPermillage-ratio)   When the ratio of low CT blocks > LowCtNumThr[0], the weight of high CT blocks begins to decrease;   When the ratio ≥ LowCtNumThr[1], the weight of high CT blocks is reduced to the minimum. | Yes      |             |
-| m_pDayLightNumThr     | Threshold for the ratio (per mille) of high color temperature statistic blocks (see the illustration below dayLightPermillage-ratio)   When the ratio of high CT blocks < DayLightNumThr[1], the weight of high CT blocks begins to decrease;   When the ratio ≤ DayLightNumThr[0], the weight no longer decreases. Works together with m_pLowCtNumThr to determine the base strength (baseRatio) for reducing high CT block weights. | Yes        |               |
-| m_pLowCtThr           | Y threshold for reducing the weight of high CT statistic blocks in mixed CT scenes (see CtThr – ProtectRatio illustration); blocks with Y < m_pLowCtThr[1] are counted as low CT blocks | Yes         |              |
+| m_pDayLightNumThr     | Threshold for the ratio (per mille) of high color temperature statistic blocks (see the illustration below dayLightPermillage-ratio)   When the ratio of high CT blocks &lt; DayLightNumThr[1], the weight of high CT blocks begins to decrease;   When the ratio ≤ DayLightNumThr[0], the weight no longer decreases. Works together with m_pLowCtNumThr to determine the base strength (baseRatio) for reducing high CT block weights. | Yes        |               |
+| m_pLowCtThr           | Y threshold for reducing the weight of high CT statistic blocks in mixed CT scenes (see CtThr – ProtectRatio illustration); blocks with Y &lt; m_pLowCtThr[1] are counted as low CT blocks | Yes         |              |
 | m_pLowCtProtectRatio  | Coefficient for reducing the weight of high CT blocks; the smaller the value, the lower the weight of high CT blocks. Together with baseRatio determines block weight (see CtThr – ProtectRatio) | Yes         | Changes with CtThr  |
 | m_nLog2CwtOverA       | Weight ratio of CWF to A light                                                                                                           | No           |               |
 
