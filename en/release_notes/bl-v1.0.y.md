@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Bianbu Linux 1.0 Release Notes[End of Life]
+# Bianbu Linux 1.0 Release Notes [End of Life]
 
 ## Bianbu Linux 1.0 End of Life Announcement
  Bianbu Linux V1.0, which was built on linux-6.1.Please note that Bianbu Linux V1.0 is no longer maintained and has reached its End of Life (EOL).
