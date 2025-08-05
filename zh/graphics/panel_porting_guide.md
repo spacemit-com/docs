@@ -1,23 +1,36 @@
-# Spacemit 屏幕调试文档
-介绍spacemit k1平台 Uboot 和 kernel 的 mipi 与 hdmi 屏幕驱动用例和调试方法。
+# SpacemiT 屏幕调试文档
+
+本文介绍 SpacemiT K1 平台 Uboot 和 Kernel 的 MIPI 与 HDMI 屏幕驱动用例和调试方法。
+
 ## 模块介绍
 
-spacemit 平台 Display 模块使用 DRM 框架，DRM 全称是 Direct Rendering Manager，是Linux系统目前主流的显示框架，适应当前显示硬件的特性。
+SpacemiT 平台的 Display 模块基于 **DRM（Direct Rendering Manager）** 框架实现。
+DRM 是 Linux 系统中主流的显示框架，能够很好地适应现代显示硬件的特性。
 
+在 Linux 内核中，DRM 作为显示设备管理的子系统，主要负责以下工作：
+
+- **显示硬件抽象与管理：** 统一管理不同类型的显示硬件。
+- **图形内存管理：** 分配与控制显存的使用。
+- **显示输出控制：** 协调显示内容的合成与输出。
+- **多显示接口支持：** 兼容 HDMI、DSI、eDP 等多种接口。
 
 ![display-kms](static/diaplay-kms.jpg )
-## 一、Uboot 屏幕调试
-### 1.1. 源码结构介绍
-spacemit 平台 Uboot 显示驱动源码结构：
+
+## Uboot 屏幕调试
+
+### 源码结构介绍
+
+SpacemiT 平台 Uboot 显示驱动源码结构如下：
+
 ```
 uboot-2022.10/drivers/video$ tree spacemit
 spacemit
 ├── dsi
 │   ├── drv
-│   │   ├── spacemit_dphy.c                                  // mipi dsi dphy驱动
+│   │   ├── spacemit_dphy.c                                  // MIPI DSI DPHY 驱动
 │   │   ├── spacemit_dphy.h
 │   │   ├── spacemit_dsi_common.c
-│   │   ├── spacemit_dsi_drv.c                               // mipi dsi 驱动
+│   │   ├── spacemit_dsi_drv.c                               // MIPI DSI 驱动
 │   │   ├── spacemit_dsi_drv.h
 │   │   └── spacemit_dsi_hw.h
 │   ├── include
@@ -36,17 +49,23 @@ spacemit
 │       └── spacemit_video_tx.c
 ├── Kconfig
 ├── Makefile
-├── spacemit_dpu.c                                            // dpu 驱动
+├── spacemit_dpu.c                                            // DPU 驱动
 ├── spacemit_dpu.h
-├── spacemit_edp.c                                            // eDP panel驱动
+├── spacemit_edp.c                                            // eDP panel 驱动
 ├── spacemit_hdmi.c                                           // HDMI 驱动
 ├── spacemit_hdmi.h
-├── spacemit_mipi.c                                           // mipi 驱动
+├── spacemit_mipi.c                                           // MIPI 驱动
 └── spacemit_mipi.h
 ```
-### 1.2. 配置介绍
-#### 1.2.1. CONFIG配置
-执行 make uboot-menuconfig，进入 Device Drivers -> Graphics support，将以下配置打开(默认情况下已开启)。
+
+### 配置介绍
+
+#### CONFIG 配置
+
+1. 执行 `make uboot-menuconfig`
+
+2. 进入 **Device Drivers -> Graphics support**，启用以下配置(默认情况下已开启)。
+
 ```
 Device Drivers  --->
   Graphics support  --->
@@ -55,8 +74,12 @@ Device Drivers  --->
      <*>    MIPI Port
      <*>        EDP Port
 ```
-#### 1.2.2. HDMI dts配置
-配置 hdmi 相关设备树
+
+#### HDMI DTS 配置
+
+配置 HDMI 相关设备树如下。
+配置 dpu 和 hdmi 节点 `status = "okay"`
+
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
 &dpu {
@@ -69,13 +92,17 @@ Device Drivers  --->
 	status = "okay";
 };
 ```
-#### 1.2.3. MIPI dts配置
+
+#### MIPI DTS 配置
 
 ##### MIPI DSI
 
-###### Gpio
+1. **GPIO 定义**
+   在 MIPI DSI 面板的 GPIO 配置中，以 **k1-x_deb1** 方案为例：
+   - **GPIO81：** 配置为面板复位（reset）引脚。
+   - **GPIO82 和 GPIO83：** 配置为面板电源控制引脚。
 
-MIPI DSI panel gpio相关配置，以k1-x_deb1方案为例： gpio81配置为panel复位pin，gpio82和gpio83配置为panel电源控制pin。
+   
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
 &dpu {
@@ -94,9 +121,13 @@ MIPI DSI panel gpio相关配置，以k1-x_deb1方案为例： gpio81配置为pan
         status = "okay";
 };
 ```
-###### DSI电源配置
-MIPI DSI需要配置MIPI DSI 1.2v电源。\
-以k1-x_deb1方案为例： 需配置pmic ldo_5为MIPI DSI 1.2v。（方案实际可不需要配置，默认已开启）
+
+2. DSI 电源配置
+   MIPI DSI 需要 **1.2V 电源**支持。
+   在 **k1-x_deb1** 方案中：
+    - 使用 **PMIC 的 ldo_5** 作为 MIPI DSI 1.2V 电源。
+    - 实际方案中无需额外配置，该电源默认已开启。
+
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x_deb1.dts
 &ldo_27 {
@@ -107,6 +138,7 @@ MIPI DSI需要配置MIPI DSI 1.2v电源。\
     };
 };
 ```
+
 ```c
 //uboot-2022.10/arch/riscv/dts/k1-x_spm8821.dtsi
                     /* dldo */
@@ -120,8 +152,10 @@ MIPI DSI需要配置MIPI DSI 1.2v电源。\
         };
 
 ```
-###### PWM
-通过pwm控制背光
+
+3. PWM 背光配置
+通过 PWM 控制背光
+
 ```c
 &pwm14 {
 	pinctrl-names = "default";
@@ -135,8 +169,16 @@ MIPI DSI需要配置MIPI DSI 1.2v电源。\
 	status = "okay";
 };
 ```
-#### 1.2.4. display timing配置
-Uboot阶段默认使用88000000作为pix-clock，614400000作为bit-clcok，无需额外配置
+
+#### Display Timing 配置
+
+在 U-Boot 阶段，系统默认使用以下时钟配置：
+
+- **pix-clock：** 88,000,000 Hz
+- **bit-clock：** 614,400,000 Hz
+
+因此，无需额外配置。
+
 ```c
 //uboot-2022.10/drivers/video/spacemit/spacemit_mipi.c
 	pix_clk = dev_read_u32_default(dev, "pix-clk", 88000000);
@@ -155,7 +197,8 @@ Uboot阶段默认使用88000000作为pix-clock，614400000作为bit-clcok，无�
 	}
 ```
 
-已完成功能调试的MIPI DSI panel，相关c文件放置在lcd目录。
+已完成功能调试的 **MIPI DSI panel** 相关驱动文件位于 **lcd 目录**：
+
 ```
 uboot-2022.10/drivers/video/spacemit/dsi/video$ tree lcd
 lcd
@@ -166,13 +209,18 @@ lcd
 ├── lcd_jd9365dah3.c
 └── lcd_lt8911ext_edp_1080p.c
 ```
-### 1.3. 新增 mipi panel 配置参考实例
-以lcd_gx09inx101为例
-1. 在uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/路径下新建lcd_gx09inx101.c
+
+### 新增 MIPI Panel 配置参考实例
+
+以下示例以 **lcd_gx09inx101** 为例，演示如何在 SpacemiT 平台上新增 MIPI DSI panel 支持。
+
+1. **新建驱动文件**
+在路径 `uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/` 下新建 `lcd_gx09inx101.c` 文件，内容如下：
+
 ```c
 / SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2023 Spacemit Co., Ltd.
+ * Copyright (C) 2023 SpacemiT Co., Ltd.
  *
  */
 
@@ -183,6 +231,7 @@ lcd
 
 #define UNLOCK_DELAY 0
 
+// 显示参数配置
 struct spacemit_mode_modeinfo gx09inx101_spacemit_modelist[] = {
         {
                 .name = "1200x1920-60",
@@ -207,6 +256,7 @@ struct spacemit_mode_modeinfo gx09inx101_spacemit_modelist[] = {
         },
 };
 
+// MIPI DSI 接口参数
 struct spacemit_mipi_info gx09inx101_mipi_info = {
         .height = 1920,    // mipi dsi dphy中配置屏幕高
         .width = 1200,     // mipi dsi dphy中配置屏幕宽
@@ -327,8 +377,11 @@ int lcd_gx09inx101_init(void)
         return ret;
 }
 ```
-以下各项根据屏幕相关信息进行配置。\
-**initial-cmd**：
+
+以下各项根据屏幕相关信息进行配置。
+
+- 初始化命令（**initial-cmd**）：
+
 ```c
 static struct spacemit_dsi_cmd_desc gx09inx101_init_cmds[] = {
         //8279 + INX10.1
@@ -361,38 +414,51 @@ static struct spacemit_dsi_cmd_desc gx09inx101_init_cmds[] = {
         {SPACEMIT_DSI_DCS_LWRITE, SPACEMIT_DSI_LP_MODE,  50, 2, {0x29, 0x00}},
 };
 ```
-通过配置 **read id** 读取 **panel_id**\
-lcd_gx09inx101读取0xfb寄存器
-```c
-//uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
-static struct spacemit_dsi_cmd_desc gx09inx101_read_id_cmds[] = {
+
+- **Panel ID 识别（确认屏幕型号）**
+验证连接的屏幕型号与驱动兼容性
+通过配置 **read_id** 读取 **panel_id**, 如下，lcd_gx09inx101 读取 `0xfb` 寄存器
+
+   ```c
+   //uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
+   static struct spacemit_dsi_cmd_desc gx09inx101_read_id_cmds[] = {
         {SPACEMIT_DSI_GENERIC_READ1, SPACEMIT_DSI_LP_MODE, UNLOCK_DELAY, 1, {0xfb}},
-};
-```
-0xfb寄存器理应读取的到值为0x1
-```c
-//uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
-struct lcd_mipi_panel_info lcd_gx09inx101 = {
+   };
+   ```
+
+   对比返回值与预期值，不匹配则报错。如下，`0xfb` 寄存器理应读取的到值为 `0x1`
+
+   ```c
+   //uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
+   struct lcd_mipi_panel_info lcd_gx09inx101 = {
         .lcd_name = "gx09inx101",
         .panel_id0 = 0x1,
-```
-通过读取**power_value**进行**esd check**\
-lcd_gx09inx10读取0xA寄存器进行esd check
-```
-//uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
-static struct spacemit_dsi_cmd_desc gx09inx101_read_power_cmds[] = {
+   ```
+
+- **ESD 静电防护检测**
+实时监测屏幕工作状态，预防静电损伤。
+在 lcd_gx09inx101 配置中，读取 `0xA` 寄存器进行 ESD check
+
+   ```
+   //uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
+   static struct spacemit_dsi_cmd_desc gx09inx101_read_power_cmds[] = {
         {SPACEMIT_DSI_GENERIC_READ1, SPACEMIT_DSI_HS_MODE, UNLOCK_DELAY, 1, {0xA}},
-};
-```
-**power_value**：0xA寄存器理应读取到的值
-```c
-//uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
-struct lcd_mipi_panel_info lcd_gx09inx101 = {
+   };
+   ```
+
+   驱动会将读取结果与预设的 `power_value` 进行比对，若不同，则说明屏幕可能发生了 ESD 异常。
+   示例中，寄存器 `0xA` 理应返回值与 `power_value` 一致：
+
+   ```c
+   //uboot-2022.10/drivers/video/spacemit/dsi/video/lcd/lcd_gx09inx101.c
+   struct lcd_mipi_panel_info lcd_gx09inx101 = {
 
         .power_value = 0x10,
-```
+   ```
 
-2. 修改Makefile
+2. **修改 Makefile**
+在 `obj-y` 中添加新 panel：
+
 ```c
 //uboot-2022.10/drivers/video/spacemit/dsi/Makefile
 # SPDX-License-Identifier: GPL-2.0
@@ -409,7 +475,9 @@ obj-y += video/lcd/lcd_jd9365dah3.o
 obj-y += video/lcd/lcd_gx09inx101.o
 obj-y += video/lcd/lcd_lt8911ext_edp_1080p.o
 ```
-3. 修改 spacemit_dsi_common.h
+
+3. **修改头文件 `spacemit_dsi_common.h`**
+
 ```c
 //uboot-2022.10/drivers/video/spacemit/dsi/include/spacemit_dsi_common.h
 int lcd_icnl9911c_init(void);
@@ -418,7 +486,10 @@ int lcd_gx09inx101_init(void);    // 增加 lcd_gx09inx101.c实现的相应函�
 int lcd_jd9365dah3_init(void);
 int lcd_lt8911ext_edp_1080p_init(void);
 ```
-4. 修改 spacemit_mipi_port.c
+
+4. **修改端口识别逻辑 `spacemit_mipi_port.c`**
+在 panel 匹配逻辑中加入新 panel
+
 ```c
 //uboot-2022.10/drivers/video/spacemit/dsi/video/spacemit_mipi_port.c
 
@@ -439,25 +510,34 @@ if (strcmp("lt8911ext_edp_1080p", priv->panel_name) == 0) {
         lcd_gx09inx101_init();          //增加gx09inx101 panel识别，新增其它panel参考以上三个
     }
 ```
-### 1.4. Uboot 启动相关 log
+
+这样处理后，`gx09inx101` panel 就能在 U-Boot 初始化时正确识别并驱动。
+
+### U-Boot 启动相关日志
+
+以下为 U-Boot 启动过程中 MIPI DSI Panel 初始化的关键日志：
+
 ```c
 [   0.842] Found device 'mipi@d421a800', disp_uc_priv=000000007deb1aa0
-            /*   read id ,在lcd_gx09inx101.c 中
+            /*   读取 ID ，对应 lcd_gx09inx101.c 中
                  struct lcd_mipi_panel_info lcd_gx09inx101.id0 配置 */
 [   1.001] read panel id OK: read value = 0x1, 0x0, 0x0
 [   1.003] Panel is gx09inx101
 [   1.260] fb=7f700000, size=1200x1920
 ```
-## 二、Kernel 屏幕调试
-spacemit平台Display模块的功能和使用方法参考：[spacemit平台display模块介绍](https://bianbu-linux.spacemit.com/device/peripheral_driver/Display)
 
-### 2.1. HDMI 配置
-以k1-x_deb1方案为例，方案配置HDMI。
+## Kernel 屏幕调试
+
+SpacemiT 平台 Display 模块的功能和使用方法参考：[SpacemiT 平台 Display 模块介绍](https://bianbu-linux.spacemit.com/device/peripheral_driver/Display)
+
+### HDMI 配置
+
+以下示例基于 **k1-x_deb1** 方案，展示了 HDMI 的设备树配置：
 
 ```c
 // linux-6.6\arch\riscv\boot\dts\spacemit\k1-x_deb1.dts
 &dpu_online2_hdmi {
-	memory-region = <&dpu_resv>;                    // 配置hdmi dpu预留内存
+	memory-region = <&dpu_resv>;             // 配置 HDMI DPU 预留内存
 	status = "okay";
 };
 
@@ -468,15 +548,26 @@ spacemit平台Display模块的功能和使用方法参考：[spacemit平台displ
 };
 ```
 
-### 2.2. MIPI DSI panel 配置实例
-kernel阶段，mipi屏幕配置步骤：
-1. 配置供电以及GPIO。
-2. 新建mipi屏的dtsi。
-3. 根据屏幕供应商提供的mipi屏，主控芯片的datasheet、时序等信息，配置dtsi相应的clock（包含前后肩、分辨率以及计算得出的pix clock，bit clock）和initial、read id 等 command。
-4. 将mipi panel与相应的方案关联。
+### MIPI DSI panel 配置实例
 
-以lcd_gx09inx101_mipi为例，k1-x_deb1方案采用lcd_gx09inx101_mipi作为显示屏幕，与mipi dsi相关的部分显示dts 如下：
-#### 2.2.1. k1-x_deb1方案
+在 kernel 阶段，MIPI 屏幕的配置步骤如下：
+
+1. 配置供电与 GPIO
+
+2. 新建 MIPI 屏幕 dtsi 文件
+
+3. 根据供应商资料配置时序和命令
+   参考屏幕供应商提供的 MIPI 屏幕参数和主控芯片 datasheet，结合屏幕时序等信息，配置 dtsi 中的：
+   - clock 参数（前后肩、分辨率、及计算得出的pixel clock和bit clock）
+   - 初始化命令（initial-command）
+   - 读 ID 命令（read-id-command）
+
+4. 将 MIPI Panel 与方案关联
+
+#### k1-x_deb1 方案
+
+以下示例展示了 **k1-x_deb1** 方案使用 `lcd_gx09inx101_mipi` 作为显示屏的 DTS 配置：
+
 ```c
 //linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
 #include "lcd/lcd_gx09inx101_mipi.dtsi"
@@ -542,36 +633,49 @@ kernel阶段，mipi屏幕配置步骤：
         status = "okay";
 };
 ```
-##### DSI供电
-DSI 需要 AVDD1.8 和 AVDD1.2 供电
-  - AVDD18_DSI由BUCK3_1V8默认供电，不需要配置。
-  - AVDD12_DSI由DLDO1_1V1供电。
+
+##### DSI 供电
+
+DSI 需要 **AVDD1.8** 和 **AVDD1.2** 供电
+
+- **AVDD1.8_DSI：** 由 BUCK3_1V8 默认供电，无需额外配置。
+- **AVDD1.2_DSI：** 由 DLDO1 供电，需在 dts 中指定：
+
 ```c
 dsi_1v2-supply = <&ldo_5>;              //dldo1
 vin-supply-names = "dsi_1v2"
 ```
-##### Mipi屏供电
-本方案mipi接口根据原理图需要配置GPIO和pwm。
-###### GPIO
-需要控制的GPIO有：\
-        dcp-gpios = gpio 82;\
-        dcn-gpios = gpio 83;\
-        reset-gpios = gpio 81;
-```c
-gpios-reset = <81>;             // 配置panel 复位 gpio
-gpios-dc = <82 83>;             // 配置panel 电源控制 gpio
-```
-###### pwm
-采用pwm控制背光，对应设备树
-```c
-&pwm14 {
+
+##### MIPI 屏供电
+
+本方案 MIPI 接口根据原理图需要配置 GPIO 和 PWM。
+
+- GPIO
+   屏幕需要复位和电源控制 GPIO：
+   dcp-gpios = gpio 82;
+   dcn-gpios = gpio 83;
+   reset-gpios = gpio 81;
+
+   ```c
+   gpios-reset = <81>;             // 配置 panel 复位 GPIO
+   gpios-dc = <82 83>;             // 配置 panel 电源控制 GPIO
+   ```
+
+- PWM
+   采用 PWM 控制背光，对应设备树
+
+   ```c
+   &pwm14 {
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_pwm14_1>;
         status = "okay";
-};
-```
-#### 2.2.2. lcd dts 配置
-在linux-6.6/arch/riscv/boot/dts/spacemit/lcd/路径新建lcd_gx09inx101_mipi.dtsi
+   };
+   ```
+
+#### LCD dtsi 配置
+
+在 `linux-6.6/arch/riscv/boot/dts/spacemit/lcd/` 路径下，新建 lcd_gx09inx101_mipi.dtsi
+
 ```c
 // SPDX-License-Identifier: GPL-2.0
 
@@ -660,15 +764,34 @@ gpios-dc = <82 83>;             // 配置panel 电源控制 gpio
         };
 };};
 ```
+
 ##### 时序计算
-pixel clock= (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ\
-bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ\
-通过display timing计算，pixel clock值为152880000 HZ，系统可配置为153000000 HZ，bit clock值为1009008000 HZ，系统可配置为1000000000 HZ。
-dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clock配置为1000000000。
+
+- **Pixel Clock**
+pixel clock = (hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps = （1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 = 152880000 HZ
+
+- **Bit Clock**
+bit clock = (((hactive + hfp + hbp + hsync) * (vactive + vfp + vbp + vsync) * fps  * bpp) / lane bumber) * 1.1 = (（（1200 + 50 + 40 + 10）* (1920 + 20 + 16 + 4) * 60 * 24）/ 4) * 1.1 = 1009008000 HZ
+
+通过 Display Timing 计算：
+
+- **Pixel Clock** = 152880000 HZ，系统可配置为 153000000 HZ
+- **Bit Clock** = 1009008000 HZ，系统可配置为 1000000000 HZ
+
+DTS 文件中, 系统配置如下：
+
+- `clock-frequency` = **153000000 Hz**
+- `spacemit-dpu-bitclk` = **1000000000 Hz**
+- `phy-bit-clock` = **1000000000 Hz**
+
 ## FAQ
-### 1. 只配置hdmi
-以 k1-deb1 方案为例，驱动dts默认关闭 lcd，打开 hdmi，配置如下：\
-默认配置
+
+### 1. 只配置 HDMI
+
+以 k1-x_deb1 方案为例，如果只启用 HDMI 输出，可以在驱动 DTS 中关闭 LCD，打开 HDMI。
+
+下面为默认配置：
+
 ```c
 //linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
 &dpu_online2_dsi {
@@ -677,11 +800,11 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 	spacemit-dpu-escclk = <76800000>;
 	dsi_1v2-supply = <&ldo_5>;
 	vin-supply-names = "dsi_1v2";
-	status = "disabled";
+	status = "disabled"; // 禁用 MIPI DSI
 };
 
 &dsi2 {
-	status = "disabled";
+	status = "disabled"; // 禁用 DSI 面板
 
 	panel2: panel2@0 {
 		status = "ok";
@@ -697,22 +820,27 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 };
 
 &lcds {
-	status = "disabled";
+	status = "disabled";  // 禁用 LCD
 };
 
 &dpu_online2_hdmi {
 	memory-region = <&dpu_resv>;
-	status = "okay";
+	status = "okay"; // 启用 HDMI DPU
 };
 
 &hdmi{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_hdmi_0>;
-	status = "okay";
+	status = "okay";  // 启用 HDMI
 };
 ```
-### 2. 同时配置hdmi、dsi
-若需同时打开 lcd 和 hdmi，则需要把两个设备相关dts的状态都配置为"okay"
+
+### 2. 同时配置 HDMI 与 DSI
+
+如果需要同时启用 LCD (MIPI DSI) 和 HDMI，需要在 DTS 中将两个相关节点的 `status` 属性均设置为 `"okay"`。
+
+示例如下（以 k1-x_deb1 方案为例）：
+
 ```c
 //linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
 &dpu_online2_dsi {
@@ -721,11 +849,11 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 	spacemit-dpu-escclk = <76800000>;
 	dsi_1v2-supply = <&ldo_5>;
 	vin-supply-names = "dsi_1v2";
-	status = "okay";
+	status = "okay"; // 启用 MIPI DSI
 };
 
 &dsi2 {
-	status = "okay";
+	status = "okay";  // 启用 DSI 面板
 
 	panel2: panel2@0 {
 		status = "ok";
@@ -741,21 +869,27 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 };
 
 &lcds {
-	status = "okay";
+	status = "okay"; // 启用 LCD 模块
 };
 
 &dpu_online2_hdmi {
 	memory-region = <&dpu_resv>;
-	status = "okay";
+	status = "okay"; // 启用 HDMI DPU
 };
 
 &hdmi{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_hdmi_0>;
-	status = "okay";
+	status = "okay"; // 启用 HDMI
 };
 ```
-### 3. 只配置dsi
+
+### 3. 只配置 DSI
+
+如果只需要使用 MIPI DSI LCD，需将 DSI 相关节点启用 (`status = "okay"`)，同时关闭 HDMI 相关节点 (`status = "disabled"`)。
+
+以下为 k1-x_deb1 方案示例：
+
 ```c
 //linux-6.6/arch/riscv/boot/dts/spacemit/k1-x_deb1.dts
 &dpu_online2_dsi {
@@ -764,11 +898,11 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 	spacemit-dpu-escclk = <76800000>;
 	dsi_1v2-supply = <&ldo_5>;
 	vin-supply-names = "dsi_1v2";
-	status = "okay";
+	status = "okay"; // 启用 MIPI DSI
 };
 
 &dsi2 {
-	status = "okay";
+	status = "okay"; // 启用 DSI 面板
 
 	panel2: panel2@0 {
 		status = "ok";
@@ -784,24 +918,32 @@ dts文件中clock-frequency配置为153000000, spacemit-dpu-bitclk和phy-bit-clo
 };
 
 &lcds {
-	status = "okay";
+	status = "okay";  // 启用 LCD 模块
 };
 
 &dpu_online2_hdmi {
 	memory-region = <&dpu_resv>;
-	status = "disabled";
+	status = "disabled"; // 关闭 HDMI DPU
 };
 
 &hdmi{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_hdmi_0>;
-	status = "disabled";
+	status = "disabled"; // 禁用 HDMI
 };
 ```
-### 4. weston 主屏配置
-weston 显示脚本
+
+### 4. Weston 主屏配置
+
+Weston 的启动脚本位于：
+
 ```c
 //buildroot/package/weston/run_weston.sh
+```
+
+**默认脚本**
+
+```c
 #export EGL_LOG_LEVEL=debug
 export MESA_LOADER_DRIVER_OVERRIDE=pvr
 export XDG_RUNTIME_DIR=/root
@@ -809,13 +951,22 @@ export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/qt/plugins/platforms
 export QT_QPA_PLATFORM=wayland
 weston --log=/var/log/weston --tty=1 --idle-time=0
 ```
-在hdmi和lcd同时配置为“okay”时，该脚本会使用第一个drm显示设备显示。\
-查看drm设备命令:
+
+在 HDMI 和 LCD 同时配置为 `okay` 时，Weston 默认会使用 **第一个 DRM 显示设备**（即 `/sys/class/drm` 中检测到的第一个 card）。
+
+**查看 DRM 设备**
+
 ```bash
 cd /sys/class/drm
 ls
 ```
-lcd默认配置为card1，hdmi为card2。若需weston界面默认在hdmi上显示，则需修改run_weston.sh脚本
+
+- `card1`：默认绑定 LCD
+- `card2`：默认绑定 HDMI
+
+**指定 HDMI 为主屏**
+若希望 Weston 默认在 HDMI 上显示，则需修改 `run_weston.sh` 脚本，在启动参数中显式指定 DRM 设备：
+
 ```c
 //buildroot/package/weston/run_weston.sh
 #export EGL_LOG_LEVEL=debug
@@ -825,8 +976,14 @@ export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/qt/plugins/platforms
 export QT_QPA_PLATFORM=wayland
 weston --log=/var/log/weston --tty=1 --drm-device=card2 --idle-time=0
 ```
+
+通过 `--drm-device=card2` 参数，Weston 将直接使用 HDMI 作为主屏显示。
+
 ### 5. bianbu-desktop 主屏配置
-mutter 应用默认将dsi作为主显示器，若需修改为hdmi，则需修改mutter包源码并重新编译。
+
+在 **Bianbu-Desktop** 环境中，`mutter` 默认将 **DSI** 识别为主显示器。
+若需将主显示器修改为 **HDMI**，需要调整 `mutter` 源码并重新编译。
+
 ```c
 //mutter/src/backends/meta-monitor.c
 meta_monitor_is_laptop_panel (MetaMonitor *monitor)
@@ -838,10 +995,15 @@ meta_monitor_is_laptop_panel (MetaMonitor *monitor)
     {
     case META_CONNECTOR_TYPE_eDP:
     case META_CONNECTOR_TYPE_LVDS:
-    case META_CONNECTOR_TYPE_HDMIA: //默认为 META_CONNECTOR_TYPE_DSI
+    case META_CONNECTOR_TYPE_HDMIA: //原默认配置为 META_CONNECTOR_TYPE_DSI
       return TRUE;
     default:
       return FALSE;
     }
 }
 ```
+
+修改说明
+- 将 `META_CONNECTOR_TYPE_HDMIA` 保留在 `TRUE` 返回分支，同时移除或屏蔽 `META_CONNECTOR_TYPE_DSI`。
+
+修改后重新编译并安装 mutter，即可生效。

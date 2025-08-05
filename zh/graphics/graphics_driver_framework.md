@@ -1,47 +1,68 @@
 # 图形驱动框架
 
-## 1.整体框架
+## 整体框架
 
 ![linux图形显示框架](./static/linuxGraphicsFramework.png#pic_center)
 
-## 2.环境配置及依赖
+## 环境配置及依赖
 
-### 2.1 kernel
+### Kernel
 
-进入 linux kernel 源码目录，在 config 中将PowerVR打开：
+进入 Linux Kernel 源码目录，在 config 中启用 PowerVR：
 
 ```bash
-CONFIG_POWERVR_ROGUE=y #将PowerVR_rogue打开
+CONFIG_POWERVR_ROGUE=y # 启用 PowerVR Rogue
 ```
 
-或在 menuconfig 中进行配置：执行make menuconfig，如下图所示，进入配置界面，在 Device Drivers -> Graphics support -> PowerVR GPU 路径下打开 PowerVR GPU 选项。
+也可通过 `make menuconfig` 在图形界面中启用。在 **Device Drivers -> Graphics support -> PowerVR GPU** 路径下，选择 **PowerVR GPU** 选项：
 
 ```shell
 <*>   Lontium LT9711 DSI to DP
 < > null drm disp
-<*> PowerVR GPU #打开 PowerVR GPU 选项
+<*> PowerVR GPU # 启用 PowerVR GPU
 [ ] Enable legacy drivers (DANGEROUS)  ----
     Frame buffer Devices  --->
 ```
 
-### 2.2 PVR DDK
+### PVR DDK
 
-由于版权问题，PVR GPU的驱动开发工具包（Device Development Kit, DDK）不能提供出来，PVR GPU驱动的用户层闭源代码使用 so 动态库的形式提供了OpenGLES、Vulkan和OpenCL的API实现。在bianbu-linux和bianbu-desktop上开启PVR GPU驱动的方式如下：
+由于版权限制，PVR GPU 的 DDK（Device Development Kit）无法直接提供。用户层闭源代码以 so 动态库形式提供 OpenGLES、Vulkan 和 OpenCL API。
 
-1. 在 bianbu-linux 上，需要在编译 build root 时设置 config 文件中 BR2_PACKAGE_IMG_GPU_POWERVR=y；或者在 bianbu-linux 源码目录下，执行 make menuconfig，在 External options -> Bianbu config 路径下打开 img-gpu-powervr 选项。
+在 bianbu-linux 和 bianbu-desktop 上开启 PVR GPU 驱动的方式如下：
 
-    ```shell
-    [*] rtk hciattach
-        *** spacemit mpp package ***
-    -*- spacemit mpp
-    [*] img-gpu-powervr #打开 img-gpu-powervr 选项
-        Output option (Wayland)  --->
-    [ ]   install examples
-    ```
+#### bianbu-linux
+在编译 buildroot 时，将配置文件中启用：
 
-2. 在 bianbu-desktop上，涉及到版权问题的闭源代码使用 so 动态库的形式通过 img-gpu-powervr deb包来提供。用户可通过 apt install img-gpu-powervr 来获得 PVR GPU 驱动程序的使用。需要注意的是，GPU内核层驱动与用户层驱动版本需保持一致，版本查看方法如下：
+```shell
+BR2_PACKAGE_IMG_GPU_POWERVR=y
+```
 
-    ```bash
+或通过 `make menuconfig` 手动勾选：
+**External options -> Bianbu config -> img-gpu-powervr**
+
+  ```shell
+  [*] rtk hciattach
+      *** spacemit mpp package ***
+  -*- spacemit mpp
+  [*] img-gpu-powervr # 启用 img-gpu-powervr
+      Output option (Wayland)  --->
+  [ ]   install examples
+  ```
+
+#### bianbu-desktop
+
+由于涉及版权问题，闭源 GPU 代码以 `.so` 动态库形式通过 **img-gpu-powervr** deb 包提供。
+用户可通过以下命令安装 PVR GPU 驱动程序：
+
+```bash
+sudo apt install img-gpu-powervr
+```
+
+> **注意**：GPU 驱动分为 内核层驱动 和 用户层驱动，二者版本必须保持一致，否则可能导致 GPU 功能异常。
+  
+查看版本方法：
+
+  ```bash
     # 查看内核层驱动
     ➜  ~ journalctl -b | grep "Initialized pvr"
     11月 21 14:11:37 spacemit-k1-x-MUSE-Pi-board kernel: [drm] Initialized pvr 24.2.6603887 20170530 for cac00000.imggpu on minor 1 # 版本为24.2
@@ -55,26 +76,29 @@ CONFIG_POWERVR_ROGUE=y #将PowerVR_rogue打开
     Maintainer: bianbu <bo.deng@spacemit.com>
     Architecture: all
     Version: 24.2-6603887bb1 # 版本为24.2
-    ```
+  ```
 
-### 2.3 Mesa3D
+### Mesa3D
 
-Mesa3D 中提供了OpenGLES API的接口以及软件渲染的实现，向上对接应用程序对OpenGLES渲染API的调用，向下对接PowerVR GPU驱动。
+Mesa3D 提供 OpenGL ES API 接口及软件渲染实现。它向上对接应用程序对 OpenGL ES 渲染 API 的调用，向下对接 PowerVR GPU 驱动。
 
-1. 在 bianbu-linux 上需对 config 文件做如下配置，以使能 mesa3d：
+#### bianbu-linux
 
-    ```bash
+在配置文件中启用以下选项，以使能 Mesa3D：
+
+  ```bash
     Symbol: BR2_PACKAGE_MESA3D [=y]
     Symbol: BR2_PACKAGE_MESA3D_DRIVER [=y] 
     Symbol: BR2_PACKAGE_MESA3D_GALLIUM_DRIVER [=y]
     Symbol: BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_PVR [=y]
     Symbol: BR2_PACKAGE_MESA3D_GBM [=y]
     Symbol: BR2_PACKAGE_MESA3D_OPENGL_EGL [=y]
-    ```
+  ```
 
-    或在执行 make menuconfig 时手动勾选，在 Target packages > Graphic libraries and applications (graphic/text) > mesa3d 路径下：
+或在 **make menuconfig** 中手动勾选：
+**Target packages -> Graphic libraries and applications -> mesa3d**
 
-    ```shell
+  ```shell
     -*-   Gallium pvr driver
     *** Gallium VDPAU state tracker needs X.org and gallium drivers r300, r600, radeonsi or nouveau ***
     *** Vulkan drivers ***
@@ -85,11 +109,13 @@ Mesa3D 中提供了OpenGLES API的接口以及软件渲染的实现，向上对�
     *** OpenGL GLX support needs X11 ***
     -*-   OpenGL EGL
     [ ]   OpenGL ES
-    ```
+  ```
 
-2. 在 bianbu-desktop 上，调用PowerVR GPU 硬件依赖于bianbu源上的Mesa deb包，并按以下顺序进行安装：
+#### bianbu-desktop
 
-    ```bash
+调用 PowerVR GPU 硬件依赖于 bianbu 源上的 Mesa deb 包，并按以下顺序进行安装：
+
+  ```bash
         "libgl1-mesa-dev_*_riscv64.deb"
         "libegl1-mesa_*_riscv64.deb"
         "libegl1-mesa-dev_*_riscv64.deb"
@@ -106,19 +132,33 @@ Mesa3D 中提供了OpenGLES API的接口以及软件渲染的实现，向上对�
         "libosmesa6-dev_*_riscv64.deb"
         "libwayland-egl1-mesa_*_riscv64.deb"
         "mesa-common-dev_*_riscv64.deb"
-    ```
+  ```
 
-    此外，还需要安装 libglvnd：`sudo apt install libglvnd`
+同时需要安装 libglvnd：
 
-## 3. 其它
+  ```bash
+    sudo apt install libglvnd
+  ```
 
-### 3.1 BlobCache使用
+## 其它
 
-GPU 的 BlobCache 是一种用于存储和重用 GPU 编译结果的数据缓存机制。这种缓存机制旨在提高性能，减少重复计算和数据传输的时间，从而加快渲染速度。对 /etc/powervr.ini 进行配置，可启用或关闭 BlobCache 功能。vim /etc/powervr.ini，设置 EnableBlobCache=1 即可启用 BlobCache 功能。
+### BlobCache 使用
+
+GPU 的 BlobCache 是一种用于存储和重用 GPU 编译结果的数据缓存机制。这种缓存机制旨在提高性能，减少重复计算和数据传输的时间，从而加快渲染速度。
+
+**配置方法**
+
+1. 打开配置文件：
+
+   ```bash
+   vim /etc/powervr.ini
+   ```
+
+2. 设置如下, 即可启用 BlobCache 功能
 
 ```bash
 [default]
-EnableBlobCache=1 #启用 BlobCache 功能
+EnableBlobCache=1 # 启用 BlobCache 功能
 
 [mpv]
 EnableWorkaroundMPVScreenTearing=1
@@ -130,9 +170,9 @@ EnableWorkaroundMPVScreenTearing=1
 EnableWorkaroundMPVScreenTearing=1
 ```
 
-### 3.2 GPU节点调试
+### 3.2 GPU 节点调试
 
-通过对GPU节点的监控，可以实时查看GPU的运行状态：
+通过对 GPU 节点的监控，可以实时查看 GPU 的运行状态：
 
 ```shell
 ~ su
