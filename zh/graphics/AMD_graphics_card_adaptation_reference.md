@@ -206,7 +206,7 @@ index afbb3a80c0c6..42e6510eccf0 100644
 > **注意：**
 对于其他 AMD 显卡，如若 GPU 本身不需要访问过大的物理内存空间，则可相应调整 `dma_bits` 来确保设备正常工作。
 
-### 2.5 MSI 中断适配
+### MSI 中断适配
 
 在 K1 平台上，部分旧架构的 AMD GPU（尤其是 **GCN1 及更早架构**）使用 **MSI（Message Signaled Interrupts）** 可能导致中断无法正确触发。
 为保证系统稳定性，可在驱动中禁用 MSI，退回到传统的线性中断方式。
@@ -236,7 +236,7 @@ index c4dda908666c..f540529909d3 100644
   - **禁用 MSI** → 稳定性更高，但性能和延迟可能略受影响。
   - **启用 MSI** → 性能和延迟更优，但在 K1 平台上可能不稳定。
 
-### 2.6 打开显卡驱动配置
+### 打开显卡驱动配置
 
 ``` c
 diff --git a/arch/riscv/configs/k1_defconfig b/arch/riscv/configs/k1_defconfig

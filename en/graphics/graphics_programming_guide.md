@@ -1,163 +1,237 @@
 # Graphics Programming Guide
 
-## 1. OpenGL ES Programming Guide
+## OpenGL ES Programming Guide
 
-### 1.1 Introduction
+### Introduction
 
-OpenGLES is a lightweight 3D graphics library designed for embedded devices and is a subset of the OpenGL standard. It provides a cross-platform API suitable for mobile devices and resource-constrained systems. The main differences between OpenGLES and OpenGL are:
+**OpenGL ES** is a lightweight 3D graphics library designed specifically for embedded devices and is a subset of the OpenGL standard.  
 
-- Data type: double type is not supported, and a new high-performance fixed-point decimal type is added
-- Drawing commands: cancel glBegin/glEnd/glVertex, only keep glDrawArrays, etc.
-- Texture processing: require compressed maps to be provided directly to improve rendering efficiency
+It provides a cross-platform interface well-suited for mobile devices and resource-constrained systems.
 
-EGL (Embedded Systems Graphics Library) is a key component in the OpenGL ES ecosystem, acting as a bridge between the OpenGL ES rendering API and the local window system. As a platform-independent interface layer, EGL shields the differences between different hardware platforms and operating systems, and provides a unified operating environment for OpenGL ES. The main functions of EGL include:
+Compared to OpenGL, the main differences of OpenGL ES include:
 
-- Graphics context management: create and maintain OpenGL ES rendering context
-- Surface/buffer creation: responsible for creating drawing surfaces and buffers
-- Rendering synchronization: Coordinate rendering operations between OpenGL ES and synchronize with display devices to ensure that rendering results are displayed correctly
-- Resource management: manage rendering resources such as texture maps
+- **Data types**: No support `double` type; introduces high-performance fixed-point types.  
+- **Drawing commands**: Removes `glBegin/glEnd/glVertex`; retains commands like `glDrawArrays`.  
+- **Texture handling**: Requires supplying compressed textures directly to improve rendering efficiency.
 
-### 1.2 Rendering Process
+**EGL (Embedded Systems Graphics Library)** is a key component in the OpenGL ES ecosystem.  
+It serves as a bridge between the OpenGL ES rendering API and the native windowing system.  
+As a platform-independent interface layer, EGL abstracts differences between hardware platforms and operating systems, providing a consistent runtime environment for OpenGL ES.
 
-In the collaborative work of OpenGLES and EGL, the rendering process is the core of the entire graphics rendering system. The following figure briefly shows the graphics rendering process of OpenGLES.
+The main functions of EGL include:
+
+- **Graphics context management**: Creating and maintaining OpenGL ES rendering contexts.  
+- **Surface/Buffer creation**: Responsible for creating drawing surfaces and buffers.  
+- **Rendering synchronization**: Coordinates synchronization between OpenGL ES and display devices to ensure correct rendering output.  
+- **Resource management**: Manages rendering resources such as texture maps.
+
+### Rendering Process
+
+In the cooperation between OpenGL ES and EGL, the rendering process is the core of the entire graphics rendering system.  
+The diagram below shows the basic OpenGL ES rendering process.
 
 ![mesa3d](./static/opengles_process_en.png)
 
-The entire graphics rendering process specifically includes the following five steps:
+The rendering process typically involves five main steps:
 
-1. EGL initialization
-EGL initialization is the first step in the rendering process, which lays the foundation for subsequent rendering operations. At this stage, developers need to complete the following key operations:
+1. **EGL Initialization**  
+EGL initialization is the first step of the rendering process, laying the foundation for subsequent rendering operations.  
+During this phase, the following key tasks are performed:  
+    - **Obtain EGLDisplay object**: Use `eglGetDisplay()` to get the EGLDisplay object connected to the native window system.  
+    - **Initialize EGL environment**: Call `eglInitialize()` to initialize EGL and retrieve its version information.  
+    - **Choose EGLConfig**: Use `eglChooseConfig()` to select an appropriate EGL configuration specifying required rendering attributes such as color depth and alpha channel.  
+    - **Create EGLContext**: Use `eglCreateContext()` to create the EGL rendering context, specifying the OpenGL ES version and other options as needed.
 
-    - Get the EGLDisplay object: Get the EGLDisplay object connected to the local window system through the eglGetDisplay() function.
-    - Initialize the EGL environment: Call the eglInitialize() function to initialize the EGL environment and obtain the EGL version information.
-    - Select EGLConfig: Use the eglChooseConfig() function to select the appropriate EGL configuration and specify the required rendering properties, such as color depth, alpha channel, etc.
-    - Create EGLContext: Create an EGL rendering context through the eglCreateContext() function, specify the OpenGL ES version and other required options.
+2. **Create Rendering Surface**  
+Next, create a rendering surface as the target for OpenGL ES rendering. EGL provides several methods for surface creation:  
+    - **Window Surface**: Use `eglCreateWindowSurface()` to create a rendering surface associated with the window system.  
+    - **Pbuffer Surface**: Use `eglCreatePbufferSurface()` to create an offscreen rendering surface, often used for texture generation.  
+    - **Pixmap Surface**: Use `eglCreatePixmapSurface()` to create a bitmap-based rendering surface.
 
-2. Create a rendering surface
-Next, you need to create a rendering surface as the target for OpenGLES rendering. EGL provides several methods for creating rendering surfaces:
+3. **Set Rendering Context**  
+After creating the rendering surface, associate the EGLContext with the EGLSurface so OpenGL ES can render using the correct context. This is typically done via `eglMakeCurrent()`.
 
-    - Window surface: Use the eglCreateWindowSurface() function to create a rendering surface associated with the window system.
-    - Off-screen surface: Use the eglCreatePbufferSurface() function to create an off-screen rendering surface, which is often used to generate textures.
-    - Bitmap surface: Use the eglCreatePixmapSurface() function to create a bitmap-based rendering surface.
+4. **OpenGL ES Rendering Operations**  
+Once the EGL environment is set up, OpenGL ES rendering can begin. Common steps include:  
+    - **Set viewport**: Define the rendering area using `glViewport()`.  
+    - **Clear buffers**: Clear color, depth, and stencil buffers using `glClear()`.  
+    - **Activate shader program**: Activate prepared shader programs using `glUseProgram()`.  
+    - **Pass rendering parameters**: Pass vertex coordinates, texture coordinates, etc., using functions like `glVertexAttribPointer()`.  
+    - **Draw primitives**: Render geometry using `glDrawArrays()` or `glDrawElements()`.
 
-3. Setting up the rendering context
-After creating the rendering surface, you need to associate the EGLContext with the EGLSurface so that OpenGLES can use the correct rendering context for rendering. This step is usually done through the eglMakeCurrent() function.
+5. **Swap Buffers**  
+After rendering, swap the back buffer to the front buffer for display on the screen. This is usually done by calling `eglSwapBuffers()`.  
+Additionally, EGL provides synchronization mechanisms such as `eglWaitSyncKHR()` to wait for specific rendering operations to complete. This helps developers better control the timing and order of rendering in complex scenes or multithreaded rendering.
 
-4. OpenGLES rendering operation
-Once the EGL environment is set up, you can start rendering with OpenGLES. The OpenGLES rendering process usually includes the following steps:
+### EGL API
 
-    - Set the viewport: Use the glViewport() function to define the rendering area.
-    - Clear the buffer: Call the glClear() function to clear the color, depth, and template buffers.
-    - Activate the shader program: Activate the pre-prepared shader program through the glUseProgram() function.
-    - Pass rendering parameters: Use functions such as glVertexAttribPointer() to pass parameters such as vertex coordinates and texture coordinates.
-    - Draw primitives: Call glDrawArrays() or glDrawElements() to draw geometric shapes.
-
-5. Swap buffers
-After rendering is complete, the rendering results need to be swapped from the back buffer to the front buffer so that they can be displayed on the screen. This step is usually completed by calling the eglSwapBuffers() function. In addition, EGL also provides synchronization mechanisms, such as the eglWaitSyncKHR() function, which is used to wait for a specific rendering operation to complete. This can help developers better control the timing and order of the rendering process when dealing with complex rendering scenes or multi-threaded rendering.
-
-### 1.3 EGL API
-
-The EGL API is implemented in Mesa3D. The k1x-gpu-test Demo provides examples and encapsulation of calls on the k1 platform. The previous rendering process has mentioned several EGL APIs that are mainly used in a rendering process. For more detailed usage, please refer to:
-
+The EGL API is implemented by Mesa3D.  
+The **k1x-gpu-test Demo** provides usage examples and wrappers for the K1 platform.  
+Commonly used EGL APIs during a rendering process have been mentioned in the rendering flow above.  
+For more detailed usage, you can refer to the following resources:
 1. [EGL Reference Pages](https://registry.khronos.org/EGL/sdk/docs/man/)
-
 2. [EGL Spec](https://registry.khronos.org/EGL/specs/eglspec.1.5.pdf)
 
-### 1.4 OpenGLES API
+### OpenGL ES API
 
-The current GPU DDK supports the latest OpenGLES 3.2. Here are some main API usage examples:
+The current GPU DDK supports the latest **OpenGL ES 3.2**.  
+Below are some representative APIs:
 
-- `void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)` is used to load the specified source code string into the specified shader object.
+1. **Load Shader Source Code**
 
-```txt
-shader: specifies the shader object to load the source code.
-count: specifies the number of source code strings to load.
-string: a pointer to an array containing source code strings.
-length: an optional pointer to an array of the length of each source code string. If this parameter is provided, it should contain the same number of elements as the string array, and each element specifies the length of the corresponding source code string. If length is NULL, it is assumed that all source code strings end with a null character '\0'.
-```
+   ```c
+   void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length);
+   ```
 
-- After loading the source code, call `void glCompileShader(GLuint shader)` to compile the shader. It compiles the source code into executable machine code and stores the result in a shader object. shader is the identifier of the shader object to be compiled. After calling the glCompileShader function, you can get the error information during the compilation process by calling the `glGetShaderInfoLog` function.
+   Used to **load** the specified source code strings into the specified shader object. 
 
-- `glCreateProgram` is used to create a new OpenGL program object and return a handle to the object. The program object is a container for storing and managing OpenGL programs.
+   **Parameter description:**  
+   - `shader`: The shader object to load the source code into.  
+   - `count`: The number of source code strings to load.  
+   - `string`: An array of source code strings.  
+   - `length`: An array of lengths for each source code string. Can be NULL, in which case strings are assumed to be null-terminated (`\0`).
+
+ 
+2. **Compile Shader**  
+
+   After loading the source code, call the following function to **compile** the shader:
+
+   ```c
+   void glCompileShader(GLuint shader)
+   ```
+
+   It compiles the source code into executable machine code and stores it in the shader object.  
+   - The parameter `shader` is the identifier of the shader object to compile.
+
+   After compilation, you can call `glGetShaderInfoLog` to obtain error information during the compilation process.
+
+3. **Create Program Object**
+
+   `glCreateProgram` is used to create a new OpenGL program object and returns a handle to it.  
+    A program object is a container used to store and manage an OpenGL program.
 
     ```c
-    GLuint program = glCreateProgram(); //Create a new Open GL program object
+    GLuint program = glCreateProgram(); // Create a new OpenGL program object
     ```
 
-- `void glAttachShader(GLuint program, GLuint shader)` is used to bind a shader object to a shader program. program: specifies the identifier of the program object to which the shader is to be attached; shader: specifies the identifier of the shader object to be attached.
+4. **Attach Shader to Program Object**
 
-- `void glLinkProgram(GLuint program)` is used to connect the vertex and fragment shader programs of the programmable rendering pipeline (OpenGL Shading Language) to an executable program object. If the connection is successful, the function will return GL_TRUE, otherwise it returns GL_FALSE.
+   ```c
+   void glAttachShader(GLuint program, GLuint shader)
+   ```
+   Used to attach a shader object to a shader program.  
 
-- glGenVertexArrays & glGenBuffers are used to create Vertex Array Objects (VAO) and Vertex Buffer Objects (VBO), and send vertex data to the GPU. These two functions can send vertex data from the CPU to the GPU so that the GPU can directly access this data during the rendering process instead of getting the data from the CPU every time.
+   **Parameter description:**  
+   - `program`: The identifier of the program object to which the shader will be attached.  
+   - `shader`: The identifier of the shader object to attach.
 
-For detailed usage of OpenGL ES 3.2 API, please refer to:
+5. **Link Program Object**
 
-1. [OpenGLES Reference Pages](https://registry.khronos.org/OpenGL-Refpages/es3/)
+   ```c
+   void glLinkProgram(GLuint program)
+   ```
+   Used to link vertex and fragment shader programs of the programmable rendering pipeline (OpenGL Shading Language) into an executable program object.  
+   If the linking succeeds, the function returns `GL_TRUE`; otherwise, it returns `GL_FALSE`.
 
-2. [OpenGLES Spec 3.2](https://registry.khronos.org/OpenGL/specs/es/3.2/es_spec_3.2.pdf)
+6. **Create VAO and VBO**  
+   In OpenGL ES, vertex data needs to be transferred to the GPU for efficient rendering.  
+   - **Vertex Array Object (VAO):** Stores vertex attribute configurations (such as position, color, texture coordinates).  
+   - **Vertex Buffer Object (VBO):** Actually stores the vertex data (such as coordinate points, normal vectors).
 
-## 2. OpenGLES Demo
+   `glGenVertexArrays` and `glGenBuffers` are used to generate VAOs and VBOs. Using these, vertex data can be transferred to GPU memory at once, avoiding CPU-to-GPU transfers every frame and significantly improving rendering efficiency.
 
-### 2.1 Introduction
+For detailed usage of the OpenGL ES 3.2 API, you can refer to:
 
-Source code location on bianbu-linux: xxx/bianbu-linux/package-src/k1x-gpu-test/openGLDemo
+1. [OpenGL ES Reference Pages](https://registry.khronos.org/OpenGL-Refpages/es3/)
 
-You can install k1x-gpu-test on bianbu-desktop to get the relevant demos: `sudo apt install k1x-gpu-test`
-The directory structure is as follows:
+2. [OpenGL ES Spec 3.2](https://registry.khronos.org/OpenGL/specs/es/3.2/es_spec_3.2.pdf)
+
+## OpenGL ES Demo
+
+### Introduction
+
+In the **bianbu-linux** system, the demo source code is located at:
+
+```
+xxx/bianbu-linux/package-src/k1x-gpu-test/openGLDemo
+```
+
+In the **bianbu-desktop** system, you can install k1x-gpu-test with the following command to get the related demo:
+
+```bash
+sudo apt install k1x-gpu-test
+```
+
+The demo directory structure is as follows:
 
 ```c
 .
-|-- CMakeLists.txt //cmake file for compiling and building
+|-- CMakeLists.txt //Makefile, used for compilation and building
 |-- README.md
 |-- common
-|   |-- include //Header Files
-|   |   |-- stb_image.h //Single header file image loading library
+|   |-- include //Header files
+|   |   |-- stb_image.h //Single-header image loading library
 |   |   |-- utils_opengles.h
 |   |   `-- xdg-shell-client-protocol.h
 |   `-- source
-|       |-- utils_opengles.c //Encapsulation of egl and other function calls
+|       |-- utils_opengles.c //Encapsulation of calls to EGL and other functions
 |       `-- xdg-shell-protocol.c //xdg-shell protocol
-|-- cube_demo.c //Cube Rotation
-|-- cube_externalTexture_demo.c //Cube exterior texture map
-|-- cube_texture_demo.c //Cube 2D Texture Map
-|-- data //2D Image File
+|-- cube_demo.c //Cube rotation
+|-- cube_externalTexture_demo.c //Cube external texture mapping
+|-- cube_texture_demo.c //Cube 2D texture mapping
+|-- data //2D image file
 |   |-- bianbu.png
 |   `-- bianbu2.png
-|-- square_demo.c //rectangle
-|-- texture_square_rotation_demo.c //2D texture rotated rendered rectangle
-`-- triangle_demo.c //triangle
+|-- square_demo.c //Rectangle
+|-- texture_square_rotation_demo.c //Rectangle with 2D texture + rotation rendering
+`-- triangle_demo.c //Triangle
 
 4 directories, 15 files
 ```
 
-### 4.2 Compile & Run
+### Compile & Run
 
-```shell
-~ cd k1x-gpu-test/openGLDemo
-~ cmake .
-~ make
-```
+1. Enter the source code directory and execute the compilation
 
-After the compilation is complete, the gpu-xxxDemo file will be generated in the current directory, which can be run directly: `./gpu-cubeDemo`. If you need to install, you can execute the `make install` command in the current directory (that is, the source code directory), which will automatically install the executable file to the /usr/local/bin/ directory. After the installation is complete, you can directly run: `gpu-cubeDemo`.
-Under bianbu-linux, you need to manually set the following environment variables before running:
+   ```shell
+   ~ cd k1x-gpu-test/openGLDemo
+   ~ cmake .
+   ~ make
+   ```
 
-```bash
-XDG_RUNTIME_DIR=/root WAYLAND_DISPLAY=wayland-1 MESA_LOADER_DRIVER_OVERRIDE=pvr ./gpu-cubeDemo
-```
+   After compilation, an executable file will be generated in the current directory, for example:
 
-The correct running effect is shown in the figure below:
+   ```bash
+   ./gpu-cubeTextureDemo
+   ```
 
-![gpu-cubeTextureDemo](./static/gpu-cubeTextureDemo.gif)
+2. To install, execute the `make install` command in the current directory (i.e., the source directory); the executable will automatically be installed into `/usr/local/bin/`.
+   After the installation is complete, simply run:
 
-### 4.3 Add one Demo
+   ```bash
+   gpu-cubeTextureDemo
+   ```
 
-If you add a file named testDemo.c and want to compile an executable file named testDemo, you can modify CMakeLists.txt as follows:
+3. bianbu-linux special settings  
+   On bianbu-linux, you must manually set the following environment variables before running:
+
+   ```bash
+   XDG_RUNTIME_DIR=/root WAYLAND_DISPLAY=wayland-1 MESA_LOADER_DRIVER_OVERRIDE=pvr ./gpu-cubeTextureDemo
+   ```
+
+4. Runtime effect  
+   After successful execution, the rendered output is shown below:  
+   ![gpu-cubeTextureDemo](./static/gpu-cubeTextureDemo.gif)
+
+### Adding a Demo
+
+To add `testDemo.c` and build it as `testDemo`, modify `CMakeLists.txt` by adding an `add_executable()` line and updating `target_link_libraries()`, then rebuild:
 
 ```Cmake
 add_definitions(-DSTB_IMAGE_IMPLEMENTATION)
 add_definitions(-DNDEBUG)
 
-# Define a list of common source files
+# Define the list of common source files
 set(COMMON_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/common/source/xdg-shell-protocol.c
     ${CMAKE_CURRENT_SOURCE_DIR}/common/source/utils_opengles.c
@@ -167,7 +241,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/common/include/
 )
 
-# Add Link Library
+# Add link libraries
 set(LINK_LIBRARIES
     EGL
     GLESv2
@@ -180,12 +254,12 @@ set(LINK_LIBRARIES
 )
 
 add_executable(gpu-cubeDemo ${CMAKE_CURRENT_SOURCE_DIR}/cube_demo.c ${COMMON_SOURCE_FILES})
-add_executable(testDemo ${CMAKE_CURRENT_SOURCE_DIR}/testDemo.c ${COMMON_SOURCE_FILES}) # Create a new executable file
+add_executable(testDemo ${CMAKE_CURRENT_SOURCE_DIR}/testDemo.c ${COMMON_SOURCE_FILES}) # Create a new executable
 
 target_link_libraries(gpu-cubeDemo ${LINK_LIBRARIES})
 target_link_libraries(testDemo ${LINK_LIBRARIES})
 
-# Install, install the executable file to the specified directory
+# Install: copy the executable to the specified directory
 install(
     TARGETS
     gpu-cubeDemo
@@ -198,20 +272,33 @@ install(
     DESTINATION "${CMAKE_INSTALL_PREFIX}/data")
 ```
 
-Then execute `make` again.
+After the modifications, run the build again:
 
-## 3. Vulkan
+```bash
+make
+```
 
-### 3.1 Introduction
+The new executable `testDemo` is generated.
 
-Vulkan is a new generation of cross-platform graphics rendering API released by Khronos Group in 2015, aiming to provide low-level access to modern GPUs to achieve more efficient performance. Compared with OpenGL, Vulkan allows developers to have more granular control over GPU resources, such as precisely specifying when to submit tasks to the GPU, how to allocate memory, and schedule concurrent execution. This direct access to the hardware brings significant benefits. Performance improvement, but the price is that the API is too verbose.
+## Vulkan
 
-PVR GPU Driver provides a specific implementation of the Vulkan API. Applications can complete drawing tasks by calling the corresponding API.
+### Introduction
 
-For detailed usage of Vulkan API, please refer to:
+**Vulkan** is a new-generation, cross-platform graphics rendering API released by the Khronos Group in 2015. It is designed to provide low-level access to modern GPUs, enabling more efficient performance.  
+Compared to OpenGL, Vulkan’s key feature is that it allows developers to exert fine-grained control over GPU resources, for example:
 
-1. [Vulkan Specs](https://registry.khronos.org/vulkan/specs/1.3/html/)
+- Precisely specifying when tasks are submitted to the GPU  
+- Controlling memory allocation  
+- Managing multi-threaded concurrency and scheduling  
 
-### 3.2 Vulkan Demo
+This design can yield significant performance gains, but at the cost of an **API that is more complex and verbose**.
 
-To be continue
+The PVR GPU driver offers a concrete implementation of the Vulkan API; applications can complete rendering tasks by calling the corresponding API functions.
+
+For detailed usage of the Vulkan API, please refer to:
+
+[Vulkan Specs](https://registry.khronos.org/vulkan/specs/1.3/html/)
+
+### Vulkan Demo
+
+To be continued

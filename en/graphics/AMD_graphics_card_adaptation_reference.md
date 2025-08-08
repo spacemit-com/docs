@@ -1,39 +1,70 @@
-The following document is intended to provide reference guidance for developers adapting other AMD graphics cards to the K1 platform. This article will use the changes we made to the kernel when adapting the Radeon HD7350 graphics card as an example, introducing the key points involved and explaining the reasons and considerations behind these modifications. Whether you are adapting a GPU of the same generation as the HD7350 or another AMD GPU, this document can serve as a reference and guide.
+# Adapting AMD Graphics Cards on the K1 Platform
 
-# 1. Introduction
-Independent graphics card drivers in the Linux kernel primarily rely on the DRM (Direct Rendering Manager) subsystem, which is a kernel module for managing Graphics Processing Unit (GPU) resources. It is designed to provide a unified interface to support various hardware devices. Independent graphics card drivers typically include the following layers:
-- **User Space Interface**: Interacts with user-space graphics libraries (such as Mesa, X.Org, Wayland) through interfaces like ioctl.
-- **DRM Core Layer**: Provides the basic framework and common functionalities, such as memory management, scheduling, synchronization, etc.
-- **Hardware-Specific Driver Modules**: Implements specific hardware control logic for different manufacturers and models of graphics cards (such as NVIDIA, AMD, Intel, etc).
+This document provides guidance for developers adapting AMD graphics cards for the **K1 platform**, using the **Radeon HD7350** as an example. It outlines key modifications to the Linux kernel and explains the rationale behind each change.
 
-The main components of DRM include:
-- **DRM Core**: Responsible for managing the initialization of graphics card devices, resource allocation, memory management, and communication between user space and kernel space. It provides a common API interface for specific hardware drivers to call.
-- **Driver Modules**: For different brands and models of independent graphics cards, the Linux kernel provides corresponding driver modules, such as nouveau (NVIDIA open-source driver), amdgpu (AMD graphics driver), etc. These modules implement specific functions like hardware initialization, instruction set management, interrupt handling, power management, and more.
-- **GEM (Graphics Execution Manager)**: Manages graphics memory objects, supporting efficient allocation and sharing of video memory. Through GEM, user-space applications can create and manage graphics buffers, achieving efficient graphics rendering.
-- **TTM (Translation Table Maps)**: TTM can serve as the backend for GEM, responsible for mapping and managing the relationship between video memory and system memory. It is mainly used to handle memory pressure and resource allocation strategies.
-- **Scheduling and Synchronization**: Graphics card drivers need to effectively manage multi-task scheduling to ensure the efficient execution of each graphics task. Synchronization mechanisms (such as Fence) are used to coordinate the operation order between kernel space and user space, avoiding resource conflicts.
-- **Memory Management**: Responsible for the allocation, mapping, and reclamation of video memory, ensuring efficient use of memory resources. Supports zero-copy technology to reduce data transmission overhead between kernel and user space.
+## Background Introduction
 
-radeon Driver Structure Diagram:
+The discrete GPU drivers in the Linux kernel rely on the **DRM (Direct Rendering Manager) subsystem**.  
+DRM is a kernel module used to manage GPU (Graphics Processing Unit) resources, providing a unified interface to support graphics cards from different vendors.  
+The overall DRM structure consists of the following layers:
+
+- **User Space Interface**  
+  Interacts with **user-space graphics libraries** (such as **Mesa, X.Org, Wayland**) via interfaces like `ioctl`.  
+  **Applications** can access the GPU through these libraries.  
+  Interaction flow: Application → Graphics Library → DRM `ioctl` → DRM Driver → GPU
+
+- **DRM Core Layer**  
+  Provides a standardized framework and common functionalities, including GPU device initialization, resource allocation, memory management, task scheduling and synchronization, as well as communication interfaces between user space and kernel space.
+
+  - **GEM (Graphics Execution Manager)**
+    - Manages graphics memory objects
+    - Supports efficient allocation and sharing of video memory
+    - Allows user-space applications to create and manage graphic buffers for efficient rendering
+
+  - **TTM (Translation Table Maps)**
+    - Responsible for mapping and managing video memory and system memory; can serve as the backend for GEM
+    - Provides resource scheduling and allocation strategies under memory pressure
+
+  - **Command Scheduling**
+    - Manages GPU multitasking scheduling
+    - Coordinates the order of operations between kernel space and user space using mechanisms like Fence to avoid resource conflicts
+
+  - **VRAM Management**
+    - Handles allocation, mapping, and recycling of video memory
+    - Supports **Zero-Copy** technology to reduce data transfer overhead between kernel and user space
+
+- **Hardware-Specific Driver Modules**
+  - Responsible for hardware control of GPUs from different vendors and models
+  - Typical drivers: `nouveau` (open-source NVIDIA driver), `amdgpu` and `radeon` (AMD drivers)
+
+
+Structure diagram of the `radeon` driver:
+
 ![](static/radeon-driver.png)
 
-# 2. Configuration and Modification
+## Configuration and Modifications
 
-When adapting AMD graphics cards to the K1 platform, modifications and adjustments are often required in areas such as graphics drivers, Device Tree, address mapping, caching strategies, DMA bit width, and interrupt management within the kernel. For RISC-V architecture platforms, these adjustments need to be made with an understanding of RISC-V memory management and PCIe address space mapping mechanisms. This reference document will cover the following aspects:
+When adapting an AMD graphics card to the K1 platform, modifications and adjustments are required in areas such as the **graphics driver, Device Tree, address mapping, cache strategy, DMA bit width, and interrupt management**.  
+For **RISC-V architecture platforms**, these adjustments should be made with a thorough understanding of the **memory management mechanism** and **PCIe address space mapping**.
 
-1. Device Tree parsing and address mapping;
-2. Adding write-combining support;
-3. Adjusting cache attributes and access permissions;
-4. DMA address width adaptation;
-5. MSI interrupt support limitations;
-6. Linux kernel graphics driver configuration.
+This reference document will cover the following aspects:
 
-### 2.1 Device Tree and Address Mapping
+1. Device Tree parsing and address mapping  
+2. Adding write-combining support  
+3. Cache attributes and access permission adjustments  
+4. DMA address width adaptation  
+5. MSI interrupt support limitations  
+6. Linux kernel GPU driver configuration
+
+### Device Tree and Address Mapping
 
 **Device Tree Parsing:**
 
-1. In the Device Tree, the `ranges` property is used to define address mapping relationships, that is, how to map the address space of a child device to the address space of the parent device. This property typically appears in scenarios requiring address translation, such as in external buses or PCIe devices.
-2. The `ranges` property of the PCIe root controller's Device Tree node is formatted as a numerical matrix, containing four parts: attributes, PCIe address, CPU address, and address length. Specifically, its format is `<address attribute, PCIe address, CPU address, address length>`.
+- In the Device Tree, the `ranges` property defines the mapping relationship between the address space of child devices and that of the parent device.
+- In a PCIe host controller node, the `ranges` property typically contains four parts:  
+  `<address properties, PCIe address, CPU address, address length>`
+
+Example modification:
 
 ```c
 diff --git a/arch/riscv/boot/dts/spacemit/k1-x.dtsi b/arch/riscv/boot/dts/spacemit/k1-x.dtsi
@@ -51,21 +82,24 @@ index 7ea166ca6fb0..fd978a379c37 100644
              interconnect-names = "dma-mem";
 ```
 
-Before the change:
+- **Before the change**:
 
-1. The source address mapped is `0xa0000000`, the target address is also `0xa0000000`, and the size is `0x17000000` (i.e., 368 MB). The address space segment has the MEM attribute.
+  - Source address `0xa0000000` → Destination address `0xa0000000`  
+  - Size `0x17000000` (368 MB), attribute: **MEM**
 
-After the change:
+- **After the change**:
 
-1. First segment: Source address is `0xa0000000`, target address is `0xa0000000`, size is `0x10000000` (i.e., 256 MB). This address space segment has MEM + prefetch attribute.
-2. Second segment: Source address is `0xb0000000`, target address is `0xb0000000`, size is `0x7000000` (i.e., 112 MB). This address space segment has the MEM attribute.
+  - 1st segment: Source address `0xa0000000` → Destination address `0xa0000000`, size `0x10000000` (256 MB), attribute: **MEM + Prefetchable**
+  - 2nd segment: Source address `0xb0000000` → Destination address `0xb0000000`, size `0x7000000` (112 MB), attribute: **MEM**
 
-By differentiating larger video memory intervals (such as marking a portion as prefetchable), access performance is optimized. Through this change, the address space is divided more rationally, enhancing access performance for specific segments (e.g., prefetch acceleration).
+This adjustment splits the large VRAM region, with part of it set as prefetchable to improve access performance.
 
-**Tip:**
- On the K1 platform, PCIe2 can utilize an address space size of 384MB, which includes configuration space and BAR space regions. When modifying the Device Tree, you can refer to existing GPU mapping examples, compare the BAR address ranges of different GPU models, and appropriately modify the mapping regions.
+**Note**
 
-### 2.2 Adding wc (write-combining) Support
+- The **total available address space for pcie2 on the K1 platform is 384MB**, including configuration space and BAR space.
+- When modifying the Device Tree, refer to the BAR address range of the existing GPU and appropriately divide the mapped regions.
+
+### Adding wc (write-combining) Support
 
 ```c
 diff --git a/arch/riscv/include/asm/pci.h b/arch/riscv/include/asm/pci.h
@@ -84,11 +118,24 @@ index cc2a184cfc2e..9f6f59aff214 100644
  #include <asm-generic/pci.h>
 ```
 
-Added write-combining (wc) support to the PCI address space mapping on the K1 platform.
+- Enable **write-combining** (WC) in the PCI address mapping on the K1 platform.
+- WC mode requires the resource to have the **IORESOURCE_PREFETCH** flag set.
+- Together with Device Tree modifications, WC can be enabled when PCI resources are mapped to user space, improving VRAM access efficiency.
 
-The `write_combine` takes effect when the resource itself has the `IORESOURCE_PREFETCH` flag. Therefore, combined with the Device Tree modifications above, this enables the write-combining mode when mapping PCI resources to user space, thereby improving the efficiency of video memory access.
+### Cache Attributes and Access Permission Settings
 
-### 2.3 Adjusting Cache Attributes and Access Permissions
+In AMD GPU adaptation, the **cache strategy** directly affects both VRAM access efficiency and system stability.  
+By default, the driver selects from several caching modes based on `rbo->flags`, such as:
+
+- **uncached** (no caching)  
+- **cached** (normal caching)  
+- **write-combined (WC)**
+
+However, the default strategy is not always optimal for GPU VRAM access patterns, so modifications are necessary.
+
+**Modification Example**
+
+In the `radeon_ttm_tt_create` function, force the use of **write-combined (WC)**:
 
 ```c
 diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
@@ -105,7 +152,9 @@ index 4eb83ccc4906..4693119e2412 100644
          return NULL;
 ```
 
-In the `radeon_ttm_tt_create` interface, different cache modes (uncached/write-combined/cached) are originally selected based on `rbo->flags`. The default caching strategy may not be suitable for GPU video memory access patterns. By forcing the use of write-combined, cache consistency can be ensured.
+**Extend RISC-V Architecture Support**
+
+Add support for **RISC-V** in the TTM module to ensure the WC mode works correctly:
 
 ```c
 diff --git a/drivers/gpu/drm/ttm/ttm_module.c b/drivers/gpu/drm/ttm/ttm_module.c
@@ -124,9 +173,16 @@ index b3fffe7b5062..1319178edf03 100644
      else
 ```
 
-Introduced RISC-V architecture support in the `ttm_prot_from_caching` function. When `caching = ttm_write_combined`, the corresponding page table attributes are set to write-combining mode. On the RISC-V platform, when the cache attribute is set to write-combining, the corresponding PTEs can correctly set the attributes to non-cached or write-combining.
+**Explanation:**
 
-### 2.4 Adjusting DMA Address Width (dma_bits)
+- On the RISC-V platform, when the cache mode is **write-combined** (i.e., `caching = ttm_write_combined`), the PTE (Page Table Entry) is correctly set to **non-cached or write-combined attributes**.
+- This avoids cache incoherence issues during VRAM access and improves rendering and data transfer efficiency.
+
+RISC-V architecture support is introduced in the `ttm_prot_from_caching` function. When `caching = ttm_write_combined`, the corresponding page table attributes are set to write-combined mode. On RISC-V platforms, when the cache attribute is write-combined, the corresponding PTE is correctly set as non-cached or write-combined.
+
+### DMA Address Width (`dma_bits`) Adjustment
+
+During driver initialization, `dma_bits` is used to specify the size of the physical memory space addressable by the GPU.
 
 ```c
 diff --git a/drivers/gpu/drm/radeon/radeon_device.c b/drivers/gpu/drm/radeon/radeon_device.c
@@ -144,11 +200,18 @@ index afbb3a80c0c6..42e6510eccf0 100644
      if ((rdev->flags & RADEON_IS_PCI) &&
 ```
 
-Set `dma_bits` during driver initialization. The original code sets `dma_bits = 40`, indicating that the GPU can access up to 1TB of memory. Based on actual requirements, it was changed to `dma_bits = 32`, limiting the memory range to 4GB. Reducing the DMA bit width from 40 bits to 32 bits enhances stability.
+- During driver initialization, the original code defaults to `dma_bits = 40`, meaning the GPU can access up to **1TB** of memory space (40-bit addressing).
+- For adaptation on the K1 platform, the value is changed to `dma_bits = 32` to improve stability, limiting the accessible range to within **4GB** (32-bit addressing).
 
-For other AMD graphics cards, if the GPU itself does not need to access very large physical memory spaces, you can adjust `dma_bits` accordingly to ensure the device operates correctly.
+This modification improves compatibility and stability when loading the Radeon driver on the K1 platform. It is recommended to closely monitor related address access behavior during debugging.
 
-### 2.5 MSI Interrupt Adaptation
+> **Note:**  
+For other AMD GPUs, if the GPU itself does not require accessing a large physical memory space, the `dma_bits` value can be adjusted accordingly to ensure proper device operation.
+
+### MSI Interrupt Adaptation
+
+On the K1 platform, some older AMD GPU architectures (especially **GCN1 and earlier**) may experience issues where **MSI (Message Signaled Interrupts)** fail to trigger interrupts correctly.  
+To ensure system stability, MSI can be disabled in the driver, reverting to the traditional legacy interrupt method.
 
 ```c
 diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
@@ -168,16 +231,15 @@ index c4dda908666c..f540529909d3 100644
       * Older chips have a HW limitation, they can only generate 40 bits
 ```
 
-On the K1 platform, using MSI interrupts with certain older architecture GPUs may cause interrupts to fail to trigger correctly. Disabling MSI can revert to traditional interrupt modes, ensuring the system operates stably.
+**Note:**
+- If the GPU cannot trigger interrupts, or system interrupts behave abnormally after inserting the GPU, try disabling MSI.
+- Disable MSI only when necessary:  
+  - **Disabling MSI** → higher stability, but performance and latency may be slightly affected.  
+  - **Enabling MSI** → better performance and latency, but may be unstable on the K1 platform.
 
-**Tips:**
+### Enable GPU Driver Configuration
 
-- If your GPU cannot trigger interrupts or if the system experiences abnormal interrupts after inserting the GPU, try disabling MSI.
-- Only disable MSI when necessary. If the platform supports MSI, enabling it usually provides better performance and lower latency.
-
-### 2.6 Enabling Graphics Driver Configuration
-
-```c
+``` c
 diff --git a/arch/riscv/configs/k1_defconfig b/arch/riscv/configs/k1_defconfig
 index 1e14a4a5c4f7..58dfdf05bfce 100644
 --- a/arch/riscv/configs/k1_defconfig
@@ -193,6 +255,21 @@ index 1e14a4a5c4f7..58dfdf05bfce 100644
  CONFIG_SPACEMIT_HDMI=y
 ```
 
-Enable the corresponding graphics driver configuration in the Linux kernel, setting it to `Y` (built-in) or `m` (compiled as a module) in `make menuconfig`.
+Enable Radeon driver support in the kernel configuration file `k1_defconfig`:
 
-Currently, the K1 platform supports the Radeon driver (corresponding to AMD graphics cards with architectures prior to GCN 1.0). For newer AMD graphics cards, including those with GCN 1.0 and later architectures (such as Radeon Rx series and higher-end graphics cards), the amdgpu driver needs to be adapted. After modifying the driver code, ensure the corresponding driver configuration is enabled.
+```c
++CONFIG_DRM_RADEON=m
++CONFIG_DRM_RADEON_USERPTR=y
+```
+
+These configurations can be selected in `make menuconfig` using the following options:
+
+- `Y` → built into the kernel (built-in)  
+- `M` → compiled as a module
+
+Currently, on the K1 platform:
+
+- The **radeon driver** supports AMD GPUs with architectures **before GCN 1.0**;  
+- For **GCN 1.0 and later architectures** (such as the Radeon Rx series), the **amdgpu driver** needs to be adapted and enabled.
+
+> **Note:** After modifying or adapting the driver code, make sure the corresponding kernel configuration is enabled.

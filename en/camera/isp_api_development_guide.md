@@ -160,7 +160,7 @@ int ASR_ISP_RegSensorCallBack(
 | Return Value | Description                |
 |--------------|----------------------------|
 | 0            | Success                    |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -192,7 +192,7 @@ int ASR_ISP_UnRegSensorCallBack(
 | Return Value | Description                |
 |--------------|----------------------------|
 | 0            | Success                    |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -226,7 +226,7 @@ int ASR_ISP_RegAfMotorCallBack(
 | Return Value | Description                |
 |--------------|----------------------------|
 | 0            | Success                    |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -262,7 +262,7 @@ Int ASR_ISP_EnableOfflineMode(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -304,7 +304,7 @@ int ASR_ISP_SetPubAttr(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -342,7 +342,7 @@ int ASR_ISP_SetTuningParams(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -383,7 +383,7 @@ int ASR_ISP_SetChHwPipeID(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -420,7 +420,7 @@ int ASR_ISP_Init(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -453,7 +453,7 @@ int ASR_ISP_DeInit(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -487,7 +487,7 @@ int ASR_ISP_EnablePDAF(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]** 
 
@@ -527,7 +527,7 @@ int ASR_ISP_SetFps(
 | Parameter | Description         |
 |-----------|---------------------|
 | 0         | Success             |
-| Non-zero  | Failure, error code |
+|  Non-0  | Failure, error code |
 
 **[Requirements]**
 
@@ -561,7 +561,7 @@ int ASR_ISP_SetFrameinfoCallback(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -594,7 +594,7 @@ int ASR_ISP_QueueFrameinfoBuffer(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -630,7 +630,7 @@ int ASR_ISP_FlushFrameinfoBuffer(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -667,7 +667,7 @@ int ASR_ISP_Streamon(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -703,7 +703,7 @@ int ASR_ISP_Streamoff(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -743,7 +743,7 @@ int ASR_ISP_TriggerRawCapture(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -779,7 +779,7 @@ int ASR_ISP_ReInitPreviewChannel(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -815,7 +815,7 @@ int ASR_ISP_NotifyOnceHDRRawCapture(
 | Parameter | Description                |
 |-----------|----------------------------|
 | 0         | Success                    |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -857,7 +857,7 @@ int ASR_ISP_UpdateNoneZslStreamAeParams(
 | Return Value | Description                       |
 |--------------|---------------------------------|
 | 0            | Success                         |
-| Non-zero     | Failure (error code value)    |
+|  Non-0     | Failure (error code value)    |
 
 **[Requirements]**
 
@@ -928,7 +928,7 @@ int ASR_ISP_SetEffectParams(
 | Parameter | Description                 |
 |-----------|-----------------------------|
 | 0         | Success                     |
-| Non-zero  | Failure (error code value)|
+|  Non-0  | Failure (error code value)|
 
 **[Requirements]**
 
@@ -1079,7 +1079,7 @@ int ASR_ISP_SetFwPara(
 | Parameter Name | Description               |
 | -------------- | ------------------------- |
 | 0              | Success                   |
-| Non-zero       | Failure, the (error code value) |
+|  Non-0       | Failure, the (error code value) |
 
 **[Requirements]**
 
@@ -1165,7 +1165,7 @@ int ASR_ISP_SetRegister(
 | Parameter Name | Description                  |
 | -------------- | ---------------------------- |
 | 0              | Success                      |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1202,7 +1202,7 @@ int ASR_ISP_GetRegister(
 | Parameter Name | Description                  |
 | -------------- | ---------------------------- |
 | 0              | Success                      |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1239,7 +1239,7 @@ int ASR_ISP_LoadSettingFile(
 | Parameter Name | Description                  |
 | -------------- | ---------------------------- |
 | 0              | Success                      |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1276,7 +1276,7 @@ int ASR_ISP_SaveSettingFile(
 | Parameter Name | Description                  |
 | -------------- | ---------------------------- |
 | 0              | Success                      |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1379,7 +1379,7 @@ int32_t ASR_VI_SetDevAttr(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1418,7 +1418,7 @@ int32_t ASR_VI_GetDevAttr(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1450,7 +1450,7 @@ int32_t ASR_VI_EnableDev(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1487,7 +1487,7 @@ int32_t ASR_VI_DisableDev(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1524,7 +1524,7 @@ int32_t ASR_VI_FlushDev(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1558,7 +1558,7 @@ int32_t ASR_VI_SetChnAttr(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1596,7 +1596,7 @@ int32_t ASR_VI_GetChnAttr(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1632,7 +1632,7 @@ int32_t ASR_VI_EnableChn(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1669,7 +1669,7 @@ int32_t ASR_VI_DisableChn(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1707,7 +1707,7 @@ int32_t ASR_VI_SetCallback(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1745,7 +1745,7 @@ int32_t ASR_VI_SetBayerReadAttr(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1779,7 +1779,7 @@ int32_t ASR_VI_GetBayerReadAttr(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1811,7 +1811,7 @@ int32_t ASR_VI_EnableBayerRead(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1843,7 +1843,7 @@ int32_t ASR_VI_DisableBayerRead(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1875,7 +1875,7 @@ int32_t ASR_VI_EnableBayerDump(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1912,7 +1912,7 @@ int32_t ASR_VI_DisableBayerDump(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1946,7 +1946,7 @@ int32_t ASR_VI_ChnQueueBuffer(
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -1980,7 +1980,7 @@ int32_t ASR_VI_Init(void);
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2010,7 +2010,7 @@ int32_t ASR_VI_Deinit(void);
 | Return Value | Description                   |
 | ------------ | ----------------------------- |
 | 0            | Success                      |
-| Non-zero     | Failure (error code value) |
+|  Non-0     | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2332,7 +2332,7 @@ int32_t cam_cpp_create_grp(uint32_t grpId);
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2369,7 +2369,7 @@ int32_t cam_cpp_destroy_grp(uint32_t grpId);
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2408,7 +2408,7 @@ int32_t cam_cpp_start_grp(uint32_t grpId);
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2446,7 +2446,7 @@ int32_t cam_cpp_stop_grp(uint32_t grpId);
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2494,7 +2494,7 @@ int32_t cam_cpp_post_buffer(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2536,7 +2536,7 @@ int32_t cam_cpp_set_callback(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2578,7 +2578,7 @@ int32_t cam_cpp_get_grp_attr(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2621,7 +2621,7 @@ int32_t cam_cpp_set_grp_attr(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2664,7 +2664,7 @@ int32_t cam_cpp_get_tuning_param(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2706,7 +2706,7 @@ int32_t cam_cpp_set_tuning_param(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2748,7 +2748,7 @@ int32_t cam_cpp_load_settingfile(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2790,7 +2790,7 @@ int32_t cam_cpp_save_settingfile(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2891,7 +2891,7 @@ int32_t cam_cpp_write_fw(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2933,7 +2933,7 @@ int32_t cam_cpp_read_reg(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -2978,7 +2978,7 @@ int32_t cam_cpp_write_reg(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
@@ -3023,7 +3023,7 @@ int32_t cam_cpp_dump_frame(
 | Parameter Name | Description             |
 |----------------|-------------------------|
 | 0              | Success                 |
-| Non-zero       | Failure (error code value) |
+|  Non-0       | Failure (error code value) |
 
 **[Requirements]**
 
