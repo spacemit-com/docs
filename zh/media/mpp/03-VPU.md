@@ -1,6 +1,10 @@
 # VPU
 
-VPU（Video Processing Unit，视频处理单元）具有视频编解码功能的硬件，能够提高编解码效率并减少 CPU 负荷。K1 的 VPU 基于标准 V4L2 框架实现，支持 H.264/HEVC/VP8/VP9/MJPEG/MPEG4 等格式的解码和 H.264/HEVC/VP8/VP9/MJPEG 等格式的编码，并提供了完整的测试程序供参考。
+VPU（Video Processing Unit，视频处理单元）具有视频编解码功能的硬件，能够提高编解码效率并减少 CPU 负荷。
+K1 平台的 VPU 基于 **V4L2** 框架实现
+- **解码支持**：H.264 / HEVC / VP8 / VP9 / MJPEG / MPEG-4
+- **编码支持**：H.264 / HEVC / VP8 / VP9 / MJPEG
+- **特点**：提供完整的测试程序，便于开发与功能验证。
 
 ## 1 规格
 
@@ -31,11 +35,13 @@ VPU（Video Processing Unit，视频处理单元）具有视频编解码功能�
 
 k1x-vpu-test 是一套用于测试验证 K1 芯片的 VPU（Video Processing Unit，负责视频的编解码工作）功能性能的程序集，也可以作为客户开发自己的应用程序（需要对接 VPU 进行硬件编解码）的参考。
 
+`k1x-vpu-test` 是一套用于测试和验证 K1 芯片 VPU 性能的程序集合，也可以作为客户开发基于 VPU 硬件编解码的应用的参考。
+
 ### 2.1 安装说明
 
 #### 2.1.1 Bianbu 桌面系统
 
-源中已经集成了 k1x-vpu-test，直接使用 apt 命令来安装即可。
+`k1x-vpu-test` 已集成在软件源中，可直接通过 `apt` 安装：
 
 ```shell
 sudo apt update
@@ -44,24 +50,24 @@ sudo apt install k1x-vpu-test
 
 #### 2.1.2 Bianbu Linux 系统
 
-2 种方法将 k1x-vpu-test 集成到系统中：
+有两种方法将 `k1x-vpu-test` 集成到系统中：
 
-- 在编译 img 的时候，将 k1x-vpu-test 的编译集成选项打开（默认已经打开），这样，编译的 img 中默认就有 k1x-vpu-test 相关的测试程序
-- 如果编译 img 的时候，没有打开 k1x-vpu-test 的编译集成选项，img 中没有 k1x-vpu-test 相关的测试程序，只能手动编译 k1x-vpu-test，然后将生成的 bin 拷贝到系统的/usr/bin/目录中来使用，具体包括哪些 bin，下面有说明
+- 在编译系统镜像时，开启 `k1x-vpu-test` 的编译集成选项（默认已开启），这样，编译的系统镜像中默认就包含 `k1x-vpu-test` 相关的测试程序;
+- 若未开启此选项，则需手动编译 `k1x-vpu-test`，将生成的二进制文件复制到系统 `/usr/bin/` 目录下使用。具体包含的二进制文件在下文说明。
 
 ### 2.2 使用说明
 
-k1x-vpu-test 的测试程序集中主要包含下面几个测试程序：
+`k1x-vpu-test` 的测试程序集中主要包含以下测试程序：
 
-- **mvx_decoder**：用于单路视频码流的解码测试
-- **mvx_decoder_multi**：用于多路视频码流的解码测试（多路视频码流必须为同一个视频）
-- **mvx_encoder**：用于单路视频流的视频编码测试
-- **mvx_encoder_multi**：用于多路 YUV 流的视频编码测试（多路 YUV 流必须为同一个流）
-- **mvx_logd**：用于抓取 firmware 的 log 分析定位问题
+- **`mvx_decoder`**：用于单路视频码流的解码测试
+- **`mvx_decoder_multi`**：用于多路视频码流的解码测试（多路视频码流必须为同一个视频）
+- **`mvx_encoder`**：用于单路视频流的视频编码测试
+- **`mvx_encoder_multi`**：用于多路 YUV 流的视频编码测试（多路 YUV 流必须为同一个流）
+- **`mvx_logd`**：用于抓取 firmware 的 log 分析定位问题
 
 #### 2.2.1 mvx_decoder
 
-一些基本用法
+基本用法示例：
 
 ```shell
 //将input.264的H.264视频流（带startcode）解码为output.yuv
@@ -178,7 +184,7 @@ optional arguments:
 
 #### 2.2.2 mvx_decoder_multi
 
-一些基本用法
+基本用法示例：
 
 ```shell
 //将input.264的H.264视频流（带startcode）解码为output.yuv，同时4路解码并行
@@ -221,7 +227,7 @@ optional arguments:
 
 #### 2.2.3 mvx_encoder
 
-一些基本用法
+基本用法示例：
 
 ```shell
 //将input.yuv的YUV420P流编码为output.264的H.264视频流（带startcode）
@@ -450,7 +456,7 @@ optional arguments:
 
 #### 2.2.4 mvx_encoder_multi
 
-一些基本用法
+基本用法示例：
 
 ```shell
 //将input.yuv的YUV420P流编码为output.264的H.264视频流（带startcode），4路同时进行
@@ -500,7 +506,7 @@ optional arguments:
 
 #### 2.2.5 mvx_logd
 
-一些基本用法
+基本用法示例：
 
 ```shell
 //挂载debugfs，保存fw的log到文件
@@ -626,7 +632,7 @@ package-src/k1x-vpu-test
 
 ### 2.4 编译说明
 
-Bianbu 桌面系统
+**Bianbu 桌面系统**
 
 ```shell
 cd k1x-vpu-test
@@ -634,7 +640,7 @@ sudo apt-get build-dep k1x-vpu-test    #安装依赖
 dpkg-buildpackage -us -uc -nc -b -j32
 ```
 
-Bianbu Linux 系统
+**Bianbu Linux 系统**
 
 ```shell
 cd k1x-vpu-test
@@ -649,11 +655,11 @@ make install
 
 #### 2.5.1 Log 添加
 
-使用 printf 或者 fprintf 来添加 log，重新编译安装即可生效
+使用 `printf` 或者 `fprintf` 来添加 log，重新编译安装即可生效
 
 #### 2.5.2 解码成功 log
 
-1. 单路解码
+1. **单路解码**
 
 ```shell
 /mnt/tool # ./mvx_decoder -f raw /mnt/streams/h264dec/Zhling_1280x720.264 /mnt/test/output.yuv  //输入命令
@@ -703,7 +709,7 @@ Closing fd 5.
 //解码完成，输出信息，退出
 ```
 
-2. 多路解码
+2. **多路解码**
 
 ```shell
 /mnt/tool # ./mvx_decoder_multi -n 4 /mnt/streams/h264dec/foreman_128x64.264 /mnt/test/output.yuv
@@ -728,7 +734,7 @@ Total size 36864
 
 #### 2.5.3 编码成功 log
 
-1. 单路编码
+1. **单路编码**
 
 ```shell
 /mnt/tool # ./mvx_encoder -f raw -w 1280 -h 720 /mnt/streams/yuv/zhling_1280x720.yuv /mnt/test/output.264
@@ -773,7 +779,7 @@ Closing fd 5.
 //编码完成，输出信息，退出
 ```
 
-2. 多路编码
+2. **多路编码**
 
 ```shell
 /mnt/tool # ./mvx_encoder_multi -n 4 -w 128 -h 64 /mnt/streams/yuv/foreman_128x64_3frames.yuv /mnt/test/output.264

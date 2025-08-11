@@ -1,18 +1,18 @@
 # JPU
 
-JPU（Jpeg Processing Unit）是进行 Jpeg 图像编解码的硬件，能够提高 Jpeg 的编解码效率并减少 CPU 负荷。K1 的 JPU 提供了完整的测试程序供参考。
+JPU（Jpeg Processing Unit）是专门用于 JPEG 图像编解码的硬件模块，能够有效提升 JPEG 编解码效率并降低 CPU 负载。K1 的 JPU 提供了完整的测试程序作为参考。
 
 ## 1 规格（待补充）
 
 ## 2 JPU 测试程序
 
-k1x-jpu 内部封装了给应用层的 API，同时基于该 API 集成一套用于测试验证 K1 芯片的 JPU（Jpeg Processing Unit，负责视频的编解码工作）功能的程序集，也可以作为客户开发自己的应用程序（需要对接 JPU 进行硬件编解码）的参考。
+`k1x-jpu` 内部封装了面向应用层的 API，并基于该 API 集成了一套用于测试和验证 K1 芯片 JPU 功能的测试程序集。该测试集不仅用于功能验证，也可供客户在开发对接 JPU 进行硬件编解码的应用时参考。
 
 ### 2.1 安装说明
 
 #### 2.1.1 Bianbu 桌面系统
 
-源中已经集成了 k1x-jpu，直接使用 apt 命令来安装即可。
+`k1x-jpu` 已集成于软件源，直接通过 apt 命令安装：
 
 ```shell
 sudo apt update
@@ -21,22 +21,22 @@ sudo apt install k1x-jpu
 
 #### 2.1.2 Bianbu Linux 系统
 
-2 种方法将 k1x-jpu 集成到系统中：
+2 种方法将 `k1x-jpu` 集成到系统中：
 
-- 在编译 img 的时候，将 k1x-vpu-test 的编译集成选项打开**（默认已经打开）**，这样，编译的 img 中默认就有 k1x-jpu 相关的测试程序
-- 如果编译 img 的时候，没有打开 k1x-jpu 的编译集成选项，img 中没有 k1x-jpu 相关的测试程序，只能手动编译 k1x-jpu，然后将生成的 bin 拷贝到系统的/usr/bin/目录中来使用，具体包括 bin，下面有说明
+- 在编译镜像时开启 `k1x-jpu` 的编译集成选项（默认已开启），这样生成的镜像中包含所有相关测试程序；
+- 若镜像未集成 k1x-jpu，可手动编译后将生成的二进制文件复制到系统的 `/usr/bin/` 目录使用，具体包含的二进制文件在下文说明。
 
 ### 2.2 使用说明
 
-k1x-jpu 的测试程序集中主要包含下面几个测试程序：
+`k1x-jpu` 的测试程序集中主要包含以下测试程序：
 
-- **jpu_dec_test**：用于 JPEG 的解码测试
-- **jpu_enc_test**：用于 JPEG 的编码测试
-- **libjpu.so**：JPU 的 API 封装库
+- **`jpu_dec_test`**：用于 JPEG 的解码测试
+- **`jpu_enc_test`**：用于 JPEG 的编码测试
+- **`libjpu.so`**：JPU 的 API 封装库
 
-#### 2.2.1 jpu_dec_test
+#### 2.2.1 `jpu_dec_test`
 
-1. 一些基本用法
+基本用法示例：
 
 ```shell
 //将input.jpeg解码为output.yuv
@@ -49,7 +49,7 @@ k1x-jpu 的测试程序集中主要包含下面几个测试程序：
 ./jpu_dec_test --input=input.jpeg   --output=output.yuv --subsample=422 --ordering=yuyv
 ```
 
-2. 参数说明
+参数说明
 
 ```shell
 bianbu@k1:~$ jpu_dec_test -h
@@ -83,7 +83,7 @@ bianbu@k1:~$ jpu_dec_test -h
 
 #### 2.2.2 jpu_enc_test
 
-1. 一些基本用法
+基本用法示例：
 
 ```shell
 //将input.yuv编码为quality为10的output.jpeg,使用enc.cfg中的配置
@@ -118,7 +118,7 @@ IMG_FORMAT                  0
                             ; Source Format (0 : 4:2:0, 1 : 4:2:2, 2 : 4:4:0, 3 : 4:4:4, 4 : 4:0:0)
 ```
 
-2. 参数说明
+参数说明
 
 ```shell
 bianbu@k1:~$ jpu_enc_test -h
@@ -137,7 +137,7 @@ bianbu@k1:~$ jpu_enc_test -h
 
 ### 2.3 代码结构
 
-k1x-jpu 的代码位置在：
+`k1x-jpu` 的代码位置在：
 
 ```shell
 package-src/k1x-jpu
@@ -217,7 +217,7 @@ package-src/k1x-jpu
 
 ### 2.4 编译说明
 
-Bianbu 桌面系统
+**Bianbu 桌面系统**
 
 ```shll
 cd k1x-jpu
@@ -225,7 +225,7 @@ sudo apt-get build-dep k1x-jpu    #安装依赖
 dpkg-buildpackage -us -uc -nc -b -j32
 ```
 
-Bianbu Linux 系统
+**Bianbu Linux 系统**
 
 ```shell
 cd k1x-jpu

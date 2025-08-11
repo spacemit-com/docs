@@ -1,44 +1,72 @@
 # MPP
 
-MPP(Multimedia Processing Platform，多媒体处理平台)属于自研操作系统 Bianbu，其目的是封装多平台硬件编解码的使用差异，提供统一的 API 供开发者使用。
+**MPP (Multimedia Processing Platform，多媒体处理平台)** 属于自研操作系统 **Bianbu** 的一部分，
+用于封装不同平台硬件编解码的差异，提供统一 API 给开发者调用。
 
 ## 1. 模块介绍
 
 ### 1.1 概念术语
 
-- **MPP(Multimedia Processing Platform)**：多媒体处理平台。
-- **MPI(Multimedia Processing Interface)**：多媒体处理平台提供给上层的 API 调用。
-- **MPP AL**: 抽象层，对不同 IP，不同 SOC，不同方案的多媒体接口进行抽象。
-- **Packet**：数据包，主要表示经过压缩后的数据，即解码前或者编码后的数据，如 H.264/H.265 的视频流。
-- **Frame**：数据帧，主要表示未经压缩的数据，即解码后或者编码前的数据，如 YUV420 的图像。
+- **MPP(Multimedia Processing Platform)**
+  多媒体处理平台的整体框架。
+
+- **MPI(Multimedia Processing Interface)**
+  MPP 提供给上层调用的 API 接口集合。
+
+- **MPP AL**
+  抽象层，统一不同 IP、SoC、方案的多媒体接口。
+
+- **Packet**
+  数据包，压缩后的视频数据单元（如 H.264/H.265 视频流），用于解码前或编码后阶段。
+
+- **Frame**
+  数据帧，未压缩的视频数据单元（如 YUV420 图像），用于解码后或编码前阶段。
 
 ### 1.2 模块功能
 
 目前 MPP 主要包含下面几个部分：
 
-- **VDEC**: 视频解码子模块及开放 API，主要用于各种数据流 packet 的解码。
-- **VENC**: 视频编码子模块及开放 API，主要用于 RGB/YUV 数据帧 frame 的编码。
-- **G2D**: 2D 图形处理加速子模块及开放 API，主要进行数据帧 frame 的格式转换，缩放，旋转，裁剪等操作。
-- **BIND 系统**：支持多模块动态绑定。
-- **AL(Abstract Layer)**: 支持多平台。
-- **VI**: 视频输入子模块及开放 API，目前仅支持文件输入及标准 V4L2 输入。
-- **VO**: 视频输出子模块及开放 API，目前仅支持文件输出及 SDL2 视频输出。
+- **VDEC**
+  视频解码子模块及开放 API，主要用于将压缩数据流（Packet）解码成原始帧（Frame）。
+  
+- **VENC**
+  视频编码子模块及开放 API，主要用于将原始帧（RGB/YUV）编码成压缩视频流（Packet）。
 
-未包含部分：
+- **G2D**
+  2D 图形处理加速子模块及开放 API，主要进行数据帧 Frame 的格式转换，缩放，旋转，裁剪等操作。
 
-- **AI/AO**: 音频的输入输出，走标准的 pipewire->alsa-lib->alsa driver。
-- **AENC/ADEC**: 纯软件实现，Gstreamer/FFmpeg 等开源框架都有全面支持，暂不支持。
+- **BIND 系统**
+  支持多模块动态绑定。
+
+- **AL(Abstract Layer)**
+  跨平台支持层，屏蔽硬件差异。
+
+- **VI**
+  视频输入子模块及开放 API，目前仅支持文件输入及标准 V4L2 输入。
+  
+- **VO**
+  视频输出子模块及开放 API，目前仅支持文件输出及 SDL2 视频输出。
+
+暂未包含的部分：
+
+- **AI/AO**
+  音频输入输出，走 `pipewire -> alsa-lib -> alsa driver` 标准链路。
+
+- **AENC/ADEC**
+  暂不支持，推荐使用 GStreamer 或 FFmpeg 的软件实现。
 
 ### 1.3 配置说明
 
 #### 1.3.1 调试配置
 
-- **MPP_PRINT_BUFFER**：环境变量，默认 0，配置成 1 后能够实时打印 buffer 状态。
-- **MPP_SAVE_OUTPUT_BUFFER**：环境变量，默认 0，配置成 1 后能够保存解码后的 YUV buffer，YUV buffer 较大，会导致播放卡顿并且保存文件会占用较大空间，请注意。
-- **MPP_SAVE_OUTPUT_BUFFER_PATH**：环境变量，用于配置输出 YUV 的文件路径，默认/home/bianbu/output.yuv，MPP_SAVE_OUTPUT_BUFFER 开启后才生效。
-- **MPP_FRINT_UNFREE_PACKET**：环境变量，默认 0，配置成 1 后能够实时打印 packet 的申请释放情况
-- **MPP_FRINT_UNFREE_FRAME**：环境变量，默认 0，配置成 1 后能够实时打印 frame 的申请释放情况
-- **MPP_FRINT_UNFREE_DMABUF**：环境变量，默认 0，配置成 1 后能够实时打印 dmabuf 的申请释放情况
+| 配置项                                 | 默认值                       | 功能说明                                        |
+| ----------------------------------- | ------------------------- | ------------------------------------------- |
+| **MPP\_PRINT\_BUFFER**              | `0`                        | 配置成 `1` 实时打印 buffer 状态。                          |
+| **MPP\_SAVE\_OUTPUT\_BUFFER**       | `0`                         | 配置成 `1` 保存解码后的 YUV buffer（注意：数据量大，可能导致播放卡顿，占用大量磁盘）。 |
+| **MPP\_SAVE\_OUTPUT\_BUFFER\_PATH** | `/home/bianbu/output.yuv` | YUV 输出路径，仅在 `MPP_SAVE_OUTPUT_BUFFER=1` 时生效。 |
+| **MPP\_PRINT\_UNFREE\_PACKET**      | `0`                         | 配置成 `1` 实时打印 packet 申请与释放情况。                     |
+| **MPP\_PRINT\_UNFREE\_FRAME**       | `0`                         | 配置成 `1` 实时打印 frame 申请与释放情况。                      |
+| **MPP\_PRINT\_UNFREE\_DMABUF**      | `0`                        | 配置成 `1` 实时打印 dmabuf 申请与释放情况。                     |
 
 使用示例：
 
@@ -335,16 +363,18 @@ MPP 的源码结构及简要说明如下（源码结构做了精简）：
 
 从框架结构上，主要分 2 层，如下：
 
-- **MPI**：接口层，主要包含对上层的 API 及其实现
-- **MPP AL**：抽象层，屏蔽不同平台和硬件的差异
+- **MPI（接口层）**
+  主要包含对上层的 API 及其实现。
+- **MPP AL（抽象层）**
+  屏蔽不同平台和硬件的差异，实现统一调用。
 
 从功能上来看，分为：
 
-- **MPI**：接口层
-- **MPP AL**：抽象层
-- **TESTS**：测试程序，测试用例及测试流
+- **MPI**：对外 API 接口层。
+- **MPP AL**：多平台硬件抽象层。
+- **TESTS**：测试程序与测试流，用于功能验证。
 - **UTILS**：工具包，基础功能实现，包括 PACKET/FRAME 管理，日志输出，环境变量读写等
-- **SYS**：主要实现动态加载插件和 BIND 系统
+- **SYS**：动态插件加载与 BIND 系统实现。
 
 ## 3. 关键流程
 
@@ -1454,44 +1484,44 @@ struct _ALViBaseContext {
 | 接口                    | 说明               | 参数                                                         | 返回值                    |
 | ----------------------- | ------------------ | ------------------------------------------------------------ | ------------------------- |
 | VDEC_CreateChannel      | 创建解码器         | 无                                                           | MppVdecCtx*：解码器上下文 |
-| VDEC_Init               | 初始化解码器       | MppVdecCtx *ctx：解码器上下文                                | 0：成功 非0：错误码       |
-| VDEC_SetParam           | 设置解码器参数     | MppVdecCtx *ctx：解码器上下文                                | 0：成功 非0：错误码       |
-| VDEC_GetParam           | 获取解码器参数     | MppVdecCtx *ctx：解码器上下文 MppVdecPara **stVdecPara：参数 | 0：成功 非0：错误码       |
-| VDEC_GetDefaultParam    | 获取默认解码器参数 | MppVdecCtx *ctx：解码器上下文                                | 0：成功 非0：错误码       |
-| VDEC_Decode             | 传送码流给解码器   | MppVdecCtx *ctx：解码器上下文 MppData *sink_data：buffer     | 0：成功 非0：错误码       |
-| VDEC_RequestOutputFrame | 获取解码帧         | MppVdecCtx *ctx：解码器上下文 MppData *src_data：解码出来的帧 | 0：成功 非0：错误码       |
-| VDEC_ReturnOutputFrame  | 归还解码帧         | MppVdecCtx *ctx：解码器上下文 MppData *src_data：解码出来的帧 | 0：成功 非0：错误码       |
-| VDEC_DestroyChannel     | 销毁解码器         | MppVdecCtx *ctx：解码器上下文                                | 0：成功 非0：错误码       |
-| VDEC_ResetChannel       | 重置解码器         | MppVdecCtx *ctx：解码器上下文                                | 0：成功 非0：错误码       |
+| VDEC_Init               | 初始化解码器       | MppVdecCtx *ctx：解码器上下文                                | 0：成功； 非0：错误码       |
+| VDEC_SetParam           | 设置解码器参数     | MppVdecCtx *ctx：解码器上下文                                | 0：成功； 非0：错误码       |
+| VDEC_GetParam           | 获取解码器参数     | MppVdecCtx *ctx：解码器上下文 MppVdecPara **stVdecPara：参数 | 0：成功； 非0：错误码       |
+| VDEC_GetDefaultParam    | 获取默认解码器参数 | MppVdecCtx *ctx：解码器上下文                                | 0：成功； 非0：错误码       |
+| VDEC_Decode             | 传送码流给解码器   | MppVdecCtx *ctx：解码器上下文 MppData *sink_data：buffer     | 0：成功； 非0：错误码       |
+| VDEC_RequestOutputFrame | 获取解码帧         | MppVdecCtx *ctx：解码器上下文 MppData *src_data：解码出来的帧 | 0：成功； 非0：错误码       |
+| VDEC_ReturnOutputFrame  | 归还解码帧         | MppVdecCtx *ctx：解码器上下文 MppData *src_data：解码出来的帧 | 0：成功； 非0：错误码       |
+| VDEC_DestroyChannel     | 销毁解码器         | MppVdecCtx *ctx：解码器上下文                                | 0：成功； 非0：错误码       |
+| VDEC_ResetChannel       | 重置解码器         | MppVdecCtx *ctx：解码器上下文                                | 0：成功； 非0：错误码       |
 
 ### 5.2 VENC
 
 | 接口                       | 说明                 | 参数                                                         | 返回值                    |
 | -------------------------- | -------------------- | ------------------------------------------------------------ | ------------------------- |
 | VENC_CreateChannel         | 创建编码器           | 无                                                           | MppVencCtx*：编码器上下文 |
-| VENC_Init                  | 初始化编码器         | MppVencCtx *ctx：编码器上下文                                | 0：成功 非0：错误码       |
-| VENC_SetParam              | 设置编码器参数       | MppVencCtx *ctx：编码器上下文 MppVencPara *para：编码器参数  | 0：成功 非0：错误码       |
-| VENC_GetParam              | 获取编码器参数       | MppVencCtx *ctx：编码器上下文 MppVencPara *para：编码器参数  | 0：成功 非0：错误码       |
-| VENC_SendInputFrame        | 向编码器送帧         | MppVencCtx *ctx：编码器上下文 MppData *sink_data：编码帧     | 0：成功 非0：错误码       |
-| VENC_ReturnInputFrame      | 向编码器回收帧       | MppVencCtx *ctx：编码器上下文 MppData *sink_data：编码帧     | 0：成功 非0：错误码       |
-| VENC_GetOutputStreamBuffer | 获取编码后码流       | MppVencCtx *ctx：编码器上下文 MppData *src_data：编码出来的码流 | 0：成功 非0：错误码       |
-| VENC_DestroyChannel        | 销毁编码器           | MppVencCtx *ctx：编码器上下文                                | 0：成功 非0：错误码       |
-| VENC_ResetChannel          | 重置编码器           | MppVencCtx *ctx：编码器上下文                                | 0：成功 非0：错误码       |
-| VENC_Flush                 | 刷掉编码器内部buffer | MppVencCtx *ctx：编码器上下文                                | 0：成功 非0：错误码       |
+| VENC_Init                  | 初始化编码器         | MppVencCtx *ctx：编码器上下文                                | 0：成功； 非0：错误码       |
+| VENC_SetParam              | 设置编码器参数       | MppVencCtx *ctx：编码器上下文 MppVencPara *para：编码器参数  | 0：成功； 非0：错误码       |
+| VENC_GetParam              | 获取编码器参数       | MppVencCtx *ctx：编码器上下文 MppVencPara *para：编码器参数  | 0：成功； 非0：错误码       |
+| VENC_SendInputFrame        | 向编码器送帧         | MppVencCtx *ctx：编码器上下文 MppData *sink_data：编码帧     | 0：成功； 非0：错误码       |
+| VENC_ReturnInputFrame      | 向编码器回收帧       | MppVencCtx *ctx：编码器上下文 MppData *sink_data：编码帧     | 0：成功； 非0：错误码       |
+| VENC_GetOutputStreamBuffer | 获取编码后码流       | MppVencCtx *ctx：编码器上下文 MppData *src_data：编码出来的码流 | 0：成功； 非0：错误码       |
+| VENC_DestroyChannel        | 销毁编码器           | MppVencCtx *ctx：编码器上下文                                | 0：成功； 非0：错误码       |
+| VENC_ResetChannel          | 重置编码器           | MppVencCtx *ctx：编码器上下文                                | 0：成功； 非0：错误码       |
+| VENC_Flush                 | 刷掉编码器内部buffer | MppVencCtx *ctx：编码器上下文                                | 0：成功； 非0：错误码       |
 
 ### 5.3 G2D（待完善）
 
 | 接口                   | 说明           | 参数                                                   | 返回值                |
 | ---------------------- | -------------- | ------------------------------------------------------ | --------------------- |
 | G2D_CreateChannel      | 创建G2D        | 无                                                     | MppG2dCtx*：G2D上下文 |
-| G2D_Init               | 初始化G2D      | MppG2dCtx *ctx：G2D上下文                              | 0：成功 非0：错误码   |
-| G2D_SetParam           | 设置G2D参数    | MppG2dCtx*ctx：G2D上下文 MppG2dPara *para：G2D参数     | 0：成功 非0：错误码   |
-| G2D_GetParam           | 获取G2D参数    | MppG2dCtx*ctx：G2D上下文 MppG2dPara *para：G2D参数     | 0：成功 非0：错误码   |
-| G2D_SendInputFrame     | 传送待处理帧   | MppG2dCtx*ctx：G2D上下文 MppData *sink_data：待处理帧  | 0：成功 非0：错误码   |
-| G2D_ReturnInputFrame   | 归还待处理帧帧 | MppG2dCtx*ctx：G2D上下文 MppData *sink_data：待处理帧  | 0：成功 非0：错误码   |
-| G2D_RequestOutputFrame | 获取处理后的帧 | MppG2dCtx*ctx：G2D上下文 MppData *src_data：处理后的帧 | 0：成功 非0：错误码   |
-| G2D_ReturnOutputFrame  | 释放处理后的帧 | MppG2dCtx*ctx：G2D上下文 MppData *src_data：处理后的帧 | 0：成功 非0：错误码   |
-| G2D_DestoryChannel     | 销毁G2D        | MppG2dCtx*ctx：G2D上下文                               | 0：成功 非0：错误码   |
+| G2D_Init               | 初始化G2D      | MppG2dCtx *ctx：G2D上下文                              | 0：成功； 非0：错误码   |
+| G2D_SetParam           | 设置G2D参数    | MppG2dCtx*ctx：G2D上下文 MppG2dPara *para：G2D参数     | 0：成功； 非0：错误码   |
+| G2D_GetParam           | 获取G2D参数    | MppG2dCtx*ctx：G2D上下文 MppG2dPara *para：G2D参数     | 0：成功； 非0：错误码   |
+| G2D_SendInputFrame     | 传送待处理帧   | MppG2dCtx*ctx：G2D上下文 MppData *sink_data：待处理帧  | 0：成功； 非0：错误码   |
+| G2D_ReturnInputFrame   | 归还待处理帧帧 | MppG2dCtx*ctx：G2D上下文 MppData *sink_data：待处理帧  | 0：成功； 非0：错误码   |
+| G2D_RequestOutputFrame | 获取处理后的帧 | MppG2dCtx*ctx：G2D上下文 MppData *src_data：处理后的帧 | 0：成功； 非0：错误码   |
+| G2D_ReturnOutputFrame  | 释放处理后的帧 | MppG2dCtx*ctx：G2D上下文 MppData *src_data：处理后的帧 | 0：成功； 非0：错误码   |
+| G2D_DestoryChannel     | 销毁G2D        | MppG2dCtx*ctx：G2D上下文                               | 0：成功； 非0：错误码   |
 
 ### 5.4 VI
 
@@ -1499,33 +1529,33 @@ struct _ALViBaseContext {
 | -------------------- | ------------ | --------------------------------------------------- | ------------------- |
 | VI_CreateChannel     | 创建VI       | 无                                                  | MppViCtx*：VI上下文 |
 | VI_Init              | 初始化VI     | MppViCtx *ctx：VI上下文                             | 0：成功 非0：错误码 |
-| VI_SetParam          | 设置VI参数   | MppViCtx *ctx：VI上下文 MppViPara *para：VI参数     | 0：成功 非0：错误码 |
-| VI_GetParam          | 获取VI参数   | MppViCtx *ctx：VI上下文 MppViPara *para：VI参数     | 0：成功 非0：错误码 |
-| VI_RequestOutputData | 获取输入数据 | MppViCtx *ctx：VI上下文 MppData *src_data：输入数据 | 0：成功 非0：错误码 |
-| VI_ReturnOutputData  | 释放输入数据 | MppViCtx *ctx：VI上下文 MppData *src_data：输入数据 | 0：成功 非0：错误码 |
-| VI_DestoryChannel    | 销毁VI       | MppViCtx *ctx：VI上下文                             | 0：成功 非0：错误码 |
+| VI_SetParam          | 设置VI参数   | MppViCtx *ctx：VI上下文 MppViPara *para：VI参数     | 0：成功； 非0：错误码 |
+| VI_GetParam          | 获取VI参数   | MppViCtx *ctx：VI上下文 MppViPara *para：VI参数     | 0：成功； 非0：错误码 |
+| VI_RequestOutputData | 获取输入数据 | MppViCtx *ctx：VI上下文 MppData *src_data：输入数据 | 0：成功； 非0：错误码 |
+| VI_ReturnOutputData  | 释放输入数据 | MppViCtx *ctx：VI上下文 MppData *src_data：输入数据 | 0：成功； 非0：错误码 |
+| VI_DestoryChannel    | 销毁VI       | MppViCtx *ctx：VI上下文                             | 0：成功； 非0：错误码 |
 
 ### 5.5 VO
 
 | 接口              | 说明       | 参数                                                 | 返回值                     |
 | ----------------- | ---------- | ---------------------------------------------------- | -------------------------- |
 | VO_CreateChannel  | 创建VO     | 无                                                   | MppVoCtx *：图像处理上下文 |
-| VO_Init           | 初始化VI   | MppVoCtx *ctx：编码器上下文                          | 0：成功 非0：错误码        |
-| VO_SetParam       | 设置VI参数 | MppVoCtx *ctx：VO上下文 MppVoPara *para：VO参数      | 0：成功 非0：错误码        |
-| VO_GetParam       | 获取VI参数 | MppVoCtx *ctx：VO上下文 MppVoPara **para：VO参数     | 0：成功 非0：错误码        |
-| VO_Process        | 输出数据   | MppVoCtx *ctx：VO上下文 MppData *sink_data：输出数据 | 0：成功 非0：错误码        |
-| VO_DestoryChannel | 销毁VO     | MppVoCtx *ctx：VO上下文                              | 0：成功 非0：错误码        |
+| VO_Init           | 初始化VI   | MppVoCtx *ctx：编码器上下文                          | 0：成功； 非0：错误码        |
+| VO_SetParam       | 设置VI参数 | MppVoCtx *ctx：VO上下文 MppVoPara *para：VO参数      | 0：成功； 非0：错误码        |
+| VO_GetParam       | 获取VI参数 | MppVoCtx *ctx：VO上下文 MppVoPara **para：VO参数     | 0：成功； 非0：错误码        |
+| VO_Process        | 输出数据   | MppVoCtx *ctx：VO上下文 MppData *sink_data：输出数据 | 0：成功； 非0：错误码        |
+| VO_DestoryChannel | 销毁VO     | MppVoCtx *ctx：VO上下文                              | 0：成功； 非0：错误码        |
 
 ### 5.6 SYS
 
 | 接口           | 说明                       | 参数                                                         | 返回值                         |
 | -------------- | -------------------------- | ------------------------------------------------------------ | ------------------------------ |
-| SYS_GetVersion | 获取MPP版本号              | MppVersion *version：MPP版本号                               | 0：成功 非0：错误码            |
+| SYS_GetVersion | 获取MPP版本号              | MppVersion *version：MPP版本号                               | 0：成功； 非0：错误码            |
 | SYS_CreateFlow | 创建BIND flow              | 无                                                           | MppProcessFlowCtx*：flow上下文 |
 | SYS_CreateNode | 创建BIND node（节点）      | MppProcessNodeType type：节点类型                            | MppProcessNode*：node上下文    |
 | SYS_Init       | 初始化BIND flow            | MppProcessFlowCtx *ctx：flow上下文                           | 无                             |
 | SYS_Destory    | 销毁BIND flow              | MppProcessFlowCtx *ctx：flow上下文                           | 无                             |
-| SYS_Bind       | 数据源绑定数据接收者       | MppProcessFlowCtx *ctx：flow上下文 MppProcessNode *src_ctx：数据源 MppProcessNode *sink_ctx：数据接受者 | 0：成功 非0：错误码            |
+| SYS_Bind       | 数据源绑定数据接收者       | MppProcessFlowCtx *ctx：flow上下文 MppProcessNode *src_ctx：数据源 MppProcessNode *sink_ctx：数据接受者 | 0：成功； 非0：错误码            |
 | SYS_UnBind     | 解绑所有数据源和数据接收者 | MppProcessFlowCtx *ctx：flow上下文                           | 无                             |
 | SYS_Handledata | 处理数据                   | MppProcessFlowCtx *ctx：flow上下文 MppData *sink_data：待处理数据 | 无                             |
 | SYS_Getresult  | 返回结果                   | MppProcessFlowCtx *ctx：flow上下文 MppData *src_data：处理完成的数据 | 无                             |
