@@ -4,6 +4,19 @@ sidebar_position: 3
 
 # Bianbu Linux 2.2 Release Notes
 
+## v2.2.7 release note
+
+Release date: 2025-8-13
+
+Compared to 2.2.6, 2.2.7 fixes several issues and provides a new kernel branch k1-bl-v2.2.y (based on 6.6.63), including every modification.
+
+### Major Updates
+
+- Added support for ADMGPU
+- Added support for sound card playback-only configuration
+- Added support IME extensions for use by user programs
+- Fixed the issue of abnormal use of mutex_unlock in rtl8852bs
+
 ## v2.2.6 release note
 
 Release date: 2025-7-17
