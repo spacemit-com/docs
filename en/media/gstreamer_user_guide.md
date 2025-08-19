@@ -332,7 +332,7 @@ HD Pro Webcam C920 (usb-xhci-hcd.0.auto-1.3):
 
 ##### MIPI 摄像头
 
-- MIPI 摄像头以 OV16A10 输出 1080P@NV12 为例（假设 spacemitsrc 对应所需的 json 配置文件已设好）
+- MIPI 摄像头以 OV16A10 输出 1080P@NV12 为例（假设 spacemitsrc 对应所需的 json 配置文件已设好, json 含义请参考《Camera Development Guide》文档说明）
   - 采集图像后送显，显示分辨率为 720p。（显示位置暂时没法设定）
 
   ```
@@ -356,8 +356,38 @@ HD Pro Webcam C920 (usb-xhci-hcd.0.auto-1.3):
   ```
   gst-launch-1.0  spacemitsrc location=/usr/share/camera_json/csi1_camera_auto.json close-dmabuf=0 num-buffers=1000 ! "video/x-raw(memory:DMABuf),format=NV12,width=1920,height=1080" ! spacemith264enc ! filesink location=test.h264
   ```
+另外，在Bianbu desktop上，可以使用opencv采集mipi摄像头视频并显示，需要
+1. 先安装需要的工具和库
 
-  -
+  ```
+  sudo apt install libopencv-dev python3 python3-opencv
+  ```
+2. 创建py脚本capture_video_opencv.py
+
+  ```
+import cv2
+
+gst_str = 'spacemitsrc location=/home/bianbu/camtest_ov16a10.json close-dmabuf=1 ! video/x-raw,format=NV12,width=1280,height=720 ! appsink'
+
+cap = cv2.VideoCapture(gst_str, cv2.CAP_GSTREAMER)  # 打开默认的摄像头
+
+while True:
+    ret, frame = cap.read()  # 读取视频帧
+    frame = cv2.cvtColor(frame, cv2.COLOR_YUV2BGR_NV12)
+    cv2.imshow('Video', frame)  # 显示视频帧
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):  # 按下 'q' 键退出循环
+        break
+
+cap.release()  # 释放摄像头
+cv2.destroyAllWindows()  # 关闭所有窗口
+
+  ```
+3. 执行脚本
+  ```
+  python3 capture_video_opencv.py
+  ```
+上述demo，opencv使用Gstreamer进行的图像采集，输出720p@NV12格式，opencv拿到数据后再转换成RGB格式，并进行显示。
 
 #### 解码应用场景
 

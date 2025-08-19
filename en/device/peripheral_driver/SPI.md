@@ -37,7 +37,7 @@ The controller driver code is located in the `drivers/spi` directory:
 | Feature | Description|
 | :-----| :----|
 | Communication Protocol | Supports SSP/SPI/MicroWire/PSP protocols |
-| Communication Frequency | Maximum frequency supported is 53MHz; Minimum frequency supported is 6.3kbps |
+| Communication Frequency | Maximum frequency supported is 52Mbps; Minimum frequency supported is 6.3Kbps |
 | Bus Width| x1 (single-line mode)| 
 | Supported Peripherals | Supports SPI-NOR and SPI-NAND flash memory | 
 

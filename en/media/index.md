@@ -7,4 +7,5 @@ slug: /media
 
 Multimedia-related development guides:
 
-- [MPP](mpp.md)
+- [Multimedia Development Guide](mpp/index.md)
+- [Gstreamer User Guide](gstreamer_user_guide.md)

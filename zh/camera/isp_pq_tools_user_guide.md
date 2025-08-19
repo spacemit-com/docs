@@ -713,7 +713,7 @@ CDigitalGainFirmwareFilter 模块用于配置数字增益和黑电平。
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
 | m_bEnable | digital gain使能：`0`：关闭数字gain  `1`：使能数字gain | 用户设置 |   |
-| m_nISPGlobalOffsetValue12bit | `0`：在stretch中扣除黑电平 `1`：在digital gain 中完全扣除黑电平   2-511：完全扣除黑电平后, 12bit添加的offset（此offset会在stretch扣除） | 用户设置 |   |
+| m_nISPGlobalOffsetValue12bit | `0`：在stretch中扣除黑电平 `1`：在digital gain 中完全扣除黑电平   `2-511`：完全扣除黑电平后, 12bit添加的offset（此offset会在stretch扣除） | 用户设置 |   |
 | m_bManualMode | 手动模式使能 `0` 自动模式 `1` 打开手动模式，此时黑电平参数不随 gain 变化，使用 manual 参数，用于 debug |   |   |
 | m_pGlobalBlackValueManual | 手动模式参数，作用和自动一致 |   |   |
 | m_pGlobalBlackValueManualCapture | 同上，拍照起效 |   |   |
@@ -1262,7 +1262,7 @@ SwingThre-Gain 控制曲线如下图
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bConfAdjust | 置信度适配开关：  1 ：当前幅度值高于此门限时，置信度增大; `0`：当前幅度值高于此门限时，置信度不变 | 否 |   |
+| m_bConfAdjust | 置信度适配开关：  `1` ：当前幅度值高于此门限时，置信度增大; `0`：当前幅度值高于此门限时，置信度不变 | 否 |   |
 | m_nConfOff | 置信度 offset，用于调整最终置信度 | 否 |   |
 | m_nConfLimit | 最大置信度（见下图 Error-Confidence 转换曲线） | 否 |   |
 | m_nErrorThre1 | 误差转为置信度的 erro r门限（见下图 Error-Confidence 转换曲线） | 是 |   |
@@ -1516,7 +1516,7 @@ CBitDepthCompressionFirmwareFilter 模块用于降位深压缩。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bEnableDithering | Dithering使能 `0` 关闭 Dithering;  1: 打开 Dithering | 否 |   |
+| m_bEnableDithering | Dithering使能 `0`: 关闭 Dithering;  `1`: 打开 Dithering | 否 |   |
 
 ### CFormatterFirmwareFilter 参数说明
 
@@ -1526,9 +1526,9 @@ CFormatterFirmwareFilter 模块用于输出格式控制。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_nOutputFormat | 输出格式：`0` NV12; `1` P010;   `2`: RGB888 | 否 |   |
-| m_nSwingOption | `0`: full swing; `1` studio swing | 否 |   |
-| m_bConvertDitheringEnable | `0`: rgb2yuv dithering disable; `1` rgb2yuv dithering enable | 否 |   |
+| m_nOutputFormat | 输出格式：`0`: NV12; `1`: P010;   `2`: RGB888 | 否 |   |
+| m_nSwingOption | `0`: full swing; `1`: studio swing | 否 |   |
+| m_bConvertDitheringEnable | `0`: rgb2yuv dithering disable; `1`: rgb2yuv dithering enable | 否 |   |
 | m_bCompressDitheringEnable | `0`: full swing to studio swing dithering disable; `1` full swing to studio swing dithering enable | 否 |   |
 
 ### CEISFirmwareFilter 参数说明
@@ -1545,8 +1545,8 @@ CEISFirmwareFilter 模块用于电子防抖。
 
 | 参数名 | 说明 | 建议调试 | 特殊性 |
 |---|---|---|---|
-| m_bCalcEnable | Firmware计算使能: `0` 关闭; `1` 打开 | 用户设置 |   |
-| m_bFilterEnable | 运动平滑滤波使能: `0` 关闭运动平滑滤波（一般设备与场景相对运动较少时关闭）; `1` 打开运动平滑滤波 | 是 |   |
+| m_bCalcEnable | Firmware计算使能: `0`: 关闭; `1`: 打开 | 用户设置 |   |
+| m_bFilterEnable | 运动平滑滤波使能: `0`: 关闭运动平滑滤波（一般设备与场景相对运动较少时关闭）; `1`: 打开运动平滑滤波 | 是 |   |
 | m_nRangeX | X 方向检测移动的范围（单位为像素） | 否 |   |
 | m_nRangeY | Y 方向检测移动的范围（单位为像素） | 否 |   |
 | m_nMarginX | LDC crop 窗口的 offset X | 否 |   |
@@ -1703,10 +1703,10 @@ PixelNumPercent - DRCGainDark 示意图
 | m_pTotalGainDBShort | Reserved |  - | 只读 |
 | m_nCurHdrRatio | Reserved |  - | 只读 |
 | m_nHistPixelNum | 参与直方图统计的像素数 |  - | 只读 |
-| m_pMeanLuma | AE 计算亮度   [0]: long   [1]: Reserved |  - | 只读 |
-| m_pTargetLuma | AE 目标亮度   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pMeanLuma | AE 计算亮度   `0`: long   `1`: Reserved |  - | 只读 |
+| m_pTargetLuma | AE 目标亮度   `0`: long   `1`: Reserved |  - | 只读 |
 | m_pLuma7Zone | AE 主窗口及 6 个副窗口 luma |  - | 只读 |
-| m_pAERouteNum | AE 曝光节点   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pAERouteNum | AE 曝光节点   `0`: long   `1`: Reserved |  - | 只读 |
 | m_pRouteNodeLong | 长帧曝光表 |  - | 只读 |
 | m_pADNodeLong | Sensor again 与 dgain 分配表 |  - | 只读 |
 | m_pLumaMatrixLong | 亮度缩略图 |  - | 只读 |
@@ -1715,13 +1715,13 @@ PixelNumPercent - DRCGainDark 示意图
 | m_pADNodeShort | Reserved |  - | 只读 |
 | m_pLumaMatrixShort | Reserved |  - | 只读 |
 | m_pHistShort | Reserved |  - | 只读 |
-| m_pRefSaturateNum | 参考过曝像素数   [0]: long   [1]: Reserved |  - | 只读 |
-| m_pCurSaturateNum | 当前过曝像素数   [0]: long   [1]: Reserved |  - | 只读 |
-| m_pEstSaturateNum | 预估过曝像素数，预估当统计亮度达到目标亮度上限时过曝像素数   [0]:long   [1]:Reserved |  - | 只读 |
+| m_pRefSaturateNum | 参考过曝像素数   `0`: long   `1`: Reserved |  - | 只读 |
+| m_pCurSaturateNum | 当前过曝像素数   `0`: long   `1`: Reserved |  - | 只读 |
+| m_pEstSaturateNum | 预估过曝像素数，预估当统计亮度达到目标亮度上限时过曝像素数   `0`:long   `1`:Reserved |  - | 只读 |
 | m_pAdjustRatio | AE 调节比例 |  - | 只读 |
-| m_pStableFlag | AE 稳定标志   [0]: long   [1]: Reserved |  - | 只读 |
-| m_pStableFlagBuf | AE 帧序列稳定标志   [0]: long   [1]: Reserved |  - | 只读 |
-| m_pUnStableFlagBuf | AE 帧序列不稳定标志   [0]: long   [1]: Reserved |  - | 只读 |
+| m_pStableFlag | AE 稳定标志   `0`: long   `1`: Reserved |  - | 只读 |
+| m_pStableFlagBuf | AE 帧序列稳定标志   `0`: long   `1`: Reserved |  - | 只读 |
+| m_pUnStableFlagBuf | AE 帧序列不稳定标志   `0`: long   `1`: Reserved |  - | 只读 |
 | m_nDRCGain | DRCGain 当前帧 AE 计算结果 |  - | 只读 |
 | m_nDRCGainDark | DRCGainDark 当前帧 AE 计算结果 |  - | 只读 |
 

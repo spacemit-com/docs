@@ -2,27 +2,41 @@
 
 ## 1. 简介
 
-OpenCL（Open Computing Language，开放计算语言）是一种开放的、跨平台的并行计算框架，由Khronos Group维护。它为开发者提供了统一的编程接口，使得应用程序可以在不同的硬件平台（CPU、GPU、DSP和其他处理器）上运行，从而提高了代码的可移植性和性能。OpenCL主要包含以下两个部分：
+OpenCL（Open Computing Language，开放计算语言）是由 Khronos Group 维护的开放、跨平台并行计算框架。
+它为开发者提供统一的编程接口，使应用能够在不同硬件平台上运行（如 CPU、GPU、DSP 及其他处理器）。
+通过这种方式，开发者可以同时提升 **代码可移植性** 和 **运行性能**。
 
-1. 用于编写 kernels(在OpenCL设备上运行的函数) 的语言(基于C99)
-
-2. 用于定义并控制平台的API
-
-如下图所示，OpenCL框架包含两个API：平台层（Platform Layer）API 和 运行时（Runtime）API。
+OpenCL 主要包含以下两个部分：
+1. **内核编程语言**：基于 C99 的语言，用于编写在 OpenCL 设备上运行的函数（Kernels）
+2. **平台API**：用于定义和控制计算平台的接口
 
 ![opencl](./static/how_it_works.jpg#pic_center)
 
-- 平台层API在主机（Host）CPU上运行，主要用于查询和使能系统中可用的并行处理器或计算设备。通过查询可用的计算设备，应用程序可以移植到不同系统中运行，从而适应各种硬件加速设备的组合。
+如图所示，OpenCL框架包含两个关键API层：
 
-- 运行时API则使应用程序能够为其选定的计算设备编译内核程序，并将其并行加载到这些处理器上执行。内核程序执行完成后，运行时API还将用于收集和处理结果。
+- **平台层（Platform Layer）API**
+  运行在主机（Host）CPU上
+  主要功能：
+  - 查询和使能系统中可用的并行处理器或计算设备
+  - 应用程序就能在不同系统中移植和运行，支持多种硬件组合
 
-## 2. OpenCL程序的执行
+- **运行时（Runtime）API**
+  核心功能：
+  - 为选定设备编译内核程序
+  - 管理内核在处理器上的并行执行
+  - 收集和处理计算结果
 
-OpenCL将内核程序视为可执行代码的基本单元（类似于C函数）。内核能够以数据并行或任务并行的方式执行。一个 OpenCL 程序是由多个内核和函数组成的集合（类似于具有运行时链接的动态库）。
+## 2. OpenCL 程序的执行
 
-OpenCL 命令队列由主机应用程序用于将内核和数据传输函数发送到设备以执行。通过将命令排队到命令队列中，内核和数据传输函数可以异步且并行地与主机应用程序代码一起执行。
+- **内核 (Kernel)**：设备端执行的基本单元（类似 C 函数），支持两种并行模式：
+  - 数据并行
+  - 任务并行
+  
+- **程序对象**：包含多个内核和函数的集合（类似具有运行时链接的动态库）
 
-命令队列中的内核和函数可以按顺序或乱序执行。一个计算设备可以拥有多个命令队列。
+- **命令队列**：主机向设备提交命令的通道，支持特性：
+  - 顺序/乱序执行模式
+  - 支持多队列
 
 下图展示了执行OpenCL Kernel的流程：
 
@@ -46,22 +60,22 @@ OpenCL 命令队列由主机应用程序用于将内核和数据传输函数发�
 
 更详细的介绍可以参考：
 
-1. [OpenCL Guide](https://github.com/KhronosGroup/OpenCL-Guide)
+[OpenCL Guide](https://github.com/KhronosGroup/OpenCL-Guide)
 
-## 3. 主要API
+## 主要 API
 
-### 3.1 OpenCL平台
+### OpenCL 平台
 
-选择OpenCL平台是OpenCL的第一步，`clGetPlatformIDs()`这个API就是查找制定系统上的可用OpenCL平台的集合。
+选择 OpenCL 平台是 OpenCL 的第一步，`clGetPlatformIDs()` 这个 API 就是查找制定系统上的可用 OpenCL 平台的集合。
 `cl_int clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms)`
 
-- num_entries：表示OpenCL平台的索引值。设置为0，且platforms为NULL时用于查询可用的平台数
+- `num_entries`：表示 OpenCL 平台的索引值。设置为 0，且 `platforms` 为 NULL 时用于查询可用的平台数
 
-- platforms：表示平台的指针
+- `platforms`：表示平台的指针
 
-- num_platforms：表示OpenCL平台的数量，一般作为返回值
+- `num_platforms`：表示 OpenCL 平台的数量，一般作为返回值
 
-这个API一般会调用两次，用来查询和获取到对应的平台信息，使用方式如下：
+这个 API 一般会调用两次，用来查询和获取到对应的平台信息，使用方式如下：
 
 ```c
 cl_int err = 0; // 错误代码
@@ -76,7 +90,7 @@ platform = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platform); // �
 err = clGetPlatformIds(num_platform, platform, NULL); // 获取平台 ID
 ```
 
-### 3.2 OpenCL设备
+### OpenCL 设备
 
 当平台确定好之后，下一步就是查询平台上可用的设备：
 
@@ -105,19 +119,19 @@ err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, num_devices, devices, NULL); 
 
 `cl_device_type`参数描述如下：
 
-- CL_DEVICE_TYPE_CPU：将 CPU 作为 OpenCL 设备
+- `CL_DEVICE_TYPE_CPU`：将 CPU 作为 OpenCL 设备
 
-- CL_DEVICE_TYPE_GPU：GPU 设备
+- `CL_DEVICE_TYPE_GPU`：GPU 设备
 
-- CL_DEVICE_TYPE_ACCELERATOR：FPGA 设备属于加速卡类型的 OpenCL 设备，加速卡设备
+- `CL_DEVICE_TYPE_ACCELERATOR`：加速卡设备, 如 FPGA 设备（属于加速卡类型的 OpenCL 设备）
 
-- CL_DEVICE_TYPE_DEFAULT：与平台关联的默认 OpenCL 设备
+- `CL_DEVICE_TYPE_DEFAULT`：与平台关联的默认 OpenCL 设备
 
-- CL_DEVICE_TYPE_ALL：平台支持的所有 OpenCL 设备
+- `CL_DEVICE_TYPE_ALL`：平台支持的所有 OpenCL 设备
 
-### 3.3 OpenCL上下文
+### OpenCL 上下文
 
-OpenCL中上下文为了内核的正确执行，进行协调和内存管理。上下文对象可以通过`clCreateContext()`进行创建。
+OpenCL 中上下文为了内核的正确执行，进行协调和内存管理。上下文对象可以通过 `clCreateContext()` 进行创建。
 
 ```c
 // 创建 OpenCL 上下文
@@ -131,13 +145,13 @@ cl_context clCreateContext(
 );
 ```
 
-OpenCL提供了另一个API也能用来创建上下文：通过`clCreateContextFromType()`可以使用所有的设备类型（CPU、GPU和ALL）创建上下文。
+OpenCL 提供了另一个 API 也能用来创建上下文：通过 `clCreateContextFromType()` 可以使用所有的设备类型（CPU、GPU 和 ALL）创建上下文。
 
-### 3.4 OpenCL队列命令
+### OpenCL 命令队列
 
-对上下文的程序对象、内存对象、内核对象进行操作时需要借助命令队列。 命令是主机（Host）发送给设备（Devices）的消息，通知设备执行操作。每个命令队列只能管理一个设备。
+对上下文的 **程序对象**、**内存对象**、**内核对象** 进行操作时需要借助命令队列。 命令是主机（Host）发送给设备（Devices）的消息，通知设备执行操作。每个命令队列只能管理一个设备。
 
-OpenCL的`clCreateCommandQueueWithProperties()`就是用来创建命令队列，且将命令队列与一个device进行关联，其用法如下：
+OpenCL 的 `clCreateCommandQueueWithProperties()` 就是用来创建命令队列，且将命令队列与一个 device 进行关联，其用法如下：
 
 ```c
 // 创建具有特定属性的命令队列
@@ -149,21 +163,37 @@ cl_command_queue clCreateCommandQueueWithProperties(
 );
 ```
 
-### 3.5 OpenCL程序对象与内核对象
+### OpenCL 程序对象与内核对象
 
-程序对象和内核对象是OpenCL最重要的部分。程序对象就是内核的一个容器，一个程序对象可以包含多个内核对象，内核对象由程序对象创建和管理。
-一个OpenCL程序对象汇集了对应的OpenCL C内核、内核调用的函数以及常量数据。例如，一个代数解决应用中，同一个OpenCL程序对象可能包含一个向量相加内核，一个矩阵相乘的内核和一个矩阵转置的内核。
+**程序对象**和**内核对象**是 OpenCL 最重要的部分。程序对象就是内核的一个容器，一个程序对象可以包含多个内核对象，内核对象由程序对象创建和管理。
+
+一个 OpenCL 程序对象通常包括：
+- 一个或多个用 OpenCL C 编写的内核函数；
+- 所调用的辅助函数；
+- 常量数据。
+
+例如，在一个代数计算场景中，同一个程序对象可以同时包含以下三个内核：
+- 向量相加的内核
+- 矩阵相乘的内核
+- 矩阵转置的内核
+
 使用源码创建内核的步骤如下：
 
-1. 将 OpenCL C 源码存放在一个字符数组中。若源码以文件形式存于硬盘，那么需将其读入内存，并存储至一个字符数组。
+1. **准备源码：**
+将 OpenCL C 源码存放在一个字符数组中。若源码以文件形式存于硬盘，需要先读取文件内容并加载到内存中的字符数组中。
 
-2. 调用`clCreateProgramWithSource()`，通过源码可创建一个cl_program类型对象。
+2. **创建程序对象：**
+调用`clCreateProgramWithSource()`，通过源码创建一个 `cl_program` 类型的程序对象。
 
-3. 所创建的程序对象需要进行编译，编译后的内核方能在一个或多个 OpenCL 设备上运行。调用`clBuildProgram()`完成对内核的编译，若编译存在问题，该 API 会输出错误信息。
+3. **编译程序对象：**
+所创建的程序对象需要进行编译，编译后的内核方能在一个或多个 OpenCL 设备上运行。调用 `clBuildProgram()` 完成对内核的编译，若编译存在问题，该 API 会输出错误信息。
 
-4. 最后，创建`cl_kernel`类型的内核对象。调用`clCreateKernel()`，并指定对应的程序对象和内核函数名，以创建内核对象。
+4. **创建内核对象：**
+最后，创建`cl_kernel`类型的内核对象。调用`clCreateKernel()`，并指定对应的程序对象和内核函数名，以创建内核对象。
 
-内核对象的本质是一个函数（有参数和返回值，需要使用内存对象进行传入传出），可以在OpemCL设备上运行。一个向量相加的内核源码示例：
+内核对象本质上是一个函数。它具有参数和返回值，需要通过内存对象进行传入和传出。该函数可以在 OpenCL 设备上运行。
+
+**向量相加的内核源码示例：**
 
 ```c
 // Perform an element-wise addition of A and B and store in C.
@@ -175,7 +205,7 @@ void vecadd(__global int *C, __global int *A, __global int *B){
 }
 ```
 
-创建一个程序对象：
+**创建一个程序对象：**
 
 ```c
 cl_program clCreateProgramWithSource(
@@ -187,7 +217,7 @@ cl_program clCreateProgramWithSource(
     )
 ```
 
-编译程序对象：
+**编译程序对象：**
 
 ```c
 @return 编译的程序对象 */
@@ -201,11 +231,11 @@ cl_int clBuildProgram(
     )
 ```
 
-创建一个内核对象
+**创建一个内核对象：**
 
 ```c
 @return 创建的内核对象 */
-cl_kerenl
+cl_kernel
 clCreateKernel(
   cl_program program,  //要创建内核的程序对象
   const char *kernel_name,  //内核的名称，即为内核函数名称
@@ -213,10 +243,17 @@ clCreateKernel(
   )
 ```
 
-### 3.6 OpenCL内存对象
+### OpenCL 内存对象
 
-OpenCL内核通常需要对输入和输出数据进行分类（例如，数组或多维矩阵）。程序执行前，需要保证输入数据能够在设备端访问到。为了将数据转移到设备端，则需要开辟相应大小的空间，以及将开辟的空间封装成一个内存对象。OpenCL定义了三种内存类型：数组、图像和管道。
-Buffer类型（数组）中的数据在内存上是连续的，这种类型可以在设备端以指针的方式使用。`clCreateBuffer()`可以为这种类型的数据分配内存，并返回一个内存对象。
+OpenCL 内核通常需要对输入和输出数据进行分类（例如，数组或多维矩阵）。
+程序执行前，需要保证输入数据可在设备端访问。为了将数据转移到设备端：
+1. 在设备端开辟足够的空间；
+2. 将空间封装成内存对象，以便内核访问。
+
+OpenCL 定义了三种内存类型：**数组**、**图像** 和 **管道**。
+
+**Buffer 创建**
+Buffer 类型（数组）中的数据在内存上是连续的，这种类型可以在设备端以指针的方式使用。`clCreateBuffer()` 可以为这种类型的数据分配内存，并返回一个内存对象。
 
 ```c
 cl_mem clCreateBuffer(
@@ -227,7 +264,14 @@ cl_mem clCreateBuffer(
     cl_int *errcode_ret) // 错误代码返回指针，如果为 NULL，则不返回错误代码
 ```
 
-与调用C函数不同，我们不能直接将参数赋予内核函数的参数列表中。执行一个内核需要通过一个入队函数进行发布。由于核内的语法为C，且内核参数具有持续性(如果我们只改变参数里面的值，就没有必要再重新进行赋值)。OpenCL中提供`clSetKernelArg()`对内核的参数进行设置。
+**内核参数设置**
+
+与 C 函数不同，OpenCL 内核的参数不能直接写在参数列表中。
+执行内核时，参数需要通过入队函数进行传递。
+
+> **注意：** 内核语法基于 C，且参数具有**持续性**。这意味着如果只修改参数内容（而不是重新绑定新的内存对象），就无需再次调用设置函数。
+
+在 OpenCL 中，可使用 `clSetKernelArg()` 来设置内核的参数。
 
 ```c
 cl_int clSetKernelArg(
@@ -237,9 +281,16 @@ cl_int clSetKernelArg(
     const void* arg_value)  // 参数值的地址
 ```
 
-### 3.7 OpenCL内核执行与错误处理
+### OpenCL 内核执行与错误处理
 
-调用`clEnqueueNDRangeKernel()`会入队一个命令道命令队列中，其是内核执行的开始。命令队列被目标设备指定。内核对象标识了哪些代码需要执行。内核执行时，有四个地方与工作项创建有关。work_dim参数指定了创建工作项的维度(一维，二维，三维)。global_work_size参数指定NDRange在每个维度上有多少个工作项，local_work_size参数指定NDRange在每个维度上有多少个工作组。global_work_offset参数可以指定全局工作组中的ID是否从0开始计算。
+调用 `clEnqueueNDRangeKernel()` 会将一个命令入队到命令队列中，这是内核执行的起点。
+命令队列由目标设备指定，内核对象则决定具体执行的代码。
+
+在内核执行过程中，工作项的创建涉及以下四个参数：
+- `work_dim`：指定工作项的维度（一维、二维或三维）。
+- `global_work_size`：指定 NDRange 在每个维度上的工作项数量。
+- `local_work_size`：指定 NDRange 在每个维度上的工作组数量。
+- `global_work_offset`：指定全局工作项 ID 的起始偏移量（是否从 0 开始计算）。
 
 ```c
 // 函数：将内核函数排入命令队列
@@ -292,15 +343,23 @@ clReleaseContext(context);  //释放上下文对象
 
 3. [The OpenCL™ Specification](https://registry.khronos.org/OpenCL/specs/3.0-unified/html/OpenCL_API.html)
 
-## 4. OpenCL Demo
+## OpenCL Demo
 
-### 4.1 简介
+### 简介
 
-bianbu-linux 上的源码位置：xxx/bianbu-linux/package-src/k1x-gpu-test/openCLDemo
+在 **bianbu-linux** 系统中，Demo 源码位置为：
 
-bianbu-desktop 上可以安装 k1x-gpu-test 来获取相关demo：`sudo apt install k1x-gpu-test`
+```
+xxx/bianbu-linux/package-src/k1x-gpu-test/openGLDemo
+```
 
-目录结构如下：
+在 **bianbu-desktop** 系统中，可以通过以下命令安装 k1x-gpu-test 以获取相关 Demo：
+
+```bash
+sudo apt install k1x-gpu-test
+```
+
+Demo 的目录结构如下：
 
 ```c
 .
@@ -311,7 +370,7 @@ bianbu-desktop 上可以安装 k1x-gpu-test 来获取相关demo：`sudo apt inst
 0 directories, 3 files
 ```
 
-### 4.2 编译 & 运行
+### 编译 & 运行
 
 ```bash
 sudo apt install opencl-headers ocl-icd-opencl-dev #安装依赖
@@ -320,7 +379,13 @@ cmake .
 make -j
 ```
 
-编译完成后会在当前目录下生成 gpu-addDemo 文件，直接运行即可：`./gpu-addDemo`。如需安装，可在当前目录（即源码目录）下执行`make install`命令，会自动将可执行文件安装到 /usr/local/bin/ 目录下，安装完成后可在终端直接运行：`gpu-addDemo`。正确的运行结果如下图所示：
+编译完成后会在当前目录下生成 `gpu-addDemo` 文件，直接执行即可：
+
+```bash
+./gpu-addDemo
+```
+
+如需安装，可在当前目录（即源码目录）下执行 `make install` 命令，会自动将可执行文件安装到 ·/usr/local/bin/· 目录下，安装完成后可在终端直接运行：`gpu-addDemo`。正确的运行结果如下所示：
 
 ```shell
 65024.000000 65028.000000 65032.000000 65036.000000 65040.000000 65044.000000 65048.000000 65052.000000 65056.000000 65060.000000 65064.000000 65068.000000 65072.000000 65076.000000 65080.000000 65084.000000 65088.000000 65092.000000 65096.000000 65100.000000 65104.000000 65108.000000 65112.000000 65116.000000 65120.000000 65124.000000 65128.000000 65132.000000 65136.000000 65140.000000 65144.000000 65148.000000 65152.000000 65156.000000 65160.000000 65164.000000 65168.000000 65172.000000 65176.000000 65180.000000 65184.000000 65188.000000 65192.000000 65196.000000 65200.000000 65204.000000 65208.000000 65212.000000 65216.000000 65220.000000 65224.000000 65228.000000 65232.000000 65236.000000 65240.000000 65244.000000 65248.000000 65252.000000 65256.000000 65260.000000 65264.000000 65268.000000 65272.000000 65276.000000 65280.000000 65284.000000 65288.000000 65292.000000 65296.000000 65300.000000 65304.000000 65308.000000 65312.000000 65316.000000 65320.000000 65324.000000 65328.000000 65332.000000 65336.000000 65340.000000 65344.000000 65348.000000 65352.000000 65356.000000 65360.000000 65364.000000 65368.000000 65372.000000 65376.000000 65380.000000 65384.000000 65388.000000 65392.000000 65396.000000 65400.000000 65404.000000 65408.000000 65412.000000 65416.000000 65420.000000 65424.000000 65428.000000 65432.000000 65436.000000 65440.000000 65444.000000 65448.000000 65452.000000 65456.000000 65460.000000 65464.000000 65468.000000 65472.000000 65476.000000 65480.000000 65484.000000 65488.000000 65492.000000 65496.000000 65500.000000 65504.000000 65508.000000 65512.000000 65516.000000 65520.000000 65524.000000 65528.000000 65532.000000
@@ -329,9 +394,9 @@ End time: 1732783455 sec, 699529 usec
 Calculate time for 102400000 addition operations: 218847 us
 ```
 
-### 4.3添加Demo
+### 添加Demo
 
-如果增加一个名为 testDemo.c 的文件，并希望编译得到名为 testDemo 的可执行文件，可按以下示例修改CMakeLists.txt
+如果增加一个名为 `testDemo.c` 的文件，并希望编译得到名为 testDemo 的可执行文件，可按以下示例修改 `CMakeLists.txt`
 
 ```CMake
 # 定义 OpenCL 版本为 300
@@ -354,13 +419,13 @@ testDemo #安装新的可执行文件
 DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 ```
 
-然后再次执行`make -j`即可。
+然后再次执行 `make -j` 即可。
 
-## 5. 其它
+## 其它
 
-### 5.1 kernel中使用printf
+### Kernel 中使用 `printf`
 
-由于GPU的硬件限制，使用OpenCL的printf时，其buffer最大约为360,000 Bytes。在 openCL kernel 中使用 printf 函数时，需要添加转义字符 “\”，如下：
+由于 GPU 的硬件限制，OpenCL 中的 `printf` 缓冲区最大约为 **360,000 Bytes**。在 OpenCL Kernel 中使用 `printf` 函数时，需要在字符串中加入转义字符 `\`，如下：
 
 ```c
 const char *programSource =
@@ -376,4 +441,4 @@ const char *programSource =
 
 ```
 
-如使用外部 xxx.cl 文件导入的方式，则无需添加转义字符。
+如果通过外部 `xxx.cl` 文件导入源码，则无需添加转义字符。

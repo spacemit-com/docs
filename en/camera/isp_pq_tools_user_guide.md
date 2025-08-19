@@ -295,7 +295,7 @@ The LSC calibration interface is shown below:
 - **Channel ID**: 
   - `0`: Low color temperature compensation table
   - `1`: Medium color temperature compensation table
-  - 2: High color temperature compensation table
+  - `2`: High color temperature compensation table
   - **manual**: Effective when **manual mode** is enabled; in this mode, LSC does not adjust with color temperature changes.
 
 #### Notes on LSC Tuning
@@ -362,7 +362,7 @@ The CCM calibration interface is shown below:
 - **Channel ID**: 
   - `0`: Low color temperature CCM parameters
   - `1`: Medium color temperature CCM parameters
-  - 2: High color temperature CCM parameters
+  - `2`: High color temperature CCM parameters
   - **manual**: Effective when **manual mode** is enabled; CCM does not adjust with color temperature changes.
 - **Make DNG Profile**: reserved
 - **UpdateCTMatrix**: Update the CCT matrix
@@ -581,7 +581,7 @@ The calibration interface is shown in the figure below:
 - **Channel ID**: 
   - `0`: Denoise parameters at 1× gain.
   - `1`: Denoise parameters at 2× gain.
-  - And so on, up to 1`1`: Denoise parameters at 2048× gain.
+  - And so on, up to `11`: Denoise parameters at 2048× gain.
   - **manual**: Denoise parameters used in manual mode.
 
 ### PDAF Calibration
@@ -1644,7 +1644,7 @@ CAECFilter (AEC) module is used for Auto Exposure Control.
 | m_pSatRefBin           | Saturation reference bin; Target constrained to histogram pixels ratio in range [m_pSatRefBin[0], 255] falling within [m_pSatRefPerThr[0][0]/10000%, m_pSatRefPerThr[0][1]/10000%] | Yes    |            |
 | m_pSatRefPerThr        | Saturation ratio upper and lower limits                                                                                          | Yes               |                       |
 | m_pExpIndexThre        | Exposure threshold, corresponds to 4 groups of m_pLumaBlockWeight, used to select which group participates in weight calculation (see Exp_index-luma_weight diagram) | User setting      |             |
-| m_pLumaBlockWeight     | Four groups of luminance block weight tables, each group:   Weight[i][0]: low luminance   Weight[i][1]: mid luminance   Weight[i][2]: high luminance (see Exp_index-luma_weight and Luma-Weight diagrams) | User setting    |             |
+| m_pLumaBlockWeight     | Four groups of luminance block weight tables, each group:   Weight[i]`0`: low luminance   Weight[i]`1`: mid luminance   Weight[i][2]: high luminance (see Exp_index-luma_weight and Luma-Weight diagrams) | User setting    |             |
 | m_pLumaBlockThre       | Luminance block threshold, controls weight curve of luminance blocks (see Luma-Weight diagram)                                    | User setting     |                       |
 | m_pLuma7ZoneWeight     | Weight table for statistics window and 6 sub-ROIs                                                                                 | User setting     |                       |
 | m_pTargetRange         | Target brightness range                                                                                                           | Yes              |                       |
@@ -1759,10 +1759,10 @@ PixelNumPercent–DRCGainDark Illustration:
 | m_pTotalGainDBShort      | Reserved                                                                                          | -                          | Read-only |
 | m_nCurHdrRatio           | Reserved                                                                                          | -                          | Read-only |
 | m_nHistPixelNum          | Number of pixels used in histogram statistics                                                     | -                          | Read-only |
-| m_pMeanLuma              | AE calculated brightness   [0]: long   [1]: Reserved                                    | -                          | Read-only |
-| m_pTargetLuma            | AE target brightness   [0]: long   [1]: Reserved                                        | -                          | Read-only |
+| m_pMeanLuma              | AE calculated brightness   `0`: long   `1`: Reserved                                    | -                          | Read-only |
+| m_pTargetLuma            | AE target brightness   `0`: long   `1`: Reserved                                        | -                          | Read-only |
 | m_pLuma7Zone             | AE main and 6 sub-window luma                                                                     | -                          | Read-only |
-| m_pAERouteNum            | AE exposure node   [0]: long   [1]: Reserved                                            | -                          | Read-only |
+| m_pAERouteNum            | AE exposure node   `0`: long   `1`: Reserved                                            | -                          | Read-only |
 | m_pRouteNodeLong         | Long frame exposure table                                                                         | -                          | Read-only |
 | m_pADNodeLong            | Sensor analog and digital gain allocation table                                                   | -                          | Read-only |
 | m_pLumaMatrixLong        | Luma thumbnail                                                                                    | -                          | Read-only |
@@ -1771,13 +1771,13 @@ PixelNumPercent–DRCGainDark Illustration:
 | m_pADNodeShort           | Reserved                                                                                          | -                          | Read-only |
 | m_pLumaMatrixShort       | Reserved                                                                                          | -                          | Read-only |
 | m_pHistShort             | Reserved                                                                                          | -                          | Read-only |
-| m_pRefSaturateNum        | Reference overexposed pixel count   [0]: long   [1]: Reserved                           | -                          | Read-only |
-| m_pCurSaturateNum        | Current overexposed pixel count   [0]: long   [1]: Reserved                             | -                          | Read-only |
-| m_pEstSaturateNum        | Estimated overexposed pixel count when brightness reaches upper limit   [0]: long   [1]: Reserved | -                | Read-only |
+| m_pRefSaturateNum        | Reference overexposed pixel count   `0`: long   `1`: Reserved                           | -                          | Read-only |
+| m_pCurSaturateNum        | Current overexposed pixel count   `0`: long   `1`: Reserved                             | -                          | Read-only |
+| m_pEstSaturateNum        | Estimated overexposed pixel count when brightness reaches upper limit   `0`: long   `1`: Reserved | -                | Read-only |
 | m_pAdjustRatio           | AE adjustment ratio                                                                               | -                          | Read-only |
-| m_pStableFlag            | AE stability flag   [0]: long   [1]: Reserved                                           | -                          | Read-only |
-| m_pStableFlagBuf         | AE frame sequence stability flag   [0]: long   [1]: Reserved                            | -                          | Read-only |
-| m_pUnStableFlagBuf       | AE frame sequence instability flag   [0]: long   [1]: Reserved                          | -                          | Read-only |
+| m_pStableFlag            | AE stability flag   `0`: long   `1`: Reserved                                           | -                          | Read-only |
+| m_pStableFlagBuf         | AE frame sequence stability flag   `0`: long   `1`: Reserved                            | -                          | Read-only |
+| m_pUnStableFlagBuf       | AE frame sequence instability flag   `0`: long   `1`: Reserved                          | -                          | Read-only |
 | m_nDRCGain               | DRCGain result of AE calculation for current frame                                                | -                          | Read-only |
 | m_nDRCGainDark           | DRCGainDark result of AE calculation for current frame                                            | -                          | Read-only |
 
