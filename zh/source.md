@@ -18,9 +18,19 @@ sidebar_position: 1.5
 
 ### 操作系统
 
-推荐Ubuntu 20.04或更新LTS版本，其他Linux发行版本没有测试。
+- Bianbu Linux 2.2.7或之后的版本
+
+  推荐Ubuntu 20.04或更新LTS版本，或支持Docker的Linux发行版
+
+- Bianbu Linux 2.2.6或之前的版本
+
+  推荐Ubuntu 20.04或更新LTS版本，其他Linux发行版本没有测试。
 
 ### 安装依赖
+
+Bianbu Linux 2.2.7或之后的版本默认支持在容器里编译，因此只需要[安装Docker CE](https://docs.docker.com/engine/install/)。
+
+如果直接在主机上编译，按以下指南安装依赖
 
 Ubuntu 16.04 and 18.04:
 
@@ -152,6 +162,11 @@ your choice (1-5):
 ```
 
 编译Bianbu Linux 2.x版本，输入`5`，然后回车即开始编译。
+
+注意：自Bianbu Linux 2.2.7 开始
+
+1. 默认在容器中构建。如需在宿主机上构建，请配置环境变量 `export DIRECT_BUILD=1`，切换容器中构建和宿主机构建时需要清理output目录。
+2. 新增一组命令。与旧命令不兼容，如需使用新命令，需删除项目根目录下旧命令生成的env.mk文件，之后可用`make help`查看新命令列表，如可使用`make k1_v2-build`直接编译指定方案。
 
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
 
