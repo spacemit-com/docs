@@ -349,7 +349,7 @@ Bpftrace是基于eBPF技术的高阶追踪语言，专为Linux系统实时诊断
 | tracepoint | 静态跟踪点 | tracepoint:syscalls:sys_enter_openat |
 | interval | 定时触发 | interval:s:5（每5秒） |
 ##### Kprobe
-#####配置  
+###### 配置  
 ```
 CONFIG_KPROBES
 CONFIG_HAVE_KPROBES
