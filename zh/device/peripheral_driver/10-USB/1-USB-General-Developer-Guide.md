@@ -7,8 +7,6 @@
 
 ## 模块介绍
 
-USB 全称 Universal Serial Bus（通用串行总线），是一种新兴的并逐渐取代其他接口标准的数据通信方式，由 Intel、 Compaq、 Digital、 IBM、 Microsoft、 NEC 及 Northern Telecom 等计算机公司和通信公司于 1995 年联合制定，并逐渐形成了行业标准。
-
 K1 共有三个 USB 控制器，分别为 :
 - USB2.0 OTG（ USB0 ）
 - USB2.0 Host（ USB1 ）
@@ -1056,6 +1054,30 @@ DTS 示例：
 };
 ```
 
+## USB PHY 配置介绍
+
+K1 中的 USB 主要有两个 PHY，一个是 USB2.0 UTMI PHY，
+一个是 USB3.0 SuperSpeed/PCIE Combo PIPE3 PHY。
+
+SpacemiT 发布 SDK 时，各个 PHY 驱动已包含调优过的最佳参数，通常不需要进行二次调整。
+
+如果基于 K1 开发的 PCB 上遇到，存在测试眼图失败，或者遇到其他的 USB 外设兼容性问题、 
+K1 作为 Device 连接到 PC 的兼容性问题，请联系 SpacemiT 获取帮助。
+
+下面介绍一些有限的可调整的 PHY 参数，注意在不清楚参数的影响时，请不要自行调节，
+有问题请联系 SpacemiT 技术支持！
+
+### USB3.0 SuperSpeed PIPE3 PHY
+
+- lfps-threshold：可以在 DTS 中的 combphy 节点配置。默认值为 0x3 ，已经是调优值。
+   该参数会影响 USB3.0 SuperSpeed PIPE3 PHY 对 LFPS 检测信号的电平阈值。如果在 M1 升压超频时
+   遇到 USB 3.0 LFPS 识别问题（需要使用链路分析仪如力科 USB 协议分析仪分析），
+   可以根据实际情况尝试调整到 2 。如果测试波形时，遇到 LFPS 频繁失败，也可能需要调整。
+
+### USB2.0 UTMI PHY
+
+暂无。
+
 ## 日志分析
 
 本章节的分析基于 Linux-6.6 系统在 K1 开发板的内核日志。
@@ -1544,6 +1566,66 @@ USB Host 针对 USB 外设可以通过第三方工具完成性能和功能测试
 - USB Video Class Gadget (Webcam): guvcview, amcap(Windows), potplayer(Windows).
 
 其他 Gadget 的测试方法参考 USB Gadget 开发指南 文档。
+
+## 性能分析
+
+### 影响 USB 传输速率因素
+
+主要有几种因素会影响 USB 传输速率：
+
+1. 协议本身支持的速率限制：如 USB Storage 的 Bulk Only 协议在协议开销上比 UAS 协议开销更多，导致 USB 3.0 总线上最大速率不如后者；
+   又如 ISOC 协议本身需要保证实时性稳定占用总线带宽，协议规定了最大可占用的带宽大小。
+
+2. CPU 频率、内存带宽的性能： USB 传输很大一部分流程依赖 CPU 参与，建议使用 K1 需要高频率使用 USB 的场景，以最高频率运行；以及涉及大量内存的拷贝操作。如果使用场景涉及其他大量内存操作的模块（或者类似应用程序大量进行内存访问），可以尝试调整内存总线访问优先级 QOS。
+
+3. 存储介质：如 USB 存储设备，不同 FLASH、 SSD 作为介质，其读写最大速率会参差不齐。
+
+4. 链路稳定性： USB 3.0 链路有自我恢复机制，对于信号质量差的情况，可能并不会反应错误到上层，但是可能出现频繁重传、链路恢复等影响传输性能。
+
+### USB Host 传输性能分析
+
+#### USB 存储设备速率分析
+
+USB 存储设备特别要注意介质本身性能的影响， USB 3.0 设备还要留意是采用普通 Mass Storage 协议还是 UAS 协议（可以通过 debugfs 查看绑定的相关驱动是 `usb-storage` 还是 `uas`）。
+
+使用 fio 测试，需要关闭缓存（建议直接测试裸读写块设备），并且要使用顺序测试，才能测出 USB 硬件的最大值。
+
+常用的 fio 测试命令：
+
+```
+fio -name=seq -rw=read -bs=512k -size=8G -numjobs=1 -iodepth=32 -group_reporting -direct=1 -ioengine=libaio -filename=/dev/sda
+```
+
+K1 的不同控制器性能在上面章节中已列出。
+
+#### USB UVC 摄像头性能分析
+
+K1 已经测试的各控制器支持的 USB Camera（ ISOC 传输）的最大速率：
+
+| 总线 | ISOC 最高速率 |
+| :-----| :----|
+| USB 2.0| 23.4375MBps（协议最大） |
+| USB 3.0 |  351MBps |
+
+使用 ISOC 传输视频数据的帧率稳定对系统各部分性能延迟要求较高，如果同时还涉及其他大量内存操作的模块（或者类似应用程序大量进行内存访问），可以尝试调整内存总线访问优先级 QOS。
+
+#### USB 网卡性能分析
+
+网卡性能通常采用 iperf3 进行测试，目前 K1 上：
+
+- USB 2.0 Host 各类百兆网卡基本达到 90~100Mbps
+- USB 2.0 Host 各类千兆网卡基本达到 200~300Mbps
+- USB 3.0 Host 各类千兆网卡可以达到 600~900Mbps
+- USB 3.0 Host 2.5G 网卡可以达到 1600Mbps 到 2000Mbps 左右。
+
+3.18 版本或更新的 iperf3 支持 bidirectional 测试，可以测试同时收发的性能。
+
+USB 网卡的性能和各个厂家驱动优化、 CPU 性能等都有关系，需要具体分析。
+
+由于网络还涉及协议栈 softirq 等的处理，可能和 USB 中断处理共享系统资源，
+对于怀疑是否此因素 CPU 性能导致，可以尝试 iperf3 通过 -A 参数绑定核心到非 0 核，启用 rx queue rps、开启 threaded 等方式尝试是否会提高性能。
+
+另外可以通过 ifconfig 和 tcpdump 工具，确认重传率等参数，可能的原因有：系统性能不足导致协议层丢包、 USB 信号质量。
 
 
 ## FAQ
