@@ -37,7 +37,7 @@ The SpacemiT K1 features a wide range of IO capabilities, integrating multiple s
 High-Speed Expansion Interface Drivers
 - [GMAC](09-GMAC.md)
 - [EtherCAT](22-EtherCAT.md)
-- [USB](10-USB.md)  
+- [USB](10-USB/index.md)  
 - [PCIe](11-PCIe.md)
 
 Audio/Video Interface Drivers
