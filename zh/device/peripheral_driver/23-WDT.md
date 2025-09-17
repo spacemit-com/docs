@@ -116,7 +116,7 @@ PWM通过sysfs提供给用户层一个非编程的使用方法，可以依据上
 
 ```sh
 # cd /sys/class/pwm/
-# ls # 每个节点代表一组pwm
+# ls # 每个节点代表一个led灯
 pwmchip0  pwmchip1  pwmchip2  pwmchip3  pwmchip4  pwmchip5  pwmchip6
 
 # echo 0 > pwmchip0/export
