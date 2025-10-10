@@ -1,9 +1,9 @@
-# File System Guide
+# Linux 文件系统排查指南
 
-## Linux Storage Stack
+## Linux 存储堆栈
 
-图片是Linux存储栈一般分为3层：**文件系统层**，**块层**，**设备层**。  
-下图展示了存储栈的结构，并使用不同颜色区分各组成部分： 
+图片是 Linux 存储栈一般分为 3 层：**文件系统层**，**块层**，**设备层**。  
+下图展示了存储栈的结构，并使用不同颜色区分各组成部分：
 - **天蓝色：** 硬件存储设备，K1 涉及到的 mmc、SD、U 盘、SSD、SATA 硬盘  
 - **橙色：** 传输协议层  
 - **蓝色：** Linux 系统中的设备文件
@@ -12,10 +12,11 @@
 - **黄色：** I/O调度策略（noop、deadline、CFQ）  
 - **绿色：** Linux 文件系统  
 - **蓝绿色：** Linux Storage 操作的基本数据结构 BIO  
-![](static/Linux-Storage-Stack.png) 
+
+![](static/Linux-Storage-Stack.png)
 上述图片来源：Thomas-Krenn AG，[来源链接](https://www.thomas-krenn.com/de/wikiDE/images/e/e8/Linux-storage-stack-diagram_v6.9.png)，版权声明：本图仅用于技术说明，版权归原作者所有
 
-## Linux回写
+## Linux 回写
 
 由于硬盘读写速度远低于内存，为了避免每次文件操作都直接访问硬盘，Linux 内核采用 **页缓存（Page Cache）机制** 来缓存文件数据。
 
@@ -25,7 +26,7 @@
 数据回写有两种方式：
 
 - **主动同步回写**
-- **异步后台回写** 
+- **异步后台回写**
 
 ### 主动同步回写
 
@@ -40,7 +41,7 @@
 | `flush` | 用于 **C 库的缓存**刷入内核 |
 | `fdatasync` | 确保**单个文件的数据回写**，追求更高性能，也就是涉及到**文件属性不保证回写**，包括文件最后修改时间属性等 |
 | `fsync` | 仅用于**回写单个文件**，从内核 Cache 刷入磁盘，包括文件的数据和所有属性 |
-| sync |确保**整个系统缓冲区（脏页）排入写入队列**，调用后立即返回 |
+| `sync` |确保**整个系统缓冲区（脏页）排入写入队列**，调用后立即返回 |
 
 ### 被动回写
 
@@ -48,12 +49,13 @@ Linux 内核会周期性触发异步回写线程，步骤如下：
 **Step 1:** 内核按 `dirty_writeback_centisecs` 的时间间隔唤醒回写线程  
 **Step 2:** 回写线程会遍历 Page Cache 寻找那些被标记为**脏的时间**超过  `dirty_expire_centisecs` 的页面，并全部回写  
 **Step 3:** 回写线程接着会判断**脏数据总量**是否超过 `dirty_background_ratio`（单位是百分比）或 `dirty_background_bytes`，如果超过则回写所有脏数据  
-**Step 4:** 回写线程等待下次唤醒周期 
+**Step 4:** 回写线程等待下次唤醒周期
 
 #### 相关配置参数  
+
 | 配置文件 | 功能 | 默认值 |
 | :-----| :----| :----|
-| `dirty_background_ratio` | 脏页总数占可用内存的百分比阈值，超过后唤醒回写线程 | 10 | 
+| `dirty_background_ratio` | 脏页总数占可用内存的百分比阈值，超过后唤醒回写线程 | 10 |
 | `dirty_background_bytes` | 脏页总量阈值，超过后唤醒回写线程 | 0 |
 | `dirty_ratio`| 脏页总数占可用内存的百分比阈值，超过后pause进程 | 20 |
 | `dirty_bytes` | 脏页总量阈值，超过后pause进程 | 0 |  
@@ -61,12 +63,13 @@ Linux 内核会周期性触发异步回写线程，步骤如下：
 | `dirty_writeback_centisecs` | 回写进程定时唤醒时间（单位：1/100s） | 500 |  
 
 ## Linux 数据预读
+
 预读分为 **同步预读** 和 **异步预读**。
 
 在 Linux 系统中，默认情况下不管是用户态调用 `read`，还是内核态调用 `vfs_read`，都会触发数据预读，即提前将一部分数据加载到 **Page Cache** 中。
 
 1. **顺序读加速：** 通过扩大预读窗口(`ra->size`)，逐步增加预读量，典型场景如日志文件读取  
-2. **随机读抑制：** 当检测到非连续访问模式时，会自动收缩预读窗口   
+2. **随机读抑制：** 当检测到非连续访问模式时，会自动收缩预读窗口
 
 查看默认预读大小（单位：512B扇区）  
 
@@ -86,7 +89,9 @@ cat /sys/block/sda/queue/read_ahead_kb
 源码地址：[https://github.com/axboe/fio](https://github.com/axboe/fio)
 
 可以自行下载源码并编译，或者在OS上自行安装，bian-linux默认已集成该工具  
+
 #### 常用参数
+
 - time
 ```
 runtime=time
@@ -95,7 +100,7 @@ runtime=time
 time_based
 如果设置，即使文件被完全读取或写入，fio也将在指定的运行期间运行。它会在runtime准许时间内多次循环相同的工作负载。一般用于读写老化场景
 
- ```
+```
 - I/O tpye
 ```
 direct=bool
@@ -176,7 +181,7 @@ zero_buffers
 group_reporting
  关于显示结果的，汇总每个进程的信息。
  ```
-- Vertify 
+- Vertify
 
 建议一般做读写老化过程中打开
 ```
@@ -186,10 +191,10 @@ verify_dump=1          # dump错误数据
 verify_state_save=1    # 保存验证状态
 do_verify=1            # 写入后立即验证
 ```
- 
-#### 使用示例 
 
-**测试读写速度**   
+#### 使用示例
+
+**测试读写速度**
 ```bash
 Test write speed io:
 
@@ -203,10 +208,11 @@ Test read and write speed io:
 
 fio --name=rw_test --filename=/path/to/testfile --size=1G --bs=4k --rw=randrw --rwmixread=70 --ioengine=libaio --direct=1 --numjobs=1 --runtime=60 --group_reporting
 ```
-**测试读写老化，并进行数据校验** 
+**测试读写老化，并进行数据校验**
 ```bash
 fio --name=randrw_test --filename=/dev/mmcblk2p6 --rw=randrw --rwmixread=70 -rwmixwrite=30 --bs=4k --size=1G --ioengine=libaio --direct=1 --numjobs=1 -runtime=24h -time_based --iodepth=32 --verify=crc32c --verify_fatal=1 --group_reporting
 ```
+
 ### dd
 
 用于快速测试顺序读写性能  
@@ -225,6 +231,7 @@ sudo sh -c 'sync && echo 3 > /proc/sys/vm/drop_caches'
 ```
 随机测试  
 dd命令的随机测试一般是通过 bs=4k 去模拟实际场景中的小块数据写入读出  
+
 ## 性能问题分析工具
 
 ### 应用层常用工具
@@ -239,18 +246,19 @@ iostat [选项] [时间间隔] [次数]
 ```
 
 ##### 常见参数
-| 参数 | 说明 | 
-| :-----| :----| 
-| `-c` | 只显示CPU利用率报告 | 
+
+| 参数 | 说明 |
+| :-----| :----|
+| `-c` | 只显示CPU利用率报告 |
 | `-d` | 只显示设备（磁盘）利用率报告 |
 | `-x` | 显示扩展的I/O统计信息（非常关键！），提供更详细的指标，如 await, svctm, util 等 |
 | `-k` | 以 KB/s 为单位显示数据（而非默认的块/s） |  
 | `-m` | 以 MB/s 为单位显示数据 |
-| `-p` | 显示块设备及其所有分区的统计信息。-p ALL 显示所有设备分区 | 
+| `-p` | 显示块设备及其所有分区的统计信息。-p ALL 显示所有设备分区 |
 | `-t` | 在输出中显示时间戳 |
 | `-y` | 跳过首次报告（系统启动以来的平均统计），直接显示间隔后的数据 |  
 | `-h` | 以人类可读的格式（自动格式化单位） |
-| `-z` | 省略在采样期间无活动的设备 | 
+| `-z` | 省略在采样期间无活动的设备 |
 
 ##### 使用示例
 
@@ -267,7 +275,7 @@ nvme0n1         38.22   1527.17    11.46  23.07    0.25    39.96    6.44     55.
 #### strace
 
 **用途：** 追踪进程产生的所有系统调用，包括参数、返回值和执行消耗时间  
-**适用场景：** 程序意外退出、程序运行缓慢、进程阻塞 
+**适用场景：** 程序意外退出、程序运行缓慢、进程阻塞
 
 ##### 常用参数
 
@@ -295,7 +303,8 @@ strace从内核接受信息，不需要以任何特殊的方式来构建内核
 ```
 
 #### lsof
-lsof(list open files)是一个查看当前系统文件的工具。在linux环境下，任何事物都以文件的形式存在。 
+
+lsof(list open files)是一个查看当前系统文件的工具。在linux环境下，任何事物都以文件的形式存在。
 
 ##### 常见参数
 
@@ -332,9 +341,9 @@ lsof –p  4838
 lsof –i @192.168.34.128
 ```
 
-### 内核性能工具 
+### 内核性能工具
 
-#### Blktrace 
+#### Blktrace
 
 Blktrace 提供 I/O 子系统的详细时间消耗信息，例如判断慢是出在 IO 调度还是硬件响应。
 配套工具：
@@ -353,7 +362,7 @@ CONFIG_BLK_DEV_IO_TRACE=y
 
 | 参数 | 作用 | 示例 |
 | :-----| :----| :----|
-| `-w <秒>` | 设置采集时长 | blktrace -d /dev/sda -w 10 | 
+| `-w <秒>` | 设置采集时长 | blktrace -d /dev/sda -w 10 |
 | `-a <事件>` | 过滤事件类型（如read,write） | blktrace -d /dev/sda -a read |
 | `-o <前缀>` | 自定义输出文件名 | blktrace -d /dev/sda -o mylog |
 
@@ -395,7 +404,7 @@ IO 请求生成（Q）→ 进入块层（G）→ 插入调度队列（I）→ �
 
 #### Bpftrace
 
-Bpftrace是基于eBPF技术的高阶追踪语言，专为Linux系统实时诊断设计。其核心优势包括： 
+Bpftrace是基于eBPF技术的高阶追踪语言，专为Linux系统实时诊断设计。其核心优势包括：
 
 - **动态探针：** 支持内核/用户态函数无重启挂钩
 - **低开销：** 通过 eBPF 验证器确保安全执行
@@ -418,7 +427,7 @@ Bpftrace是基于eBPF技术的高阶追踪语言，专为Linux系统实时诊断
 
 | 类型 | 描述 | 示例 |
 | :-----| :----| :----|
-| kprobe | 内核函数入口 | kprobe:vfs_read | 
+| kprobe | 内核函数入口 | kprobe:vfs_read |
 | uprobe | 过滤事件类型（如read,write） | uprobe:/bin/bash:readline |
 | tracepoint | 静态跟踪点 | tracepoint:syscalls:sys_enter_openat |
 | interval | 定时触发 | interval:s:5（每 5 秒执行一次） |
@@ -434,6 +443,7 @@ CONFIG_KPROBE_EVENTS
 ```
 
 ###### 使用示例
+
 **获取函数的偏移**
 
 ```bash
@@ -469,7 +479,7 @@ END {
     printf("\nSys_read execution time distribution (us):\n");
     print(@times);
 }
-``` 
+```
 
 ##### Uprobe
 
@@ -508,16 +518,16 @@ example: duration at 1 is 1000382292
 ```bash
 # 跟踪文件打开操作（含进程名和文件名）
 bpftrace -e 'tracepoint:syscalls:sys_enter_openat { printf("%s -> %s\n", comm, str(args.filename)); }
-``` 
+```
 
 **系统调用统计**
 
 ```bash
-按进程统计系统调用次数 
+# 按进程统计系统调用次数 
 bpftrace -e 'tracepoint:raw_syscalls:sys_enter { @[comm] = count(); }' 
 ```
 
-**测量 `vfs_read` 调用时间分布**   
+**测量 `vfs_read` 调用时间分布**
 
 ```bash
 bpftrace -e 'kprobe:vfs_read { @start[tid] = nsecs; } kretprobe:vfs_read /@start[tid]/ { @ns[comm] = hist(nsecs - @start[tid]); delete(@start[tid]); }'
@@ -548,16 +558,17 @@ Attaching 2 probes...
 [1M, 2M)               1 |                                                    |
 ```
 
-
 ##### bpftrace vs strace
+
 | 特性 | bpftrace | strace |
 | :-----| :----| :----|
-| 跟踪层级 | 内核/用户空间任意函数 | 仅系统调用层面 | 
+| 跟踪层级 | 内核/用户空间任意函数 | 仅系统调用层面 |
 | 性能影响 | 低开销 | 较高开销 |
 | 功能范围 | 自定义复杂跟踪逻辑 | 固定系统调用跟踪 |
 | 使用复杂度 | 需要编写脚本 | 命令行直接使用 |
 
 #### Perf
+
 **Perf** 是用来进行 **软件性能分析** 的工具。
 
 - **性能统计**：应用程序可以利用 PMU、tracepoint 和内核中的特殊计数器进行性能监控。
@@ -571,7 +582,7 @@ Attaching 2 probes...
   - 计算 IPC
   - 可替代 strace 进行系统调用追踪
   - 支持添加动态内核 probe 点
-  - 用于 benchmark，评估调度器性能 
+  - 用于 benchmark，评估调度器性能
 
 ##### 常用参数
 
@@ -587,7 +598,6 @@ Attaching 2 probes...
 | `perf record -p <pid>`   | 记录指定进程的性能事件                      |
 | `perf record -a`        | 记录系统范围的性能事件                      |
 | `perf report -n`        | 生成性能报告，不依赖源代码                    |
-
 
 ##### 使用示例
 
@@ -640,7 +650,7 @@ perf stat -p 6421
 
 4. **记录函数级别的性能事件**
 
-`perf record` 
+`perf record`
   - 记录单个函数级别的统计信息，并使用 `perf report` 来显示统计结果。  
 
 参数解释：  
@@ -658,7 +668,7 @@ perf record -e cpu-clock
 5. **分显示统计结果**
 `perf report`  
   - 执行 `perf record` 之后在当前目录下会生成一个 `perf.data` 文件，可通过 `perf report` 可以读取 `perf.data` 文件并在终端中展示。  
- 
+
 ```bash
 Samples: 349K of event 'cpu-clock', Event count (approx.): 87407750000
 Overhead  Command          Shared Object                    Symbol
@@ -686,9 +696,10 @@ Overhead  Command          Shared Object                    Symbol
 ```
 
 ##### bpftrace vs perf
+
 | 特性 | bpftrace | perf |
 | :-----| :----| :----|
-| 数据采集 | 基于事件触发 | 基于采样 | 
+| 数据采集 | 基于事件触发 | 基于采样 |
 | 编程能力 | 支持复杂脚本编程 | 有限的自定义能力 |
 | 分析深度 | 可深入函数内部逻辑 | 主要关注调用频率 |
 | 可视化 | 内置直方图等统计功能 | 依赖外部工具生成火焰图等 |
@@ -700,18 +711,18 @@ Overhead  Command          Shared Object                    Symbol
 这是最常见的一种保护性异常。  
 **表现**：无法创建新文件、无法修改或删除现有文件，系统提示 `Read-only file system`。  
 
-#### 排查步骤      
+#### 排查步骤
 
 1. **排除本次启动之前是否发生意外断电**  
-  - 如果发生意外断电，可手动调用对应的文件系统修复工具扫描并修复文件系统，保证元数据一致。 
+  - 如果发生意外断电，可手动调用对应的文件系统修复工具扫描并修复文件系统，保证元数据一致。
   - 对于 SD 卡、U 盘等支持热插拔的设备尤其常见。
 
 2. **排除是否有主存错误**  
-  - 可通过 `dmesg`，查看系统 log 是否有除文件系统读写报错以外的存储驱动报错   
+  - 可通过 `dmesg`，查看系统 log 是否有除文件系统读写报错以外的存储驱动报错
 
 #### 解决方案  
 
-1. **手动使用 `fsck` 修复文件系统** 
+1. **手动使用 `fsck` 修复文件系统**
 
 基本命令语法：
 
@@ -726,8 +737,7 @@ sudo fsck [选项] <设备名>
 - `-n`：只检查文件系统，而不进行任何修复。
 - `-f`：强制检查，即使文件系统看起来是干净的。
 - `-v`： verbose 模式，输出详细过程。
-- `-C`：显示进度条（仅对 ext2/3/4 文件系统有效）    
-
+- `-C`：显示进度条（仅对 ext2/3/4 文件系统有效）
 
 2. **处理存储驱动报错**  
   如果检查 log 中发现存储驱动报错，如 `mmc0`，`mmc2`，`usb` 等驱动报错  
@@ -753,7 +763,7 @@ mount -t vfat /dev/block/vol-179-33 /mnt/data/external/8461-3631                
 zcat /proc/config.gz | grep CONFIG_NLS_ISO8859_1
 ```
 
-**步骤2：在内核 `menuconfig` 中配置相应字符集** 
+**步骤2：在内核 `menuconfig` 中配置相应字符集**
 
 ```
 -> File systems
@@ -767,9 +777,9 @@ zcat /proc/config.gz | grep CONFIG_NLS_ISO8859_1
 **系统报错：** `No space left on device`
 
 **可能原因：**  
-1. **磁盘块 (Block) 用尽：**   
+1. **磁盘块 (Block) 用尽：**
   - 使用 `df -h` 检查发现某个分区的使用率是 100%。  
-2. **索引节点 (Inode) 用尽：** 
+2. **索引节点 (Inode) 用尽：**
   - 磁盘可能还有剩余空间，但存放文件元信息（如文件名、权限、时间戳）的 Inode 表已满。
   - 常见于存在大量小文件（如邮件、缓存文件）的系统。
   - 可使用 `df -i` 检查 Inode 使用情况。  
@@ -824,7 +834,7 @@ zcat /proc/config.gz | grep CONFIG_NLS_ISO8859_1
    - 如果存在直接掉电或者使用 `reboot -f` 重启，可能会导致数据在文件系统缓存中，没有被安全完整的写入主存中。
 
 4. **确认U-Boot 加载 Image 地址是否异常**  
-   - 如下 log 显示 Image 被加载到物理地址起始 `0x600000~0x2786000`，建议启动 cmdline 中 `memblock=debug`，查看内核预留内存是否有与这段地址冲突。   
+   - 如下 log 显示 Image 被加载到物理地址起始 `0x600000~0x2786000`，建议启动 cmdline 中 `memblock=debug`，查看内核预留内存是否有与这段地址冲突。
 
 ```bash
 No FDT memory address configured. Please configure
@@ -871,7 +881,7 @@ Symbol: IMAGE_LOAD_OFFSET [=0x600000]
   │Location:                                                             
   │ (1) -> Image load offset from start of RAM when load kernel to RAM (IMAGE_LOAD_OFFSET [=0x600000])  
 ```
- 
+
 #### Oops地址异常
 
 ```bash
@@ -918,11 +928,11 @@ Unable to handle kernel paging request at virtual address ffffffdb33e98040
    - 使用 `memtest` 压测 DDR，排除 DDR 稳定性问题。
    - SpacemiT 内部有闭源的裸机 DDR 测试工具，如需要可以联系 AE 获取。
 
-3. **确认是否为内核原生代码问题** 
+3. **确认是否为内核原生代码问题**
    - 如果跑飞的堆栈是是内核原生代码, 建议先开启内核内存 debug，开启调试工具 KASAN（Kernel Address Sanitizer），排查潜在的内存非法访问风险。
    - 如果有驱动报错，可反馈给 SpacemiT 进一步分析处理。
 
-##### 解决方案 
+##### 解决方案
 
 1. **DDR 容量配置异常**
    - 需要通过烧号工具重新写 CS 值，保证容量识别正常。
@@ -934,7 +944,7 @@ Unable to handle kernel paging request at virtual address ffffffdb33e98040
    - 支持列表查询：[DDR 支持列表](https://developer.spacemit.com/documentation?token=MHrtw0FymiAJFNkRsXjc46ygnDh&type=file)
 
 3. **开启 KASAN 检测内存问题**
-   - 使能 KASAN，配置 `KASAN=Y` 后编译运行 
+   - 使能 KASAN，配置 `KASAN=Y` 后编译运行
 
 ```yaml
 Symbol: KASAN [=n]                                                                                                                             
@@ -948,9 +958,9 @@ Symbol: KASAN [=n]
   │ (1)     -> KASAN: dynamic memory safety error detector (KASAN [=n])                                               
   │ Selects: STACKDEPOT_ALWAYS_INIT [=n]                   
 ```
-            
+
 检测到如 `BUG: KASAN: global-out-of-bounds` 等异常，可以附上 log，提单给 SpacemiT 解决  
-**注意：** KASAN对性能影响较大，建议仅在 debug 场景打开，其他场景默认关闭     
+**注意：** KASAN对性能影响较大，建议仅在 debug 场景打开，其他场景默认关闭
 
 #### swiotlb full导致部分场景异常
 
