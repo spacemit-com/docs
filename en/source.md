@@ -22,7 +22,7 @@ Recommended configuration:
 
   Recommended: Ubuntu 20.04 or a newer LTS version, or any Linux distribution that supports Docker.
 
-- For Bianbu Linux 2.2.6 and earlier  
+- For Bianbu Linux 2.2.6 and earlier
 
   Recommended: Ubuntu 20.04 or a newer LTS version; other Linux distributions are untested.
 
@@ -50,11 +50,15 @@ sudo pip3 install pyyaml
 
 ### Preparation
 
-The Bianbu Linux code is hosted on Gitee and consists of multiple repositories managed using `repo`. Before downloading, you need to:
+The Bianbu Linux code is hosted on Gitee and Github, consists of multiple repositories managed using `repo`. Before downloading, you need to:
 
-1. Before downloading, refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys.
+1. If downloading from Gitee, please refer to [this document](https://gitee.com/help/articles/4191) to set up SSH Keys first; if downloading from Github, please refer to [this document](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) to set up SSH Keys first.
 
-2. Run `repo --version` to verify the installed version and its source. The repo version must be >= 2.41, and the source should be the Tsinghua mirror for downloading the complete SDK; otherwise, the download process may encounter issues.
+2. Install repo
+
+   If you have access to Google, please refer to [this document](https://gerrit.googlesource.com/git-repo/+/refs/heads/main/README.md#install) for installation; otherwise, refer to [Git Repo Mirror Usage Guide](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/) for installation.
+
+   The repo version must be >= 2.41, otherwise the download process may fail.
 
 ```shell
 repo --version
@@ -79,7 +83,7 @@ If the version does not meet the requirement, or if the source is not the Tsingh
 
 ### Version Branches
 
-The main branch of the [manifests](https://gitee.com/bianbu-linux/manifests) repository defines the `manifest.xml` files for different versions. The xml files specify the paths and branches of each repository.
+manifests repository defines the `manifest.xml` files for different versions. The xml files specify the paths and branches of each repository.
 
 | Version | manifest.xml | Branch |
 | ------- | ------------- | ------ |
@@ -90,16 +94,29 @@ The main branch of the [manifests](https://gitee.com/bianbu-linux/manifests) rep
 
 **Notice**
 
-Due to Gitee's single repository capacity limitations, the bl-v2.0.y and k1-bl-v2.1.y branches of the linux-6.6 repository have been moved to separate repositories: [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) and [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y). If you are using v2.0 or v2.1, you will not be able to repo sync or git pull the linux-6.6 repository and will need to re-download. We apologize for any inconvenience this may cause.
+- Due to Gitee's single repository capacity limitations, the bl-v2.0.y and k1-bl-v2.1.y branches of the linux-6.6 repository have been moved to separate repositories: [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) and [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y). If you are using v2.0 or v2.1, you will not be able to repo sync or git pull the linux-6.6 repository and will need to re-download. We apologize for any inconvenience this may cause.
+- Github only hosts v2.2 and later versions.
 
 ### Download Code
 
 For example, to download the code for version 2.2:
 
+#### Download from Gitee
+
 ```shell
 mkdir ~/bianbu-linux-2.2
 cd ~/bianbu-linux-2.2
 repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.2.y.xml
+repo sync
+repo start k1-bl-v2.2.y --all
+```
+
+#### Download from Github
+
+```shell
+mkdir ~/bianbu-linux-2.2
+cd ~/bianbu-linux-2.2
+repo init -u git@github.com:spacemit-com/manifests.git -b main -m k1-bl-v2.2.y.xml
 repo sync
 repo start k1-bl-v2.2.y --all
 ```
@@ -157,7 +174,7 @@ Available configs in buildroot-ext/configs/:
   5. spacemit_k1_v2_defconfig
 
 
-your choice (1-5): 
+your choice (1-5):
 
 ```
 
@@ -224,7 +241,7 @@ Available configs in buildroot-ext/configs/:
   6. spacemit_k1_v2_defconfig
 
 
-your choice (1-6): 
+your choice (1-6):
 
 ```
 

@@ -12,7 +12,7 @@ Compared to 2.2.6, 2.2.7 fixes several issues and provides a new kernel branch k
 
 ### Major Updates
 
-- Added support for ADMGPU
+- Added support for AMD graphics cards
 - Added support for sound card playback-only configuration
 - Added support IME extensions for use by user programs
 - Fixed the issue of abnormal use of mutex_unlock in rtl8852bs

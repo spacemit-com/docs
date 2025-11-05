@@ -4,8 +4,6 @@ USB Functionality and Usage Guide.
 
 ## Overview
 
-USB stands for Universal Serial Bus, a data communication method that is increasingly replacing other interface standards. It was jointly developed in 1995 by several major computer and telecommunications companies, including Intel, Compaq, Digital, IBM, Microsoft, NEC, and Northern Telecom, and has since become an industry standard
-
 The K1 platform features three USB controllers:
 - USB2.0 OTG (USB0)
 - USB2.0 Host (USB1)
@@ -19,7 +17,7 @@ In Linux, two USB roles are supported:
 
 #### USB Host
 
-![](static/USB-host.png)
+![](../static/USB-host.png)
 
 The USB Host role driver framework can be divided into the following layers:
 
@@ -29,7 +27,7 @@ The USB Host role driver framework can be divided into the following layers:
 
 #### USB Device
 
-![](static/USB-device.png)
+![](../static/USB-device.png)
 
 The USB Device role driver framework can be divided into the following layers:
 
@@ -427,7 +425,7 @@ To support USB Remote Wakeup:
 &otg {
         /*spacemit,reset-on-resume;*/
         wakeup-source;
-        .... 其Other parameters are omitted; refer to the configurations above
+        .... 其 Other parameters are omitted; refer to the configurations above
 };
 &ehci {
         /*spacemit,reset-on-resume;*/
@@ -661,7 +659,7 @@ The DTS configuration example for this setup is as follows:
         /delete-property/ phy-names;
         dwc3@c0a00000 {
                 maximum-speed = "high-speed";  
-                ......（Other configurations are described above）
+                ......（ Other configurations are described above）
         };
 };
 

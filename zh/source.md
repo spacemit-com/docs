@@ -50,11 +50,15 @@ sudo pip3 install pyyaml
 
 ### 准备工作
 
-Bianbu Linux代码托管在 Gitee 上，包含若干个仓库，使用 repo 管理，下载前需：
+Bianbu Linux代码托管在 Gitee 和 Github 上，包含若干个仓库，使用 repo 管理，下载前需：
 
-1. 下载前先参考[这篇文档](https://gitee.com/help/articles/4191)设置SSH Keys。
+1. 如果从 Gitee 下载，先参考[这篇文档](https://gitee.com/help/articles/4191)设置 SSH Keys；如果从 Github 下载，先参考[这篇文档](https://docs.github.com/zh/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)设置 SSH Keys。
 
-2. 使用 `repo --version` 确认版本和repo源，要求repo（版本 >= 2.41）和tsinghua源下载完整SDK，否则下载过程会异常。
+2. 安装 repo
+
+   如果您能访问 Google，请参考[这篇文档](https://gerrit.googlesource.com/git-repo/+/refs/heads/main/README.md#install)安装；否则参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
+
+   要求 repo 版本 >= 2.41，否则下载过程会异常。
 
 ```shell
 repo --version
@@ -75,11 +79,9 @@ CPU x86_64 (x86_64)
 Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 ```
 
-如果不满足版本要求或者非tsinghua源，参考[Git Repo 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/)安装。
-
 ### 版本分支
 
-[manifests](https://gitee.com/bianbu-linux/manifests) 仓库的 main 分支定义了不同版本的 manifest.xml，xml 文件指定了各仓库的路径和分支。
+manifests 仓库的 main 分支定义了不同版本的 manifest.xml，xml 文件指定了各仓库的路径和分支。
 
 | 版本 | manifest.xml | 分支 |
 | ---- | ------------- | ------------ |
@@ -90,16 +92,29 @@ Bug reports: https://issues.gerritcodereview.com/issues/new?component=1370071
 
 **注意事项：**
 
-由于 Gitee 单仓库容量限制，linux-6.6 仓库的 bl-v2.0.y 和 k1-bl-v2.1.y 分支分别被移动 [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) 和 [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y) 仓库，如果您在使用 v2.0 或 v2.1，将无法 repo sync 或 git pull linux-6.6 仓库，只能重新下载，给您造成的不便，敬请原谅。
+- 由于 Gitee 单仓库容量限制，linux-6.6 仓库的 bl-v2.0.y 和 k1-bl-v2.1.y 分支分别被移动 [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) 和 [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y) 仓库，如果您在使用 v2.0 或 v2.1，将无法 repo sync 或 git pull linux-6.6 仓库，只能重新下载，给您造成的不便，敬请原谅。
+- Github 只托管了 v2.2 及以后的版本。
 
 ### 下载代码
 
 例如下载 2.2 版本的代码：
 
+#### 从 Gitee 下载
+
 ```shell
 mkdir ~/bianbu-linux-2.2
 cd ~/bianbu-linux-2.2
 repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.2.y.xml
+repo sync
+repo start k1-bl-v2.2.y --all
+```
+
+#### 从 Github 下载
+
+```shell
+mkdir ~/bianbu-linux-2.2
+cd ~/bianbu-linux-2.2
+repo init -u git@github.com:spacemit-com/manifests.git -b main -m k1-bl-v2.2.y.xml
 repo sync
 repo start k1-bl-v2.2.y --all
 ```
@@ -157,7 +172,7 @@ Available configs in buildroot-ext/configs/:
   5. spacemit_k1_v2_defconfig
 
 
-your choice (1-5): 
+your choice (1-5):
 
 ```
 
@@ -221,7 +236,7 @@ Available configs in buildroot-ext/configs/:
   6. spacemit_k1_v2_defconfig
 
 
-your choice (1-6): 
+your choice (1-6):
 
 ```
 

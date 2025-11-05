@@ -12,7 +12,7 @@ sidebar_position: 3
 
 ### 主要更新
 
-- 支持 ADMGPU
+- 支持 AMD 显卡
 - 支持 声卡仅播放配置
 - 支持 ime 扩展，供用户程序使用
 - 修复 rtl8852bs 异常使用 mutex_unlock问题
