@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# Bianbu Linux 2.2更新说明
+# Buildroot 2.2更新说明
 
 ## v2.2.7更新说明
 

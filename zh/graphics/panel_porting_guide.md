@@ -979,9 +979,9 @@ weston --log=/var/log/weston --tty=1 --drm-device=card2 --idle-time=0
 
 通过 `--drm-device=card2` 参数，Weston 将直接使用 HDMI 作为主屏显示。
 
-### 5. bianbu-desktop 主屏配置
+### 5. Bianbu 主屏配置
 
-在 **Bianbu-Desktop** 环境中，`mutter` 默认将 **DSI** 识别为主显示器。
+在 **Bianbu** 环境中，`mutter` 默认将 **DSI** 识别为主显示器。
 若需将主显示器修改为 **HDMI**，需要调整 `mutter` 源码并重新编译。
 
 ```c

@@ -281,6 +281,6 @@ driver type:    0 (driver type B)
 
 ## Testing
 
-MMC/SD storage devices can be tested for performance and functionality using third-party tools such as FIO and bonnie++. Currently, bianbu-linux includes the FIO tool for evaluating read/write performance and conducting stress tests.
+MMC/SD storage devices can be tested for performance and functionality using third-party tools such as FIO and bonnie++. Currently, buildroot includes the FIO tool for evaluating read/write performance and conducting stress tests.
 
 ## FAQ

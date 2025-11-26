@@ -5,7 +5,7 @@ slug: /device
 
 # Device Development
 
-Bianbu Linux Device Development Guide:
+Buildroot Device Development Guide:
 
 - [Device Management](device_management.md)
 - [Solution Management](solution_management.md)

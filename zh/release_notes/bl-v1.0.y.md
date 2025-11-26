@@ -2,15 +2,15 @@
 sidebar_position: 1
 ---
 
-# Bianbu Linux 1.0更新说明 [已停服]
+# Buildroot 1.0更新说明 [已停服]
 
-## Bianbu Linux 1.0 停服公告  
-Bianbu Linux V1.0 基于linux-6.1内核构建，现已决定对Bianbu Linux V1.0停止维护（End of Life）。
+## Buildroot 1.0 停服公告  
+Buildroot V1.0 基于linux-6.1内核构建，现已决定对Buildroot V1.0停止维护（End of Life）。
 | 版本 | 停止支持日期 | 延长生命周期（Extended Life-cycle Support, ELS）停止日期|
 | :-----| :----| :----|
-| Bianbu Linux 1.x.x |	2024/12/31 |	NO|
+| Buildroot 1.x.x |	2024/12/31 |	NO|
 
-建议用户更新Bianbu Linux V2.0版本使用
+建议用户更新Buildroot V2.0版本使用
 
 ## v1.0.15更新说明
 

@@ -184,7 +184,7 @@ cansend格式：cansend can-dev id#data
 ## 测试介绍
 
 基于 K1 平台可以外接 CAN 收发器进行测试，通讯的另一端一般选择 USBCAN 分析仪连接电脑模拟 CAN 设备，由于通信的另一端设备和用法不确定，这里主要介绍 K1 的测试用法。
-以下将以 MUSE Pi 开发板为例，基于 bianbu-linux 系统做 demo 演示，DTS 配置请参考 DTS 配置示例章节。
+以下将以 MUSE Pi 开发板为例，基于 Buildroot 系统做 demo 演示，DTS 配置请参考 DTS 配置示例章节。
 
 1. MUSE Pi 连接 CAN 设备
    ![alt text](static/can_image_1.png)

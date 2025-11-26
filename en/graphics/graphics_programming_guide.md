@@ -150,13 +150,13 @@ For detailed usage of the OpenGL ES 3.2 API, you can refer to:
 
 ### Introduction
 
-In the **bianbu-linux** system, the demo source code is located at:
+In the **Buildroot** system, the demo source code is located at:
 
 ```
-xxx/bianbu-linux/package-src/k1x-gpu-test/openGLDemo
+xxx/buildroot-sdk/package-src/k1x-gpu-test/openGLDemo
 ```
 
-In the **bianbu-desktop** system, you can install k1x-gpu-test with the following command to get the related demo:
+In the **Bianbu** desktop system, you can install k1x-gpu-test with the following command to get the related demo:
 
 ```bash
 sudo apt install k1x-gpu-test
@@ -212,8 +212,8 @@ The demo directory structure is as follows:
    gpu-cubeTextureDemo
    ```
 
-3. bianbu-linux special settings  
-   On bianbu-linux, you must manually set the following environment variables before running:
+3. buildroot special settings  
+   On buildroot, you must manually set the following environment variables before running:
 
    ```bash
    XDG_RUNTIME_DIR=/root WAYLAND_DISPLAY=wayland-1 MESA_LOADER_DRIVER_OVERRIDE=pvr ./gpu-cubeTextureDemo

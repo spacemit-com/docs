@@ -112,7 +112,7 @@ int pwm_apply_state(struct pwm_device *pwm, const struct pwm_state *state)
 ## Debug介绍
 
 PWM通过sysfs提供给用户层一个非编程的使用方法，可以依据上述PWM对应pin外接可调速风扇进行测试，过程如下
-以下基于 **Bianbu Linux 系统** 验证
+以下基于 **Buildroot 系统** 验证
 
 ```sh
 # cd /sys/class/pwm/

@@ -8,12 +8,12 @@ sidebar_position: 9
 
 ## 简介
 
-产测工具是一个用于测试板卡或整机硬件接口连通性的系统，基于 Bianbu Linux 裁剪，集成 factorytest 应用。该系统通常运行在 SD 卡上。
+产测工具是一个用于测试板卡或整机硬件接口连通性的系统，基于 Buildroot 裁剪，集成 factorytest 应用。该系统通常运行在 SD 卡上。
 
 ## 编译
 
 ```shell
-$ cd /path/to/bianbu-linux
+$ cd /path/to/buildroot-sdk
 $ make envconfig           
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig

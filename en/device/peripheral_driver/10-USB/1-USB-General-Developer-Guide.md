@@ -815,7 +815,7 @@ If you need to develop a custom protocol USB peripheral driver, you can refer to
 
 USB Device supports configuration via Configfs. Please refer to the Linux kernel documentation `usb/gadget_configfs`. Some functions require the use of application layer service programs.
 
-SpacemiT also provides the [bianbu-linux/usb-gadget tool](https://gitee.com/bianbu-linux/usb-gadget), which includes scripts for configuring USB Device using Configfs. You can use and refer to these scripts. Please check the help documentation on the corresponding page.
+SpacemiT also provides the [buildroot/usb-gadget tool](https://gitee.com/bianbu-linux/usb-gadget), which includes scripts for configuring USB Device using Configfs. You can use and refer to these scripts. Please check the help documentation on the corresponding page.
 
 If you need to develop a custom protocol USB Device mode driver, you can develop a user-mode driver based on FunctionFS. You can refer to the Linux kernel documentation `usb/functionfs` and the example in the Linux kernel source code directory `tools/usb/ffs-aio-example`.
 
@@ -974,7 +974,7 @@ Device Descriptor:
 ```
 
 For USB peripherals, performance and functionality tests can be completed using third-party tools, for example:
-- Read/write tests for USB storage can be performed using the FIO tool, which is already integrated on Bianbu Linux.
+- Read/write tests for USB storage can be performed using the FIO tool, which is already integrated on Buildroot.
 - Mouse and keyboard functionality can be verified by examining the input subsystem (tools like evtest, getevent can be used).
 - Network card functionality can be tested using commands like ping and tools like iperf3.
 

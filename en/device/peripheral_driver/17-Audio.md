@@ -443,7 +443,7 @@ root:/#
 
 ## Testing
 
-Audio functionality can be tested using the **alsa-utils** or **tinyalsa** tools, which are already integrated into bianbu-linux.
+Audio functionality can be tested using the **alsa-utils** or **tinyalsa** tools, which are already integrated into buildroot.
 
 ### Playback Test
 

@@ -436,7 +436,7 @@ root:/#
 
 ## 测试介绍
 
-音频功能可以通过 `alsa-utils/tinyalsa` 工具完成功能测试，目前 bianbu-linux 已集成alsa-utils 工具。
+音频功能可以通过 `alsa-utils/tinyalsa` 工具完成功能测试，目前 Buildroot 已集成alsa-utils 工具。
 
 ### 播放测试
 

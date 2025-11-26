@@ -2,9 +2,9 @@
 sidebar_position: 3
 ---
 
-# Bianbu Linux 2.1 Release Notes [End of Life]
+# Buildroot 2.1 Release Notes [End of Life]
 
-Bianbu Linux 2.1 will reach end of maintenance on July 31, 2025. We recommend using version 2.2 or later. If you have any questions, please contact us.
+Buildroot 2.1 will reach end of maintenance on July 31, 2025. We recommend using version 2.2 or later. If you have any questions, please contact us.
 
 ## v2.1 release note
 

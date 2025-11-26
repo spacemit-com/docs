@@ -30,9 +30,9 @@ Navigate to **Device Drivers -> Graphics support -> PowerVR GPU**, and select th
 Due to copyright restrictions, the DDK (Device Development Kit) for the PVR GPU cannot be provided directly.  
 User-space closed-source code is provided as shared libraries (`.so`) offering OpenGLES, Vulkan, and OpenCL APIs.
 
-The way to enable the PVR GPU driver on bianbu-linux and bianbu-desktop is as follows:
+The way to enable the PVR GPU driver on buildroot and bianbu is as follows:
 
-#### bianbu-linux  
+#### buildroot  
 Enable it in the configuration file when compiling Buildroot:
 
 ```shell
@@ -51,7 +51,7 @@ Or manually select it via `make menuconfig`:
   [ ]   install examples
   ```
 
-#### bianbu-desktop
+#### Bianbu
 
 Due to licensing issues, the closed-source GPU code is provided as `.so` shared libraries via the **img-gpu-powervr** `.deb` package.  
 Users can install the PVR GPU driver with:
@@ -86,7 +86,7 @@ Mesa3D provides the OpenGL ES API interface and software rendering implementatio
 
 It bridges applications that use OpenGL ES APIs with the underlying PowerVR GPU driver.
 
-#### bianbu-linux
+#### buildroot
 
 Enable the following options in the configuration file to activate Mesa3D:
 
@@ -115,7 +115,7 @@ Or manually select from **make menuconfig**:
     [ ]   OpenGL ES
   ```
 
-#### bianbu-desktop
+#### bianbu
 
 Calling the PowerVR GPU hardware depends on the Mesa `.deb` packages from the bianbu source, which should be installed in the following order:
 

@@ -262,7 +262,7 @@ SpacemiT camera 驱动基于 Linux 内核 V4L2 框架实现，主要功能包括
 
 ### 驱动配置
 
-执行以下命令进入 bianbu-linux 的内核配置
+执行以下命令进入 buildroot 的内核配置
 
 ```bash
 make linux-menuconfig
@@ -640,7 +640,7 @@ Sensor 的公共操作代码位于 `sensor` 子目录内。`cam_sensor.c` 文件
 ### 源码结构
 
 ```bash
-lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
+lizhirong@lnode1:~/buildroot-sdk/package-src/k1x-cam$ tree
 .
 |-- CMakeLists.txt
 |-- Config.in
@@ -893,19 +893,19 @@ lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
 **清理应用**
 
 ```
-~/bianbu-linux$ make k1x-cam-dirclean
+~/buildroot-sdk$ make k1x-cam-dirclean
 ```
 
 **编译应用**
 
 ```
-~/bianbu-linux$ make k1x-cam
+~/buildroot-sdk$ make k1x-cam
 ```
 
 **重新编译应用**
 
 ```go
-~/bianbu-linux$ make k1x-cam-rebuild
+~/buildroot-sdk$ make k1x-cam-rebuild
 ```
 
 从输出 log 中可以看到生成文件有：

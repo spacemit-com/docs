@@ -90,12 +90,12 @@ export MPP_SAVE_OUTPUT_BUFFER_PATH=/mnt/a.yuv
 MPP 的源码位置位于：
 
 ```shell
-bianbu-linux/package-src/mpp
+buildroot-sdk/package-src/mpp
 ```
 
 #### 1.4.2 源码编译
 
-bianbu-linux 方案中默认已经开启了编译，如果需要修改代码后需要重新编译，执行：
+buildroot 方案中默认已经开启了编译，如果需要修改代码后需要重新编译，执行：
 
 ```shell
 make mpp-rebuild
@@ -2035,7 +2035,7 @@ gst-launch-1.0 playbin uri=file:///path/to/some/media/file.mp4 (H.264视频编�
 gst-launch-1.0 playbin uri=file:///path/to/some/media/file.mp4 (HEVC视频编码)
 ```
 
-### 7.2 Bianbu Linux 系统
+### 7.2 Buildroot 系统
 
 #### 7.2.1 FFmpeg
 

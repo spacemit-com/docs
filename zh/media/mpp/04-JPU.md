@@ -19,7 +19,7 @@ sudo apt update
 sudo apt install k1x-jpu
 ```
 
-#### 2.1.2 Bianbu Linux 系统
+#### 2.1.2 Buildroot 系统
 
 2 种方法将 `k1x-jpu` 集成到系统中：
 
@@ -225,7 +225,7 @@ sudo apt-get build-dep k1x-jpu    #安装依赖
 dpkg-buildpackage -us -uc -nc -b -j32
 ```
 
-**Bianbu Linux 系统**
+**Buildroot 系统**
 
 ```shell
 cd k1x-jpu

@@ -80,7 +80,7 @@ sudo apt update
 sudo apt install k1x-cam
 ```
 
-#### 3.1.2 Bianbu Linux 系统
+#### 3.1.2 Buildroot 系统
 
 TODO
 

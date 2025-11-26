@@ -18,17 +18,17 @@ sidebar_position: 1.5
 
 ### 操作系统
 
-- Bianbu Linux 2.2.7或之后的版本
+- Buildroot 2.2.7或之后的版本
 
   推荐Ubuntu 20.04或更新LTS版本，或支持Docker的Linux发行版
 
-- Bianbu Linux 2.2.6或之前的版本
+- Buildroot 2.2.6或之前的版本
 
   推荐Ubuntu 20.04或更新LTS版本，其他Linux发行版本没有测试。
 
 ### 安装依赖
 
-Bianbu Linux 2.2.7或之后的版本默认支持在容器里编译，因此只需要[安装Docker CE](https://docs.docker.com/engine/install/)。
+Buildroot 2.2.7或之后的版本默认支持在容器里编译，因此只需要[安装Docker CE](https://docs.docker.com/engine/install/)。
 
 如果直接在主机上编译，按以下指南安装依赖
 
@@ -50,7 +50,7 @@ sudo pip3 install pyyaml
 
 ### 准备工作
 
-Bianbu Linux代码托管在 Gitee 和 Github 上，包含若干个仓库，使用 repo 管理，下载前需：
+Buildroot代码托管在 Gitee 和 Github 上，包含若干个仓库，使用 repo 管理，下载前需：
 
 1. 如果从 Gitee 下载，先参考[这篇文档](https://gitee.com/help/articles/4191)设置 SSH Keys；如果从 Github 下载，先参考[这篇文档](https://docs.github.com/zh/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)设置 SSH Keys。
 
@@ -102,8 +102,8 @@ manifests 仓库的 main 分支定义了不同版本的 manifest.xml，xml 文�
 #### 从 Gitee 下载
 
 ```shell
-mkdir ~/bianbu-linux-2.2
-cd ~/bianbu-linux-2.2
+mkdir ~/buildroot-sdk-2.2
+cd ~/buildroot-sdk-2.2
 repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.2.y.xml
 repo sync
 repo start k1-bl-v2.2.y --all
@@ -112,8 +112,8 @@ repo start k1-bl-v2.2.y --all
 #### 从 Github 下载
 
 ```shell
-mkdir ~/bianbu-linux-2.2
-cd ~/bianbu-linux-2.2
+mkdir ~/buildroot-sdk-2.2
+cd ~/buildroot-sdk-2.2
 repo init -u git@github.com:spacemit-com/manifests.git -b main -m k1-bl-v2.2.y.xml
 repo sync
 repo start k1-bl-v2.2.y --all
@@ -153,7 +153,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 
 ## 交叉编译
 
-### Bianbu Linux 2.x 首次完整编译
+### Buildroot 2.x 首次完整编译
 
 首次编译，建议使用`make envconfig`完整编译。
 
@@ -162,7 +162,7 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 其他情况，使用`make`编译即可。
 
 ```shell
-cd ~/bianbu-linux
+cd ~/buildroot-sdk
 make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_upstream_defconfig
@@ -176,9 +176,9 @@ your choice (1-5):
 
 ```
 
-编译Bianbu Linux 2.x版本，输入`5`，然后回车即开始编译。
+编译Buildroot 2.x版本，输入`5`，然后回车即开始编译。
 
-注意：自Bianbu Linux 2.2.7 开始
+注意：自Buildroot 2.2.7 开始
 
 1. 默认在容器中构建。如需在宿主机上构建，请配置环境变量 `export DIRECT_BUILD=1`，切换容器中构建和宿主机构建时需要清理output目录。
 2. 新增一组命令。与旧命令不兼容，如需使用新命令，需删除项目根目录下旧命令生成的env.mk文件，之后可用`make help`查看新命令列表，如可使用`make k1_v2-build`直接编译指定方案。
@@ -225,7 +225,7 @@ Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/b
 其他情况，使用`make`编译即可。
 
 ```shell
-cd ~/bianbu-linux
+cd ~/buildroot-sdk
 make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
@@ -240,7 +240,7 @@ your choice (1-6):
 
 ```
 
-Bianbu Linux 2.0支持实时Linux(PREEMPT_RT)内核编译，输入`5`,然后回车即开始编译，首次编译过程中会自动打上PREEMPT_RT补丁
+Buildroot 2.0支持实时Linux(PREEMPT_RT)内核编译，输入`5`,然后回车即开始编译，首次编译过程中会自动打上PREEMPT_RT补丁
 
 ```shell
 buildroot-ext/configs//spacemit_k1_rt_defconfig

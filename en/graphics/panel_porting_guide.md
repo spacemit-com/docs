@@ -981,9 +981,9 @@ weston --log=/var/log/weston --tty=1 --drm-device=card2 --idle-time=0
 
 Passing the `--drm-device=card2` argument forces Weston to use **HDMI as the primary output**.
 
-### 5. Bianbu-Desktop Primary Screen Configuration
+### 5. Bianbu Primary Screen Configuration
 
-In the **Bianbu-Desktop** environment, `mutter` defaults to treating **DSI** as the primary display.  
+In the **Bianbu** environment, `mutter` defaults to treating **DSI** as the primary display.  
 To change the primary display to **HDMI**, you must modify the `mutter` source code and recompile it.
 
 ```c

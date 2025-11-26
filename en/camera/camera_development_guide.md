@@ -267,7 +267,7 @@ From a software call perspective, the architecture is divided into the following
 
 ### Driver Configuration
 
-Run the following command to enter the kernel configuration menu of bianbu-linux:
+Run the following command to enter the kernel configuration menu of buildroot:
 
 ```bash
 make linux-menuconfig
@@ -652,7 +652,7 @@ During the bring-up process, the modifications to the User-level `cam_sensors` l
 ### Source Code Structure
 
 ```bash
-lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
+lizhirong@lnode1:~/buildroot-sdk/package-src/k1x-cam$ tree
 .
 |-- CMakeLists.txt
 |-- Config.in
@@ -905,19 +905,19 @@ lizhirong@lnode1:~/bianbu-linux/package-src/k1x-cam$ tree
 **Clean the application**
 
 ```
-~/bianbu-linux$ make k1x-cam-dirclean
+~/buildroot-sdk$ make k1x-cam-dirclean
 ```
 
 **Compile the application**
 
 ```
-~/bianbu-linux$ make k1x-cam
+~/buidroot-sdk$ make k1x-cam
 ```
 
 **Rebuild the application**
 
 ```go
-~/bianbu-linux$ make k1x-cam-rebuild
+~/buildroot-sdk$ make k1x-cam-rebuild
 ```
 
 From the output log, you can see the generated files:

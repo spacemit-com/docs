@@ -8,12 +8,12 @@ This document describes product line tool.
 
 ## Introduction
 
-The production test tool is a dedicated system for verifying hardware interface connectivity on PCBs or complete devices. Based on a customized Bianbu Linux distribution, it integrates the factorytest application. The system typically runs from an SD card.
+The production test tool is a dedicated system for verifying hardware interface connectivity on PCBs or complete devices. Based on a customized Buildroot distribution, it integrates the factorytest application. The system typically runs from an SD card.
 
 ## Compilation
 
 ```shell
-$ cd /path/to/bianbu-linux
+$ cd /path/to/buildroot-sdk
 $ make envconfig
 Available configs in buildroot-ext/configs/:
   1. spacemit_k1_defconfig
