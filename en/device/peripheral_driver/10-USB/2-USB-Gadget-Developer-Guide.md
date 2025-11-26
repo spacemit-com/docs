@@ -834,14 +834,14 @@ SpacemiT 基于 kernel 源码的 tools/usb/ffs-aio-example 目录下的 simple d
 ```
 sudo apt update && apt install libaio-dev
 ```
-1. 编译设备服务应用，依次执行命令：
+2. 编译设备服务应用，依次执行命令：
 ```
 make
 make install
 ```
 命令执行完成后，名为 demod 的二进制文件将被添加到 /usr/bin/ 目录下。 
 
-1. 拉起 gadget 设备，由于 Bianbu 系统内置的 adb ffs 服务会占用 UDC 资源，需先停止该服务，执行命令：
+3. 拉起 gadget 设备，由于 Bianbu 系统内置的 adb ffs 服务会占用 UDC 资源，需先停止该服务，执行命令：
 ```
 systemctl stop adbd
 ```
@@ -850,14 +850,14 @@ systemctl stop adbd
 bash ffs-setup.sh start
 ```
 
-1. 将 USB 线连接到 PC 主机，此时会看到一个名为 “ K1 AIO” 的新 USB 设备；在 Windows PC 上，
+4. 将 USB 线连接到 PC 主机，此时会看到一个名为 “ K1 AIO” 的新 USB 设备；在 Windows PC 上，
 可以通过设备管理器查看到。在 Linux PC 上，可以通过 lsusb 查看到。
 ![alt text](../static/USB/usbg-ffs-windows-dm.png)
 
-1. 链接到 Linux 主机上，可使用 tools/usb/ffs-aio-example/ 目录下的 host_app 与该 ffs 批量传输演示 gadget 设备通信。
+5. 链接到 Linux 主机上，可使用 tools/usb/ffs-aio-example/ 目录下的 host_app 与该 ffs 批量传输演示 gadget 设备通信。
 具体过程很简单，（ 1 ）修改 host_app 中的 PID VID 匹配 ffs-setup.sh 中的 PID、 VID，然后在 Linux Host PC 上安装 libaio-dev 依赖，然后编译后执行这里省略。
 
-1. 链接到 Windows 主机上，可使用基于 WINUSB 和 libusb 的用户态应用（例如 host_demo.py Python 脚本）进行通信。
+6. 链接到 Windows 主机上，可使用基于 WINUSB 和 libusb 的用户态应用（例如 host_demo.py Python 脚本）进行通信。
 这里简要介绍 host_demo.py Python 脚本，该脚本不限制操作系统。这里以 Windows 为例，
 
     (a) 若未安装 pyusb，需先执行 `pip install pyusb` 命令安装。
@@ -879,7 +879,7 @@ bash ffs-setup.sh start
     ev=in; ret=8192
     submit: in
     ```
-1. 清理 gadget 设备并恢复 Bianbu 系统内置的 adb 服务，执行命令：
+7. 清理 gadget 设备并恢复 Bianbu 系统内置的 adb 服务，执行命令：
 ```
 bash ffs-setup.sh stop
 # 使用 systemctl start adbd 恢复 bianbu 系统自带的 adb 服务。

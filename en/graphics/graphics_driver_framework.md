@@ -32,7 +32,7 @@ User-space closed-source code is provided as shared libraries (`.so`) offering O
 
 The way to enable the PVR GPU driver on buildroot and bianbu is as follows:
 
-#### buildroot  
+#### Buildroot
 Enable it in the configuration file when compiling Buildroot:
 
 ```shell
@@ -86,7 +86,7 @@ Mesa3D provides the OpenGL ES API interface and software rendering implementatio
 
 It bridges applications that use OpenGL ES APIs with the underlying PowerVR GPU driver.
 
-#### buildroot
+#### Buildroot
 
 Enable the following options in the configuration file to activate Mesa3D:
 
@@ -115,7 +115,7 @@ Or manually select from **make menuconfig**:
     [ ]   OpenGL ES
   ```
 
-#### bianbu
+#### Bianbu
 
 Calling the PowerVR GPU hardware depends on the Mesa `.deb` packages from the bianbu source, which should be installed in the following order:
 
