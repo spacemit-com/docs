@@ -24,7 +24,7 @@ Recommended configuration:
 
 - For Buildroot 2.2.6 and earlier
 
-  Recommended: Ubuntu 20.04 or a newer LTS version; or any Linux distribution that supports Docker.
+  Recommended: Ubuntu 20.04 or a newer LTS version; other Linux distributions are untested.
 
 ### Install Dependencies
 

@@ -20,11 +20,11 @@ sidebar_position: 1.5
 
 - Buildroot 2.2.7或之后的版本
 
-  推荐Ubuntu 20.04或更新LTS版本，或支持Docker的Linux发行版
+  推荐Ubuntu 20.04或更新LTS版本，或支持Docker的Linux发行版。
 
 - Buildroot 2.2.6或之前的版本
 
-  推荐Ubuntu 20.04或更新LTS版本，或支持Docker的Linux发行版
+  推荐Ubuntu 20.04或更新LTS版本，其他Linux发行版本没有测试。
 
 ### 安装依赖
 
