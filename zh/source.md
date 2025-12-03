@@ -24,7 +24,7 @@ sidebar_position: 1.5
 
 - Buildroot 2.2.6或之前的版本
 
-  推荐Ubuntu 20.04或更新LTS版本，其他Linux发行版本没有测试。
+  推荐Ubuntu 20.04或更新LTS版本，或支持Docker的Linux发行版
 
 ### 安装依赖
 
@@ -186,13 +186,13 @@ your choice (1-5):
 编译过程可能需要下载一些第三方软件包，具体耗时和网络环境相关。如果提前下载buildroot依赖的第三方软件包，推荐硬件配置编译耗时约为1小时。
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
+Images successfully packed into /home/username/buildroot-sdk/output/k1_v2/images/buildroot-k1_v2.zip
 
 
 Generating sdcard.img...................................
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"" (stderr):
-INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"/*" (stderr):
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/images"" (stderr):
+INFO: cmd: "mkdir -p "/home/username/buildroot-sdk/output/k1_v2/build/genimage.tmp"" (stderr):
+INFO: cmd: "rm -rf "/home/username/buildroot-sdk/output/k1_v2/build/genimage.tmp"/*" (stderr):
+INFO: cmd: "mkdir -p "/home/username/buildroot-sdk/output/k1_v2/images"" (stderr):
 INFO: hdimage(sdcard.img): adding partition 'bootinfo' from 'factory/bootinfo_sd.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'fsbl' (in MBR) from 'factory/FSBL.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'env' (in MBR) from 'env.bin' ...
@@ -207,10 +207,10 @@ INFO: hdimage(sdcard.img): adding partition '[GPT backup]' ...
 INFO: hdimage(sdcard.img): writing GPT
 INFO: hdimage(sdcard.img): writing protective MBR
 INFO: hdimage(sdcard.img): writing MBR
-Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
+Successfully generated at /home/username/work/buildroot-sdk/output/k1_v2/images/buildroot-k1_v2-sdcard.img
 ```
 
-其中`bianbu-linux-k1_v2.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`bianbu-linux-k1_v2-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
+其中`buildroot-k1_v2.zip`适用于Titan Flasher，或者解压后用fastboot刷机；`buildroot-k1_v2-sdcard.img`为sdcard固件，解压后可以用dd命令或者[balenaEtcher](https://etcher.balena.io/)写入sdcard。
 
 > Titan Flasher使用指南：[刷机工具使用指南](https://developer.spacemit.com/#/documentation?token=O6wlwlXcoiBZUikVNh2cczhin5d)
 
@@ -252,9 +252,9 @@ Applying rt-linux-support.patch using patch:
 编译完成，可以看到：
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt.zip
+Images successfully packed into /home/username/buildroot-sdk/output/k1_rt/images/buildroot-k1_rt.zip
 ...
-Successfully generated at /home/username/work/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt-sdcard.img
+Successfully generated at /home/username/work/buildroot-sdk/output/k1_rt/images/buildroot-k1_rt-sdcard.img
 ```
 
 ### 配置

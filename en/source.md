@@ -24,7 +24,7 @@ Recommended configuration:
 
 - For Buildroot 2.2.6 and earlier
 
-  Recommended: Ubuntu 20.04 or a newer LTS version; other Linux distributions are untested.
+  Recommended: Ubuntu 20.04 or a newer LTS version; or any Linux distribution that supports Docker.
 
 ### Install Dependencies
 
@@ -190,13 +190,13 @@ The compilation process may require downloading some third-party software packag
 After the compilation is complete, you will see:
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2.zip
+Images successfully packed into /home/username/buildroot-sdk/output/k1_v2/images/buildroot-k1_v2.zip
 
 
 Generating sdcard.img...................................
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"" (stderr):
-INFO: cmd: "rm -rf "/home/username/bianbu-linux/output/k1_v2/build/genimage.tmp"/*" (stderr):
-INFO: cmd: "mkdir -p "/home/username/bianbu-linux/output/k1_v2/images"" (stderr):
+INFO: cmd: "mkdir -p "/home/username/buildroot-sdk/output/k1_v2/build/genimage.tmp"" (stderr):
+INFO: cmd: "rm -rf "/home/username/buildroot-sdk/output/k1_v2/build/genimage.tmp"/*" (stderr):
+INFO: cmd: "mkdir -p "/home/username/buildroot-sdk/output/k1_v2/images"" (stderr):
 INFO: hdimage(sdcard.img): adding partition 'bootinfo' from 'factory/bootinfo_sd.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'fsbl' (in MBR) from 'factory/FSBL.bin' ...
 INFO: hdimage(sdcard.img): adding partition 'env' (in MBR) from 'env.bin' ...
@@ -211,11 +211,11 @@ INFO: hdimage(sdcard.img): adding partition '[GPT backup]' ...
 INFO: hdimage(sdcard.img): writing GPT
 INFO: hdimage(sdcard.img): writing protective MBR
 INFO: hdimage(sdcard.img): writing MBR
-Successfully generated at /home/username/work/bianbu-linux/output/k1_v2/images/bianbu-linux-k1_v2-sdcard.img
+Successfully generated at /home/username/work/buildroot-sdk/output/k1_v2/images/buildroot-k1_v2-sdcard.img
 ```
 
-- `bianbu-linux-k1_v2.zip` is suitable for use with Titan Flasher. Alternatively, you can unzip it and flash it using Fastboot.
-- `bianbu-linux-k1_v2-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
+- `buildroot-k1_v2.zip` is suitable for use with Titan Flasher. Alternatively, you can unzip it and flash it using Fastboot.
+- `buildroot-k1_v2-sdcard.img` is the sdcard firmware, which can be written to the sdcard using the dd command or [balenaEtcher](https://etcher.balena.io/) after unzipping.
 
 > Titan Flasher User Guide: [Flashing Tool User Guide](https://developer.spacemit.com/documentation?token=B9JCwRM7RiBapHku6NfcPCstnqh)
 
@@ -257,9 +257,9 @@ Applying rt-linux-support.patch using patch:
 After the compilation is complete, you will see:
 
 ```shell
-Images successfully packed into /home/username/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt.zip
+Images successfully packed into /home/username/buildroot-sdk/output/k1_rt/images/buildroot-k1_rt.zip
 ...
-Successfully generated at /home/username/work/bianbu-linux/output/k1_rt/images/bianbu-linux-k1_rt-sdcard.img
+Successfully generated at /home/username/work/buildroot-sdk/output/k1_rt/images/buildroot-k1_rt-sdcard.img
 ```
 
 ### Configuration
