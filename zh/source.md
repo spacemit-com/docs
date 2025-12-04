@@ -92,7 +92,7 @@ manifests 仓库的 main 分支定义了不同版本的 manifest.xml，xml 文�
 
 **注意事项：**
 
-- 由于 Gitee 单仓库容量限制，linux-6.6 仓库的 bl-v2.0.y 和 k1-bl-v2.1.y 分支分别被移动 [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) 和 [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y) 仓库，如果您在使用 v2.0 或 v2.1，将无法 repo sync 或 git pull linux-6.6 仓库，只能重新下载，给您造成的不便，敬请原谅。
+- 由于 Gitee 单仓库容量限制，linux-6.6 仓库的 bl-v2.0.y 和 k1-bl-v2.1.y 分支分别被移动 [linux-6.6-v2.0.y](https://gitee.com/spacemit-buildroot/linux-6.6-v2.0.y) 和 [linux-6.6-v2.1.y](https://gitee.com/spacemit-buildroot/linux-6.6-v2.1.y) 仓库，如果您在使用 v2.0 或 v2.1，将无法 repo sync 或 git pull linux-6.6 仓库，只能重新下载，给您造成的不便，敬请原谅。
 - Github 只托管了 v2.2 及以后的版本。
 
 ### 下载代码
@@ -104,7 +104,7 @@ manifests 仓库的 main 分支定义了不同版本的 manifest.xml，xml 文�
 ```shell
 mkdir ~/buildroot-sdk-2.2
 cd ~/buildroot-sdk-2.2
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.2.y.xml
+repo init -u git@gitee.com:spacemit-buildroot/manifests.git -b main -m k1-bl-v2.2.y.xml
 repo sync
 repo start k1-bl-v2.2.y --all
 ```

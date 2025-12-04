@@ -94,7 +94,7 @@ manifests repository defines the `manifest.xml` files for different versions. Th
 
 **Notice**
 
-- Due to Gitee's single repository capacity limitations, the bl-v2.0.y and k1-bl-v2.1.y branches of the linux-6.6 repository have been moved to separate repositories: [linux-6.6-v2.0.y](https://gitee.com/bianbu-linux/linux-6.6-v2.0.y) and [linux-6.6-v2.1.y](https://gitee.com/bianbu-linux/linux-6.6-v2.1.y). If you are using v2.0 or v2.1, you will not be able to repo sync or git pull the linux-6.6 repository and will need to re-download. We apologize for any inconvenience this may cause.
+- Due to Gitee's single repository capacity limitations, the bl-v2.0.y and k1-bl-v2.1.y branches of the linux-6.6 repository have been moved to separate repositories: [linux-6.6-v2.0.y](https://gitee.com/spacemit-buildroot/linux-6.6-v2.0.y) and [linux-6.6-v2.1.y](https://gitee.com/spacemit-buildroot/linux-6.6-v2.1.y). If you are using v2.0 or v2.1, you will not be able to repo sync or git pull the linux-6.6 repository and will need to re-download. We apologize for any inconvenience this may cause.
 - Github only hosts v2.2 and later versions.
 
 ### Download Code
@@ -106,7 +106,7 @@ For example, to download the code for version 2.2:
 ```shell
 mkdir ~/buildroot-sdk-2.2
 cd ~/buildroot-sdk-2.2
-repo init -u git@gitee.com:bianbu-linux/manifests.git -b main -m k1-bl-v2.2.y.xml
+repo init -u git@gitee.com:spacemit-buildroot/manifests.git -b main -m k1-bl-v2.2.y.xml
 repo sync
 repo start k1-bl-v2.2.y --all
 ```
