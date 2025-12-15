@@ -1,9 +1,9 @@
 ---
 sidebar_position: 2
-slug: /release_notes
+slug: /release_notes/history
 ---
 
-# Release Notes
+# Historical versions
 
 Below are the release notes for various versions of Buildroot:
 

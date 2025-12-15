@@ -1,9 +1,9 @@
 ---
 sidebar_position: 2
-slug: /release_notes
+slug: /release_notes/history
 ---
 
-# 更新说明
+# 历史版本
 
 以下是Buildroot各历史版本更新说明：
 
