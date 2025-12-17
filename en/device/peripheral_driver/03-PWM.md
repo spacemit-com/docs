@@ -112,7 +112,7 @@ int pwm_apply_state(struct pwm_device *pwm, const struct pwm_state *state)
 
 ## Debugging
 
-PWM can be configured via sysfs without programming, using shell commands. You can test it by connecting a speed-adjustable fan to the corresponding PWM pin. The process is as follows. This is verified on the **Bianbu Linux system**.
+PWM can be configured via sysfs without programming, using shell commands. You can test it by connecting a speed-adjustable fan to the corresponding PWM pin. The process is as follows. This is verified on the **Buildroot system**.
 
 ```sh
 # cd /sys/class/pwm/

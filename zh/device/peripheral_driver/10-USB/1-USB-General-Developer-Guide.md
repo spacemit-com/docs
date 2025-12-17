@@ -238,7 +238,7 @@ USB3.0 DRD 控制器做 Host 模式时，有的方案还会外部放置一个板
 
 ### 驱动内核 CONFIG 配置使能
 
-Bianbu-Linux Buildroot SDK 中， Linux 内核配置可以通过 `make linux-menuconfig`
+Buildroot SDK 中， Linux 内核配置可以通过 `make linux-menuconfig`
 进行配置。
 
 配置完成后，通过 `make linux-update-defconfig` 保存。具体请参考相关文档。
@@ -1378,7 +1378,7 @@ USB host 端接入的设备通常会接入系统其他子系统，如 U 盘存�
 
 USB Device 支持通过 Configfs 配置，请参考 Linux 内核文档 `usb/gadget_configfs`，部分功能需要搭配应用层服务程序使用。
 
-此外 SpacemiT 提供了 [bianbu-linux/usb-gadget 工具 ](https://gitee.com/bianbu-linux/usb-gadget)，其中有使用 Configfs 配置 USB Device 的脚本可供使用和参考，请参阅对应页面的帮助文档和 [USB Gadget 开发指南 ](2-USB-Gadget-Developer-Guide.md)。
+此外 SpacemiT 提供了 [Buildroot / usb-gadget 工具 ](https://gitee.com/spacemit-buildroot/usb-gadget)，其中有使用 Configfs 配置 USB Device 的脚本可供使用和参考，请参阅对应页面的帮助文档和 [USB Gadget 开发指南 ](2-USB-Gadget-Developer-Guide.md)。
 
 如果需要开发自定义协议的 USB Device 模式驱动，可基于 FunctionFS 开发用户态驱动，可参考 Linux 内核文档 `usb/functionfs` 和 Linux 内核源码目录 `tools/usb/ffs-aio-example` 案例。
 
@@ -1538,7 +1538,7 @@ Device Descriptor:
 .....
 ```
 
-如果用户觉得 lsusb 的输出不够直观，或者在 bianbu-linux 上的是简化版的 lsusb 根本就没有详细信息，
+如果用户觉得 lsusb 的输出不够直观，或者在 buildroot 上的是简化版的 lsusb 根本就没有详细信息，
 我们建议在有 Python 的 OS 平台下载
 [lsusb.py 脚本 ](https://raw.githubusercontent.com/gregkh/usbutils/refs/heads/master/lsusb.py)，
 他会提供更好的可读性和供开发者视角对应的信息展示：
@@ -1557,7 +1557,7 @@ usb4              1d6b:0002 09 1IF  [USB 2.00,   480 Mbps,   0mA] (Linux 6.6.63 
 ```
 
 USB Host 针对 USB 外设可以通过第三方工具完成性能和功能测试，例如：
-- USB 存储的读写测试可以使用 FIO 工具，目前 bianbu-linux 上已集成 FIO
+- USB 存储的读写测试可以使用 FIO 工具，目前 buildroot 上已集成 FIO
 - 鼠标键盘功能验证可以通过查看 input 子系统（可选用 evtest、 getevent 等工具）
 - 网卡功能可以使用 ping 命令、 iperf3 等测试。
 

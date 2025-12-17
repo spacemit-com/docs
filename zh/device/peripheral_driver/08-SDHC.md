@@ -276,6 +276,6 @@ driver type:    0 (driver type B)
 
 ## 测试介绍
 
-MMC/SD等存储可以通过第三方工具完成性能和功能测试，例如：FIO，bonnie++，目前 bianbu-linux 上已集成 FIO 工具。可使用 FIO 工具进行读写性能评估与老化压力测试。
+MMC/SD等存储可以通过第三方工具完成性能和功能测试，例如：FIO，bonnie++，目前 buildroot 上已集成 FIO 工具。可使用 FIO 工具进行读写性能评估与老化压力测试。
 
 ## FAQ

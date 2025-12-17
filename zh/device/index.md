@@ -5,7 +5,7 @@ slug: /device
 
 # 设备开发
 
-Bianbu Linux 方案开发指南:
+Buildroot 方案开发指南:
 
 - [设备管理](device_management.md)
 - [方案管理](solution_management.md)

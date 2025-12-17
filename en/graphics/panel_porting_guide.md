@@ -528,7 +528,7 @@ Below are the key logs of MIPI DSI Panel initialization during the U-Boot startu
 
 ## Kernel Screen Debugging
 
-For the functions and usage of the SpacemiT platform Display module, refer to: [SpacemiT Platform Display Module Introduction](https://bianbu-linux.spacemit.com/en/device/peripheral_driver/Display/)
+For the functions and usage of the SpacemiT platform Display module, refer to: [SpacemiT Platform Display Module Introduction](https://sdk.spacemit.com/en/device/peripheral_driver/Display/)
 
 ### HDMI Configuration
 
@@ -981,9 +981,9 @@ weston --log=/var/log/weston --tty=1 --drm-device=card2 --idle-time=0
 
 Passing the `--drm-device=card2` argument forces Weston to use **HDMI as the primary output**.
 
-### 5. Bianbu-Desktop Primary Screen Configuration
+### 5. Bianbu Primary Screen Configuration
 
-In the **Bianbu-Desktop** environment, `mutter` defaults to treating **DSI** as the primary display.  
+In the **Bianbu** environment, `mutter` defaults to treating **DSI** as the primary display.  
 To change the primary display to **HDMI**, you must modify the `mutter` source code and recompile it.
 
 ```c

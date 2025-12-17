@@ -353,13 +353,13 @@ For more detailed API usage, refer to:
 
 ### Introduction
 
-In the **bianbu-linux** system, the demo source code is located at:
+In the **Buildroot** system, the demo source code is located at:
 
 ```
-xxx/bianbu-linux/package-src/k1x-gpu-test/openGLDemo
+xxx/buildroot-sdk/package-src/k1x-gpu-test/openGLDemo
 ```
 
-In the **bianbu-desktop** system, you can install `k1x-gpu-test` using the following command to get the related demo:
+In the **Bianbu** system, you can install `k1x-gpu-test` using the following command to get the related demo:
 
 ```bash
 sudo apt install k1x-gpu-test

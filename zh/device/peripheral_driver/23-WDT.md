@@ -98,7 +98,7 @@ static long watchdog_ioctl(struct file *file, unsigned int cmd, unsigned long ar
 ## Debug介绍
 
 由于内核watchdog框架将看门狗驱动注册成字符设备提供给应用层，测试要用户自行实现一个watchdog应用，示例如下：
-以下基于 **Bianbu Linux 系统** 验证
+以下基于 **Buildroot 系统** 验证
 
 ```sh
 fd = open("/dev/watchdog", O_WRONLY);

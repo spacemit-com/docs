@@ -28,9 +28,9 @@ CONFIG_POWERVR_ROGUE=y # 启用 PowerVR Rogue
 
 由于版权限制，PVR GPU 的 DDK（Device Development Kit）无法直接提供。用户层闭源代码以 so 动态库形式提供 OpenGLES、Vulkan 和 OpenCL API。
 
-在 bianbu-linux 和 bianbu-desktop 上开启 PVR GPU 驱动的方式如下：
+在 Buildroot 和 Bianbu 上开启 PVR GPU 驱动的方式如下：
 
-#### bianbu-linux
+#### Buildroot
 在编译 buildroot 时，将配置文件中启用：
 
 ```shell
@@ -49,7 +49,7 @@ BR2_PACKAGE_IMG_GPU_POWERVR=y
   [ ]   install examples
   ```
 
-#### bianbu-desktop
+#### Bianbu
 
 由于涉及版权问题，闭源 GPU 代码以 `.so` 动态库形式通过 **img-gpu-powervr** deb 包提供。
 用户可通过以下命令安装 PVR GPU 驱动程序：
@@ -82,7 +82,7 @@ sudo apt install img-gpu-powervr
 
 Mesa3D 提供 OpenGL ES API 接口及软件渲染实现。它向上对接应用程序对 OpenGL ES 渲染 API 的调用，向下对接 PowerVR GPU 驱动。
 
-#### bianbu-linux
+#### Buildroot
 
 在配置文件中启用以下选项，以使能 Mesa3D：
 
@@ -111,7 +111,7 @@ Mesa3D 提供 OpenGL ES API 接口及软件渲染实现。它向上对接应用�
     [ ]   OpenGL ES
   ```
 
-#### bianbu-desktop
+#### Bianbu
 
 调用 PowerVR GPU 硬件依赖于 bianbu 源上的 Mesa deb 包，并按以下顺序进行安装：
 

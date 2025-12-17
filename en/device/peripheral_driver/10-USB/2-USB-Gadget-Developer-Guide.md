@@ -90,7 +90,7 @@ CONFIG_USB_GADGET_DEBUG_FS=y
 
 具体详细的 configfs 配置可以参照概述中提到的内核文档参考资料。
 
-本文档主要基于 [SpacemiT usb-gadget 仓库 ](https://gitee.com/bianbu-linux/usb-gadget) 
+本文档主要基于 [SpacemiT usb-gadget 仓库 ](https://gitee.com/spacemit-buildroot/usb-gadget) 
 提供的 `scripts/gadget-setup.sh` 配置脚本进行讲解，注意切换至最新的发布分支，保证获取最新内容。
 
 请用户在继续阅读本文档的更多章节前，可以打开最新的 `gadget-setup.sh` 脚本源码搭配阅读更易于理解。
@@ -116,14 +116,14 @@ spacemit， VID/PID 序列号和 USB 厂商、产品名称字符串均在脚本�
 c0a00000.dwc3
 ```
 
-注意 Bianbu-Linux 和 Bianbu-Desktop 都系统自带了 ADB，默认在第一个 UDC 上加载
+注意 Buildroot和Bianbu都系统自带了 ADB，默认在第一个 UDC 上加载
 （即 K1 的下载 USB0 口对应的控制器）。
 
 如果使用脚本时发现第一个 UDC 被占用，可以使用下面命令关闭系统的 ADB 服务解除占用：
 ```
-# Bianbu-Linux
+# Buildroot
 ~ # /etc/init.d/S50adb-setup stop
-# Bianbu-Desktop 使用 systemctl 关闭 adbd 服务
+# Bianbu 使用 systemctl 关闭 adbd 服务
 ~ # systemctl stop adbd
 ```
 
@@ -146,7 +146,7 @@ gadget-setup: ERROR: configfs preserved, run gadget-setup resume after conflict 
 **需要打开的配置：** `CONFIG_USB_F_UVC`
 
 UVC 功能是开发板作为摄像头，依赖应用程序 uvc-gadget-new 提供数据源，该程序源码可以在
-[SpacemiT usb-gadget 仓库 ](https://gitee.com/bianbu-linux/usb-gadget) 下载，用户根据自己需求可对源码进行编译、二次开发。
+[SpacemiT usb-gadget 仓库 ](https://gitee.com/spacemit-buildroot/usb-gadget) 下载，用户根据自己需求可对源码进行编译、二次开发。
 
 **帧格式和 USB 带宽介绍：**
 
@@ -314,7 +314,7 @@ UAC 功能是开发板作为声卡，上层需要 `alsa-utils` 应用程序管�
 其中 ALSA Audio Device 可以使用开发板的接口接入模拟耳机或 USB 耳机（支持录音）或其他音频设备。
 
 在开发板 Bianbu 系统上首先需要安装 `alsa-utils`：
-- bianbu-desktop 使用 apt 安装 `alsa-utils` 软件包。
+- Bianbu 使用 apt 安装 `alsa-utils` 软件包。
 - Buildroot 系统启用 `BR2_PACKAGE_ALSA_UTILS` 和其他相关配置。
 
 `gadget-setup` 脚本已集成了 UAC 功能，首先根据需求执行以下命令拉起 UAC Gadget：
@@ -524,10 +524,10 @@ Android 调试桥（ ADB）是一种多功能命令行工具，可让您与设�
 `gadget-setup.sh` 通用脚本集成了 ADB 功能，是基于 FunctionFS 实现的，此外需要上层应用
 adbd 才能正常运行。
 
-Bianbu Linux/Buildroot 中可以通过 `BR2_PACKAGE_ANDROID_TOOLS_ADBD` 启用 adbd 服务程序的编译，
-Bianbu Desktop 系统中可以通过 apt 命令行工具安装 `android-tools` 包。
+Buildroot 中可以通过 `BR2_PACKAGE_ANDROID_TOOLS_ADBD` 启用 adbd 服务程序的编译，
+Bianbu 中可以通过 apt 命令行工具安装 `android-tools` 包。
 
-注： Bianbu desktop/linux 有默认集成 adb 功能， gadget-setup.sh 不能和系统集成的同时使用。
+注： Bianbu/Buildroot 有默认集成 adb 功能， gadget-setup.sh 不能和系统集成的同时使用。
 可以通过查看 `/sys/kernel/config/usb_gadget` 中的目录找到不同的 usb gadget 实例。
 
 下面介绍使用 `gadget-setup.sh` 脚本配置 adb 功能的步骤：
@@ -589,9 +589,9 @@ MTP 是媒体文件传输协议，目前 USB-IF 维护。广泛应用于手机�
 
 对比 Mass Storage 的一旦挂载后手机就无法访问对应块设备或镜像的文件系统， MTP 可以让手机和 PC 同时访问对应文件系统，使用更加便捷。
 
-前面已经提到， MTP function 也是基于 FunctionFS 实现的，因此需要应用层服务程序。我们这里将采用 [umtp-responder](https://github.com/viveris/uMTP-Responder) 作为我们的服务程序，这是一个轻量级的 MTP 服务器，在开发板上， Bianbu-Linux(Buildroot) 和 Bianbu-Desktop 都可以直接使用：
+前面已经提到， MTP function 也是基于 FunctionFS 实现的，因此需要应用层服务程序。我们这里将采用 [umtp-responder](https://github.com/viveris/uMTP-Responder) 作为我们的服务程序，这是一个轻量级的 MTP 服务器，在开发板上， Buildroot和 Bianbu 都可以直接使用：
 - Buildroot 通过 `CONFIG_BR2_PACKAGE_UMTPRD` 启用编译即可使用；
-- Desktop 中通过 apt 安装 `umtp-responder` 软件包安装即可使用；
+- Bianbu 中通过 apt 安装 `umtp-responder` 软件包安装即可使用；
 - 其他 OS，可以从 [Github 的源码 ](https://github.com/viveris/uMTP-Responder) 自行构建即可。
 
 `gadget-setup.sh` 中已经集成基于 umtp-responder 的 MTP function 配置，按照上面步骤安装完成后，执行：
@@ -826,7 +826,7 @@ SpacemiT 基于 kernel 源码的 tools/usb/ffs-aio-example 目录下的 simple d
   - 基于 [WCID](https://github.com/pbatard/libwdi/wiki/WCID-Devices) 增加 WINUSB 免驱操作系统描述符，让 Windows 能够直接绑定 WINUSB 驱动从而应用层快速验证。
   - 改善打印和增加可读数据。
 
-此代码发布于 [Gitee | Bianbu-linux/usb-gadget](https://gitee.com/bianbu-linux/usb-gadget)
+此代码发布于 [Gitee | SpacemiT Buildroot SDK/usb-gadget](https://gitee.com/spacemit-buildroot/usb-gadget)
 
 把仓库 clone 到装有 bianbu/ubuntu 系统的 K1 开发板中后（为了简化验证过程，此处暂不介绍交叉编译的方法），按以下步骤执行可以跑通 ffs demo。
 

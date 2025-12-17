@@ -39,7 +39,7 @@ Device 模式下，测试波形是支持以下两种方式，根据测试环境�
 #### K1 USB2.0 OTG 控制器 Device 模式测试
 
 测试时，请先保证 USB2.0 OTG 控制器工作在 Device 模式，
-目前 Bianbu-Linux/Bianbu-Desktop 都开机启动 USB2.0 OTG 控制器作为一个 USB ADB 设备。
+目前 Buildroot/Bianbu 都开机启动 USB2.0 OTG 控制器作为一个 USB ADB 设备。
 
 如果采用特殊固件，可以使用 gadget-setup.sh 脚本进行配置：
 
@@ -337,7 +337,7 @@ USB HUB 扩展而来。此时需要打开他们的测试模式，同样使用 po
 可以参考上面的方法，只是把找的 Vendor、 ProdID、 Manufacturer、 Product 的对应信息换成
 你要测试的 HUB 的信息去找到对应的 Bus number 和 Device number 即可。
 
-这里再介绍如何使用 lsusb （不适用于 bianbu-linux，因为 buildroot 的 lsusb 是精简版）
+这里再介绍如何使用 lsusb （不适用于 buildroot，因为 buildroot 的 lsusb 是精简版）
 查找对应的 Bus number 和 Dev number。
 
 以 K1 开发板 bpi-banana-f3 为例，在 USB3.0 DRD 控制器上板载了一款 VIA Labs 的 VL817 型号
@@ -550,7 +550,7 @@ USB30CV 软件包可在 USF-IF 官方网站下载： https://www.usb.org/documen
 ### porttest 源码
 
 
-推送源码到 bianbu-desktop 中，终端打开文件所在目录执行：
+推送源码到 Bianbu 中，终端打开文件所在目录执行：
 
 ```
 gcc porttest.c -o porttest --static

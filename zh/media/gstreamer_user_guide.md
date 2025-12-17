@@ -49,7 +49,7 @@ gst-inspect-1.0 --version
 
 ### Gstreamer 插件说明
 
-可以使用以下命令查询当前 **Bianbu OS/Bianbu Linux** 系统中 GStreamer 默认支持的插件情况：
+可以使用以下命令查询当前 **Bianbu OS/Buildroot** 系统中 GStreamer 默认支持的插件情况：
 
 ```
 gst-inspect-1.0
@@ -61,7 +61,7 @@ gst-inspect-1.0
 
 视频解码器的作用是将视频源格式转换为可以被目标接收器（例如显示器）解释的原始格式。**Spacemit GStreamer 支持 spacemitdec 专有插件，该插件可以帮助用户获得更优质的结果。**
 
-| Video Decoder | Package            | Description                                             | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Video Decoder | Package            | Description                                             | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |---------------|--------------------|---------------------------------------------------------|----------------|-------------------|
 | decodebin     | gst-plugins-base   | Autoplug and decode to raw media                        | Y              | Y                 |
 | spacemitdec   | gst-plugins-bad    | Decodes H264/H265/MJPEG/VP8/VP9/MPEG2/MPEG4 via MPP API | Y              | Y                 |
@@ -77,7 +77,7 @@ gst-inspect-1.0
 
 视频编码器的作用是将原始数据转换为编码的视频格式，例如 H.264 格式。**Spacemit GStreamer 支持 spacemit\*enc 专有插件，这些插件可以帮助用户获得更优质的结果。**
 
-| Video Encoder    | Package            | Description                         | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Video Encoder    | Package            | Description                         | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |------------------|--------------------|-------------------------------------|----------------|-------------------|
 | encodebin        | gst-plugins-base   | Convenience encoding/muxing element | Y              | N                 |
 | spacemith264enc  | gst-plugins-bad    | Encodes H264 via MPP API            | Y              | Y                 |
@@ -98,7 +98,7 @@ gst-inspect-1.0
 
 视频接收插件的作用是将处理后的数据通过显示输出进行展示。**Spacemit GStreamer 优化了 glimagesink/gtkglsink/waylandsink 插件，这些插件可以帮助用户获得更优质的结果。**
 
-| Video Encoder  | Package          | Description                                             | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Video Encoder  | Package          | Description                                             | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |----------------|------------------|---------------------------------------------------------|----------------|-------------------|
 | autovideosink  | gst-plugins-good | Wrapper video sink for automatically detected videosink | Y              | Y                 |
 | glimagesink    | gst-plugins-base | Infrastructure to process GL textures                   | Y              | N                 |
@@ -110,7 +110,7 @@ gst-inspect-1.0
 
 解复用器插件的作用是将不同的视频/音频格式转换为原始的。
 
-| Video Demux   | Package          | Description                        | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Video Demux   | Package          | Description                        | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |---------------|------------------|------------------------------------|----------------|-------------------|
 | qtdemux       | gst-plugins-good | Demux a .mov/.mp4 file to raw data | Y              | Y                 |
 | matroskedemux | gst-plugins-good | Demux a .mkv file to raw data      | Y              | N                 |
@@ -121,7 +121,7 @@ gst-inspect-1.0
 
 复用器插件负责将原始未解析的数据转换为特定的视频/音频数据。
 
-| Video Mux   | Package          | Description                   | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Video Mux   | Package          | Description                   | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |-------------|------------------|-------------------------------|----------------|-------------------|
 | qtmux       | gst-plugins-good | Mux a raw data to a .mov file | Y              | Y                 |
 | matroskemux | gst-plugins-good | Mux a raw data to a .mkv file | Y              | N                 |
@@ -134,7 +134,7 @@ gst-inspect-1.0
 
 音频插件的作用是处理来自音频原始格式或特定音频数据格式（如 WAV）的数据。
 
-| Audio Plugin   | Package          | Description                                     | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Audio Plugin   | Package          | Description                                     | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |----------------|------------------|-------------------------------------------------|----------------|-------------------|
 | mpg123audiodec | gst-plugins-good | MP3 decoding plugin based on the mpg123 library | Y              | N                 |
 | vorbisdec      | gst-plugins-base | Decodes raw vorbis streams to float audio       | Y              | N                 |
@@ -146,7 +146,7 @@ gst-inspect-1.0
 
 图像插件的作用是处理来自图像原始格式或特定数据格式（如 JPEG）的数据。
 
-| Image Plugin     | Package          | Description                                             | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Image Plugin     | Package          | Description                                             | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |------------------|------------------|---------------------------------------------------------|----------------|-------------------|
 | spacemitdec      | gst-plugins-bad  | Decodes H264/H265/MJPEG/VP8/VP9/MPEG2/MPEG4 via MPP API | Y              | Y                 |
 | spacemitmjpegenc | gst-plugins-bad  | Encodes MJPEG via MPP API                               | Y              | Y                 |
@@ -161,7 +161,7 @@ gst-inspect-1.0
 
 网络协议插件的作用是负责在设备之间建立网络连接。
 
-| Network Plugins | Package          | Description                                                      | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Network Plugins | Package          | Description                                                      | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |-----------------|------------------|------------------------------------------------------------------|----------------|-------------------|
 | udpsink         | gst-plugins-good | Send data over the network via UDP                               | Y              | Y                 |
 | multiudpsink    | gst-plugins-good | Send data over the network via UDP to one or multiple recipients | Y              | Y                 |
@@ -174,7 +174,7 @@ gst-inspect-1.0
 
 有效载荷插件负责在网络上传输数据，而去有效载荷插件则与这些插件结合使用，以接收和解包数据。
 
-| Network Plugins | Package          | Description                                                           | Bianbu OS(Y/N) | Bianbu Linux(Y/N) |
+| Network Plugins | Package          | Description                                                           | Bianbu OS(Y/N) | Buildroot(Y/N) |
 |-----------------|------------------|-----------------------------------------------------------------------|----------------|-------------------|
 | gdppay          | gst-plugins-bad  | Payloads GStreamer Data Protocol buffers                              | Y              | N                 |
 | gdpdepay        | gst-plugins-bad  | Depayloads GStreamer Data Protocol buffers                            | Y              | N                 |
@@ -327,7 +327,7 @@ HD Pro Webcam C920 (usb-xhci-hcd.0.auto-1.3):
 
 ##### MIPI 摄像头使用示例
 
-以下是一些使用 GStreamer 从 MIPI 摄像头以 OV16A10 输出 1080P@NV12 的示例。这些示例假设 spacemitsrc 的 JSON 配置文件已正确设置，具体配置请参考[相机开发指南](https://bianbu-linux.spacemit.com/camera/camera_development_guide)。
+以下是一些使用 GStreamer 从 MIPI 摄像头以 OV16A10 输出 1080P@NV12 的示例。这些示例假设 spacemitsrc 的 JSON 配置文件已正确设置，具体配置请参考[相机开发指南](https://sdk.spacemit.com/camera/camera_development_guide)。
 
 - 采集图像后送显，显示分辨率为 720p。（显示位置暂时没法设定）
 
@@ -353,7 +353,7 @@ HD Pro Webcam C920 (usb-xhci-hcd.0.auto-1.3):
   gst-launch-1.0  spacemitsrc location=/usr/share/camera_json/csi1_camera_auto.json close-dmabuf=0 num-buffers=1000 ! "video/x-raw(memory:DMABuf),format=NV12,width=1920,height=1080" ! spacemith264enc ! filesink location=test.h264
   ```
 
-在 Bianbu Desktop 上，可以使用 OpenCV 通过 GStreamer 采集 MIPI 摄像头的视频并显示。以下是具体步骤：
+在 Bianbu 上，可以使用 OpenCV 通过 GStreamer 采集 MIPI 摄像头的视频并显示。以下是具体步骤：
 
 1. 安装需要的工具和库
 
@@ -761,7 +761,7 @@ $ dot 0.00.00.170999259-gst-launch.PAUSED_PLAYING.dot -Tpng -o play.png
 
 1. **指定 Wayland 显示环境运行预览**
 
-   - **Bianbu Linux**
+   - **Buildroot**
      串口执行命令，实现预览画面。
      可以在 Gstramer 命令前加上：`WAYLAND_DISPLAY=wayland-1 XDG_RUNTIME_DIR=/root/` ，示例如下：
 

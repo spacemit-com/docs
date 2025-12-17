@@ -1,8 +1,8 @@
 ---
-sidebar_position: 3
+sidebar_position: 1
 ---
 
-# Bianbu Linux 2.2 Release Notes
+# Buildroot 2.2 Release Notes
 
 ## v2.2.7 release note
 

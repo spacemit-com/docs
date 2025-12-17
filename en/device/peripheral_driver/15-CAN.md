@@ -160,7 +160,7 @@ candump can0
 
 ## Testing
 
-The K1 platform can be connected to a CAN transceiver for testing. The other end of the communication is typically connected to a USBCAN analyzer linked to a computer to simulate a CAN device. As the connected device and its configuration may vary, this section focuses on K1-specific testing procedures. The following example uses the MUSE Pi development board with the bianbu-linux system for a demo demonstration. Please refer to the DTS configuration example section for the DTS configuration.
+The K1 platform can be connected to a CAN transceiver for testing. The other end of the communication is typically connected to a USBCAN analyzer linked to a computer to simulate a CAN device. As the connected device and its configuration may vary, this section focuses on K1-specific testing procedures. The following example uses the MUSE Pi development board with the buildroot system for a demo demonstration. Please refer to the DTS configuration example section for the DTS configuration.
 
 - Connecting CAN Devices to MUSE Pi
 

@@ -146,13 +146,13 @@ EGL API 由 Mesa3D 提供具体实现。
 
 ### 简介
 
-在 **bianbu-linux** 系统中，Demo 源码位置为：
+在 **buildroot** 系统中，Demo 源码位置为：
 
 ```
-xxx/bianbu-linux/package-src/k1x-gpu-test/openGLDemo
+xxx/buildroot-sdk/package-src/k1x-gpu-test/openGLDemo
 ```
 
-在 **bianbu-desktop** 系统中，可以通过以下命令安装 k1x-gpu-test 以获取相关 Demo：
+在 **Bianbu** 系统中，可以通过以下命令安装 k1x-gpu-test 以获取相关 Demo：
 
 ```bash
 sudo apt install k1x-gpu-test
@@ -208,8 +208,8 @@ Demo 的目录结构如下：
    gpu-cubeTextureDemo
    ```
 
-3. bianbu-linux 特殊设置
-   在 bianbu-linux 系统中，需要手动设置以下环境变量后才能运行：
+3. Buildroot 特殊设置
+   在 buildroot 系统中，需要手动设置以下环境变量后才能运行：
 
    ```bash
    XDG_RUNTIME_DIR=/root WAYLAND_DISPLAY=wayland-1 MESA_LOADER_DRIVER_OVERRIDE=pvr ./gpu-cubeTextureDemo

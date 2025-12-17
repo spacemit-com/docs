@@ -82,7 +82,7 @@ release-job:
     - export GIT_SSH_COMMAND='ssh -o ProxyCommand="nc -X connect -x proxy1.dc.com:1080 %h %p" -o StrictHostKeyChecking=no'
     - git config --global user.name "Bianbu-CI"
     - git config --global user.email "bianbu-ci@spacemit.com"
-    - git remote add gitee git@gitee.com:bianbu-linux/$CI_PROJECT_NAME.git
+    - git remote add gitee git@gitee.com:spacemit-buildroot/docs.git
     - git fetch gitee
     - git checkout gitee/main
     - git merge --no-ff --no-edit origin/main
