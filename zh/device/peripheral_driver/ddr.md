@@ -23,7 +23,7 @@ K1 SDK 支持 **LPDDR3**、**LPDDR4**、**LPDDR4x** 三种 DDR 类型，需根�
 2. 若 EEPROM 无有效配置，则从 DTS 节点中获取
 3. 如前两者都没有设置，则使用代码中配置的参数
 
-<img src="static/ddr_config_00.png" alt="" width="400">
+![](./static/ddr_config_00.png)
 
 修改参数后，需重新编译生成烧录镜像，更新至设备端以使修改生效。
 
@@ -42,7 +42,7 @@ K1 上支持的 DDR 型号包含 **LPDDR3**、**LPDDR4**、**LPDDR4x** 三种类
    - 按住设备烧录按键上电，进入烧录模式
    - 通过 USB 连接 PC
    - 在 PC 上使用 **TitanFlasher 工具集** 的写号功能写入需要使用的 DDR 类型, 如下图。
-     <img src="static/ddr_type00.png" alt="" width="400">
+     ![](static/ddr_type00.png)
 
 2. **U-Boot 命令行写入**  
    - **前提**：DDR 使用默认配置能够完成初始化，设备能够启动到 U-Boot；
@@ -68,7 +68,7 @@ K1 支持 **单 CS / 双 CS** DDR。
 #### 场景 1：无需重烧镜像（需 EEPROM 支持）
 
 1. **烧号模式写入**：通过 TitanFlasher 写号功能，将 CS 数量写入板上 EEPROM， 如下图。
-   <img src="static/ddr_cs00.png" alt="" width="400">
+   ![](static/ddr_cs00.png)
 
 2. **U-Boot 命令行写入**
    依赖：设备能启动，DDR使用默认配置能够完成初始化。
@@ -101,7 +101,7 @@ cs-num = ;    /* 单 CS DDR */
 #### 场景 1：无需重烧镜像（需 EEPROM 支持）
 
 1. **烧号模式写入**：通过TitanFlasher中的写号工具，更改 DDR 速率至板上 EEPROM, 如下图。
-   <img src="static/ddr_rate00.png" alt="" width="400">
+   ![](static/ddr_rate00.png)
 
 2. **U-Boot 命令行写入**
      依赖：设备能够启动，DDR 使用默认配置能够完成初始化；
@@ -159,7 +159,7 @@ const struct io_para_info ddr_io_para_table[] = {
 #### 场景 1：无需重烧镜像（需 EEPROM 支持）
 
 1. **烧号模式写入**：通过 TitanFlasher 中的写号工具，将 DDR TX ODT 配置写入 EEPROM, 如下图。
-   <img src="static/ddr_odt00.png" alt="" width="400">
+   ![](static/ddr_odt00.png)
 
 2. **U-Boot 命令行写入**：
      依赖：设备能够启动，DDR使用默认配置能够完成初始化。
@@ -202,12 +202,12 @@ const struct io_para_info ddr_io_para_table[] = {
 
 对应寄存器位描述如下图，两个 CS 对应两个寄存器：DRAM_Config_5_CS0（offset 0x310）、DRAM_Config_5_CS1（offset 0x314），每个频点都需要配置。
 
-<img src="static/ddr_reg00.png" alt="" width="700">
+![](static/ddr_reg00.png)
 
 会被控制器配置到 DDR mode register。
 以 LPDDR4 为例，会被 DDR 控制器配置到 DDR MR3 OP[5:3]，如下图所示位置。
 
-<img src="static/ddr_reg01.png" alt="" width="700">
+![](static/ddr_reg01.png)
 
 ### 3.2 RX ODT
 
@@ -236,18 +236,18 @@ index 751623a0e1..d5c5a2cfc0 100644
 ```
 
 PHY 端配置 `rx_odt`，对应的寄存器位描述如下图。
-<img src="static/ddr_reg02.png" alt="" width="700">
+![](static/ddr_reg02.png)
 
 颗粒端配置 `rx_soc_odt`，对应的寄存器位描述如下图。
 
-<img src="static/ddr_reg03.png" alt="" width="700">
+![](static/ddr_reg03.png)
 
 ### 3.3 TX VREF
 
 TX VREF(`tx_vref`)是调节 Device 接收颗粒端参考电压，是 DDR 颗粒用于信号电平判决的关键参考电压；DDR 驱动初始化时，会通过手动的方式调节设置一个“合适”但非最佳的初始值，启动过程中主控通过 TX Training 流程，将 TX VREF 值调整至采样区间的正中间（理论上的最佳值）。
 **建议：** 该参数一般不需要调节，使用默认配置值即可，对应寄存器描述参见下图。
 
-<img src="static/ddr_reg04.png" alt="" width="700">
+![](static/ddr_reg04.png)
 
 ### 3.4 RX VREF
 
@@ -260,19 +260,19 @@ vref = 0.3 * vddq
 
 该参数一般不需要调节，使用默认配置值即可，对应寄存器描述参见下图。
 
-<img src="static/ddr_reg05.png" alt="" width="700">
+![](static/ddr_reg05.png)
 
 ### 3.5 TX DRIVE
 
 TX DRIVE 用于调节主控端 CK/DQS/DQ 对外输出的驱动能力，通过设置 PHY 寄存器中的 pull high drive（`tx_pdrv`）与 pull low driver（`tx_ndrv`）来完成配置。对应寄存器描述参见下图。
 
-<img src="static/ddr_reg06.png" alt="" width="700">
+![](static/ddr_reg06.png)
 
 ### 3.6 RX DRIVE
 
 RX DRIVE 是调节 Device 端 DQS/DQ 对外输出的驱动能力。对应寄存器描述参见下图。
 
-<img src="static/ddr_reg07.png" alt="" width="700">
+![](static/ddr_reg07.png)
 
 ### 3.7 WDQS
 
