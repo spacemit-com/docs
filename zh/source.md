@@ -165,18 +165,19 @@ wget -c -r -nv -np -nH -R "index.html*" http://archive.spacemit.com/buildroot/dl
 cd ~/buildroot-sdk
 make envconfig
 Available configs in buildroot-ext/configs/:
-  1. spacemit_k1_upstream_defconfig
-  2. spacemit_k1_minimal_defconfig
-  3. spacemit_k1_plt_defconfig
+  1. spacemit_k1_plt_lxv10_defconfig
+  2. spacemit_k1_plt_v2_defconfig
+  3. spacemit_k1_plt_zt001h_defconfig
   4. spacemit_k1_rt_defconfig
-  5. spacemit_k1_v2_defconfig
+  5. spacemit_k1_upstream_defconfig
+  6. spacemit_k1_v2_defconfig
+  7. spacemit_k1_v2_nand_defconfig
 
-
-your choice (1-5):
+Your choice (1-7):
 
 ```
 
-编译Buildroot 2.x版本，输入`5`，然后回车即开始编译。
+编译Buildroot 2.x版本，输入`6`，然后回车即开始编译。
 
 注意：自Buildroot 2.2.7 开始
 
